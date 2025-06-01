@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api/v1',
+  baseURL: 'https://dhagakart.onrender.com/api/v1',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

@@ -44,7 +44,7 @@ function App() {
   // const [stripeApiKey, setStripeApiKey] = useState("");
 
   // async function getStripeApiKey() {
-  //   const { data } = await axios.get('http://localhost:4000/api/v1/stripeapikey');
+  //   const { data } = await axios.get('https://dhagakart.onrender.com/api/v1/stripeapikey');
   //   setStripeApiKey(data.stripeApiKey);
   // }
 

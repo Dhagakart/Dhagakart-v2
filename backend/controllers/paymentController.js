@@ -40,8 +40,8 @@ exports.processPayment = asyncErrorHandler(async (req, res, next) => {
     params["ORDER_ID"] = "oid" + uuidv4();
     params["CUST_ID"] = process.env.PAYTM_CUST_ID;
     params["TXN_AMOUNT"] = JSON.stringify(amount);
-    // params["CALLBACK_URL"] = `${req.protocol}://${req.get("host")}http://localhost:4000/api/v1/callback`;
-    params["CALLBACK_URL"] = `https://${req.get("host")}http://localhost:4000/api/v1/callback`;
+    // params["CALLBACK_URL"] = `${req.protocol}://${req.get("host")}https://dhagakart.onrender.com/api/v1/callback`;
+    params["CALLBACK_URL"] = `https://${req.get("host")}https://dhagakart.onrender.com/api/v1/callback`;
     params["EMAIL"] = email;
     params["MOBILE_NO"] = phoneNo;
 
