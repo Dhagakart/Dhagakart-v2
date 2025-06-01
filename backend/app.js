@@ -17,14 +17,22 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const corsOptions = {
-    origin: 'https://dhagakart-jfaj.vercel.app', // ✅ No trailing slash
-    withCredentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range']
+    origin: [
+        'https://dhagakart-jfaj.vercel.app',
+        'http://localhost:5173' // for local development
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    optionsSuccessStatus: 200
 };
 
+// Apply CORS with the options
 app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions)); // Enable preflight for all routes
 
 // Session configuration
 app.use(session({
@@ -46,12 +54,6 @@ app.use(session({
 // Initialize Passport and restore authentication state from session
 app.use(passport.initialize());
 app.use(passport.session());
-
-// CORS configuration
-app.use(cors({
-    ...corsOptions,
-    withCredentials: true
-}));
 
 // Increase JSON and URL-encoded body parser limits
 app.use(express.json({ limit: '50mb' }));

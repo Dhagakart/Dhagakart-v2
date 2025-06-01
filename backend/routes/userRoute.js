@@ -1,95 +1,92 @@
 const express = require('express');
+const passport = require('passport');
 const {
-    registerUser,
-    loginUser,
-    logoutUser,
-    getUserDetails,
-    forgotPassword,
-    resetPassword,
-    updatePassword,
-    updateProfile,
-    getAllUsers,
-    getSingleUser,
-    updateUserRole,
-    deleteUser
+  registerUser,
+  loginUser,
+  logoutUser,
+  getUserDetails,
+  forgotPassword,
+  resetPassword,
+  updatePassword,
+  updateProfile,
+  getAllUsers,
+  getSingleUser,
+  updateUserRole,
+  deleteUser
 } = require('../controllers/userController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
-const passport = require('passport');
 
 const router = express.Router();
 
-// Google OAuth: Start authentication
+// ─── 1. START Google OAuth Flow ────────────────────────────────────────
 router.get('/auth/google', (req, res, next) => {
-    const redirect = req.query.redirect || 'account';
-    const state = JSON.stringify({ redirect });
-    const authenticator = passport.authenticate('google', {
-        scope: ['profile', 'email'],
-        state: state
-    });
-    authenticator(req, res, next);
+  // You can pass a "redirect" path via query (optional)
+  const redirect = req.query.redirect || 'account';
+  const state = JSON.stringify({ redirect });
+
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    state
+  })(req, res, next);
 });
 
-// Google OAuth: Callback
-router.get('/auth/google', (req, res, next) => {
-    const redirect = req.query.redirect || '/account';
-    const state = JSON.stringify({ redirect });
-    const authenticator = passport.authenticate('google', {
-        scope: ['profile', 'email'],
-        state: state
-    });
-    authenticator(req, res, next);
-});
-
-// Google OAuth: Callback
+// ─── 2. Google OAuth CALLBACK ────────────────────────────────────────────
 router.get(
-    '/auth/google/callback',
-    passport.authenticate('google', {
-        failureRedirect: 'https://dhagakart-jfaj.vercel.app/login',
-        session: false
-    }),
-    async (req, res) => {
-        try {
-            // Always redirect to the frontend account page
-            const frontendUrl = 'https://dhagakart-jfaj.vercel.app/account';
-            
-            // Generate JWT token
-            const token = req.user.getJWTToken();
+  '/auth/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: 'https://dhagakart-jfaj.vercel.app/login',
+    session: false
+  }),
+  async (req, res) => {
+    try {
+      // If you passed a "redirect" in state, read it; otherwise default to '/account'
+      const rawState = req.query.state || '{}';
+      const parsed = JSON.parse(decodeURIComponent(rawState));
+      let redirectPath = parsed.redirect || '/account';
 
-            // Set token in cookie
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-            });
+      // Ensure it starts with "/"
+      if (!redirectPath.startsWith('/')) {
+        redirectPath = '/' + redirectPath;
+      }
 
-            // Redirect to frontend
-            res.redirect(frontendUrl);
-        } catch (error) {
-            console.error('OAuth callback error:', error);
-            res.redirect('https://dhagakart-jfaj.vercel.app/login?error=auth_failed');
-        }
+      // Generate a JWT for this user
+      const token = req.user.getJWTToken();
+
+      // Set the cookie in the response
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      });
+
+      // Redirect back to your frontend
+      return res.redirect(`https://dhagakart-jfaj.vercel.app${redirectPath}`);
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      return res.redirect('https://dhagakart-jfaj.vercel.app/login?error=auth_failed');
     }
+  }
 );
 
+// ─── Regular Auth Routes ─────────────────────────────────────────────────
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+router.get('/logout', logoutUser);
 
-// Auth routes
-router.route('/register').post(registerUser);
-router.route('/login').post(loginUser);
-router.route('/logout').get(logoutUser);
+// ─── User Profile / Password ─────────────────────────────────────────────
+router.get('/me', isAuthenticatedUser, getUserDetails);
+router.post('/password/forgot', forgotPassword);
+router.put('/password/reset/:token', resetPassword);
+router.put('/password/update', isAuthenticatedUser, updatePassword);
+router.put('/me/update', isAuthenticatedUser, updateProfile);
 
-// User info and password
-router.route('/me').get(isAuthenticatedUser, getUserDetails);
-router.route('/password/forgot').post(forgotPassword);
-router.route('/password/reset/:token').put(resetPassword);
-router.route('/password/update').put(isAuthenticatedUser, updatePassword);
-router.route('/me/update').put(isAuthenticatedUser, updateProfile);
-
-// Admin routes
-router.route("/admin/users").get(isAuthenticatedUser, authorizeRoles("admin"), getAllUsers);
-router.route("/admin/user/:id")
-    .get(isAuthenticatedUser, authorizeRoles("admin"), getSingleUser)
-    .put(isAuthenticatedUser, authorizeRoles("admin"), updateUserRole)
-    .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteUser);
+// ─── Admin-Only Routes ───────────────────────────────────────────────────
+router.get('/admin/users', isAuthenticatedUser, authorizeRoles('admin'), getAllUsers);
+router
+  .route('/admin/user/:id')
+  .get(isAuthenticatedUser, authorizeRoles('admin'), getSingleUser)
+  .put(isAuthenticatedUser, authorizeRoles('admin'), updateUserRole)
+  .delete(isAuthenticatedUser, authorizeRoles('admin'), deleteUser);
 
 module.exports = router;
