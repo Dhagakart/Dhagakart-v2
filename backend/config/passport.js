@@ -18,7 +18,7 @@ passport.deserializeUser(async (id, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || '959569465279-5rsiuvee546ffk0g3kmilri42ff7js6c.apps.googleusercontent.com',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
-    callbackURL: "/api/v1/auth/google/callback"
+    callbackURL: "https://dhagakart.onrender.com/api/v1/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         // Check if user already exists
