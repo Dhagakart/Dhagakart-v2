@@ -50,7 +50,7 @@ app.use(passport.session());
 // CORS configuration
 app.use(cors({
     ...corsOptions,
-    credentials: true
+    withCredentials: true
 }));
 
 // Increase JSON and URL-encoded body parser limits
