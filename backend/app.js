@@ -16,15 +16,15 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: 'backend/config/config.env' });
 }
 
-// CORS configuration
 const corsOptions = {
-    // origin: 'http://localhost:5173',
-    origin: 'https://dhagakart-jfaj.vercel.app/',
+    origin: 'https://dhagakart-jfaj.vercel.app', // ✅ No trailing slash
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Range', 'X-Content-Range']
 };
+
+app.use(cors(corsOptions));
 
 // Session configuration
 app.use(session({
