@@ -18,7 +18,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const corsOptions = {
     origin: 'https://dhagakart-jfaj.vercel.app', // ✅ No trailing slash
-    credentials: true,
+    withCredentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Range', 'X-Content-Range']
