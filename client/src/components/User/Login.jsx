@@ -25,8 +25,9 @@ const Login = () => {
     };
 
     const handleGoogleLogin = () => {
-        const returnUrl = encodeURIComponent(window.location.origin + '/account');
-        window.location.href = `https://dhagakart.onrender.com/api/v1/auth/google?redirect=${returnUrl}`;
+        const returnUrl = window.location.origin + '/account';
+        const state = JSON.stringify({ redirect: '/account' });
+        window.location.href = `https://dhagakart.onrender.com/api/v1/auth/google?state=${encodeURIComponent(state)}`;
     };
 
     useEffect(() => {

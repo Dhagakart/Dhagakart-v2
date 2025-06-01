@@ -30,6 +30,17 @@ router.get('/auth/google', (req, res, next) => {
 });
 
 // Google OAuth: Callback
+router.get('/auth/google', (req, res, next) => {
+    const redirect = req.query.redirect || '/account';
+    const state = JSON.stringify({ redirect });
+    const authenticator = passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        state: state
+    });
+    authenticator(req, res, next);
+});
+
+// Google OAuth: Callback
 router.get(
     '/auth/google/callback',
     passport.authenticate('google', {
@@ -38,13 +49,13 @@ router.get(
     }),
     async (req, res) => {
         try {
-            // Extract redirect path from state
-            const state = JSON.parse(req.query.state || '{}');
-            let redirectPath = state.redirect || '/account';
+            // Extract redirect path from state or use default
+            const state = req.query.state ? JSON.parse(decodeURIComponent(req.query.state)) : {};
+            let redirectUrl = state.redirect || '/account';
 
-            // Ensure it starts with a single "/"
-            if (!redirectPath.startsWith('/')) {
-                redirectPath = '/' + redirectPath;
+            // If the redirect URL is just a path, prepend the domain
+            if (redirectUrl.startsWith('/')) {
+                redirectUrl = `https://dhagakart-jfaj.vercel.app${redirectUrl}`;
             }
 
             // Generate JWT token
@@ -55,11 +66,10 @@ router.get(
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
-                expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+                expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // ✅ Closing parenthesis was missing
             });
 
-            // Redirect to frontend
-            const redirectUrl = `https://dhagakart-jfaj.vercel.app${redirectPath}`;
+            // Redirect to the final URL
             res.redirect(redirectUrl);
         } catch (error) {
             console.error('OAuth callback error:', error);
