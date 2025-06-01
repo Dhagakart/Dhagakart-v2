@@ -49,15 +49,9 @@ router.get(
     }),
     async (req, res) => {
         try {
-            // Extract redirect path from state or use default
-            const state = req.query.state ? JSON.parse(decodeURIComponent(req.query.state)) : {};
-            let redirectUrl = state.redirect || '/account';
-
-            // If the redirect URL is just a path, prepend the domain
-            if (redirectUrl.startsWith('/')) {
-                redirectUrl = `https://dhagakart-jfaj.vercel.app${redirectUrl}`;
-            }
-
+            // Always redirect to the frontend account page
+            const frontendUrl = 'https://dhagakart-jfaj.vercel.app/account';
+            
             // Generate JWT token
             const token = req.user.getJWTToken();
 
@@ -66,11 +60,11 @@ router.get(
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
-                expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // ✅ Closing parenthesis was missing
+                expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
             });
 
-            // Redirect to the final URL
-            res.redirect(redirectUrl);
+            // Redirect to frontend
+            res.redirect(frontendUrl);
         } catch (error) {
             console.error('OAuth callback error:', error);
             res.redirect('https://dhagakart-jfaj.vercel.app/login?error=auth_failed');
