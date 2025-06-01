@@ -28,7 +28,7 @@ const GoogleLogin = () => {
                     
                     if (data.success) {
                         dispatch(loginSuccess(data.user));
-                        navigate('/account');
+                        navigate('https:/dhagakart-jfaj.vercel.app/account');
                     }
                 } catch (error) {
                     console.error('Error fetching user data:', error);

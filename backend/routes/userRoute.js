@@ -40,7 +40,12 @@ router.get(
         try {
             // Extract redirect path from state
             const state = JSON.parse(req.query.state || '{}');
-            const redirectPath = state.redirect || 'account';
+            let redirectPath = state.redirect || '/account';
+
+            // Ensure it starts with a single "/"
+            if (!redirectPath.startsWith('/')) {
+                redirectPath = '/' + redirectPath;
+            }
 
             // Generate JWT token
             const token = req.user.getJWTToken();
@@ -53,8 +58,8 @@ router.get(
                 expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
             });
 
-            // Redirect to frontend with path
-            const redirectUrl = `https://dhagakart-jfaj.vercel.app/${redirectPath}`.replace(/\/+$/, '');
+            // Redirect to frontend
+            const redirectUrl = `https://dhagakart-jfaj.vercel.app${redirectPath}`;
             res.redirect(redirectUrl);
         } catch (error) {
             console.error('OAuth callback error:', error);
@@ -62,6 +67,7 @@ router.get(
         }
     }
 );
+
 
 // Auth routes
 router.route('/register').post(registerUser);
