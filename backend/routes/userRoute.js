@@ -15,57 +15,30 @@ const {
   deleteUser
 } = require('../controllers/userController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
+const sendToken = require('../utils/sendToken');
 
 const router = express.Router();
 
+const FRONTEND_URL = 'https://dhagakart-jfaj.vercel.app';
+
 // ─── 1. START Google OAuth Flow ────────────────────────────────────────
-router.get('/auth/google', (req, res, next) => {
-  // You can pass a "redirect" path via query (optional)
-  const redirect = req.query.redirect || 'account';
-  const state = JSON.stringify({ redirect });
+router.get('/auth/google', passport.authenticate('google', {
+  scope: ['profile', 'email']
+}));
 
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-    state
-  })(req, res, next);
-});
-
-// ─── 2. Google OAuth CALLBACK ────────────────────────────────────────────
+// ─── Google OAuth Callback ────────────────────────────────────────────────
 router.get(
   '/auth/google/callback',
   passport.authenticate('google', {
-    failureRedirect: 'https://dhagakart-jfaj.vercel.app/login',
-    session: false
+    failureRedirect: `${FRONTEND_URL}/login`,
+    session: true
   }),
-  async (req, res) => {
-    try {
-      // If you passed a "redirect" in state, read it; otherwise default to '/account'
-      const rawState = req.query.state || '{}';
-      const parsed = JSON.parse(decodeURIComponent(rawState));
-      let redirectPath = parsed.redirect || '/account';
+  (req, res) => {
+    // Use your custom sendToken function
+    sendToken(req.user, 200, res);
 
-      // Ensure it starts with "/"
-      if (!redirectPath.startsWith('/')) {
-        redirectPath = '/' + redirectPath;
-      }
-
-      // Generate a JWT for this user
-      const token = req.user.getJWTToken();
-
-      // Set the cookie in the response
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-      });
-
-      // Redirect back to your frontend
-      return res.redirect(`https://dhagakart-jfaj.vercel.app${redirectPath}`);
-    } catch (error) {
-      console.error('OAuth callback error:', error);
-      return res.redirect('https://dhagakart-jfaj.vercel.app/login?error=auth_failed');
-    }
+    // Redirect to account page after setting cookie
+    res.redirect(`${FRONTEND_URL}/account`);
   }
 );
 
