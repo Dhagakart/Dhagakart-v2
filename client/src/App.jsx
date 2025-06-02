@@ -36,6 +36,7 @@ import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
+import oAuthSuccess from './components/oAuthSuccess';
 
 function App() {
 
@@ -230,6 +231,7 @@ function App() {
         } ></Route>
 
         <Route path="*" element={<NotFound />}></Route>
+        <Route path="/oauth-success" element={<oAuthSuccess />} />
 
       </Routes>
       <Footer />

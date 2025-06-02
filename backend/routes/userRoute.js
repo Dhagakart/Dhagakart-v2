@@ -38,8 +38,8 @@ router.get(
   async (req, res) => {
       try {
           // Set default redirect
-          const redirectUrl = 'https://dhagakart-jfaj.vercel.app/account';
-          // const redirectUrl = 'http://localhost:5173/account';
+          const redirectUrl = 'https://dhagakart-jfaj.vercel.app/oauth-success';
+          // const redirectUrl = 'http://localhost:5173/oauth-success';
 
           // Generate JWT token
           const token = req.user.getJWTToken();
