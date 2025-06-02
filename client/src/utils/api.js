@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token to requests
+// Request interceptor to attach Authorization header
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,30 +19,26 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle errors
+// Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle session expiration or unauthorized access
     if (error.response?.status === 401 || error.response?.status === 403) {
-      // If unauthorized, clear the token and redirect to login
+      // Clear local token
       localStorage.removeItem('token');
-      console.error('Authentication error:', error.response?.data?.message || 'Unauthorized');
-      // Only redirect if not already on login page to prevent infinite redirects
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-      }
+
+      // Redirect to login page
+      window.location.href = 'https://dhagakart-jfaj.vercel.app/login';
     }
+
     return Promise.reject(error);
   }
 );
 
-// Helper function to get auth headers
+// Optional helper to manually attach headers (e.g., fetch calls)
 export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
