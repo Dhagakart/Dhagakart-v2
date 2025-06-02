@@ -30,17 +30,34 @@ router.get('/auth/google', passport.authenticate('google', {
 router.get(
   '/auth/google/callback',
   passport.authenticate('google', {
-    failureRedirect: `${FRONTEND_URL}/login`,
-    session: true
+      failureRedirect: 'https://dhagakart-jfaj.vercel.app/login',
+      session: false
   }),
-  (req, res) => {
-    // Use your custom sendToken function
-    sendToken(req.user, 200, res);
+  async (req, res) => {
+      try {
+          // Set default redirect
+          const redirectUrl = 'https://dhagakart-jfaj.vercel.app/account';
 
-    // Redirect to account page after setting cookie
-    res.redirect(`${FRONTEND_URL}/account`);
+          // Generate JWT token
+          const token = req.user.getJWTToken();
+
+          // Set token in a cookie
+          res.cookie('token', token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+          });
+
+          // Redirect to frontend
+          res.redirect(redirectUrl);
+      } catch (error) {
+          console.error('OAuth callback error:', error);
+          res.redirect('https://dhagakart-jfaj.vercel.app/login?error=auth_failed');
+      }
   }
 );
+
 
 // ─── Regular Auth Routes ─────────────────────────────────────────────────
 router.post('/register', registerUser);
