@@ -23,20 +23,20 @@ api.interceptors.request.use(
 );
 
 // Response interceptor to handle auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // Clear local token
-      localStorage.removeItem('token');
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401 || error.response?.status === 403) {
+//       // Clear local token
+//       localStorage.removeItem('token');
 
-      // Redirect to login page
-      window.location.href = 'https://dhagakart-jfaj.vercel.app/login';
-    }
+//       // Redirect to login page
+//       window.location.href = 'https://dhagakart-jfaj.vercel.app/login';
+//     }
 
-    return Promise.reject(error);
-  }
-);
+//     return Promise.reject(error);
+//   }
+// );
 
 // Optional helper to manually attach headers (e.g., fetch calls)
 export const getAuthHeaders = () => {
