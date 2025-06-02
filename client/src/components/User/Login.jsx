@@ -26,6 +26,7 @@ const Login = () => {
 
     const handleGoogleLogin = () => {
         window.location.href = 'https://dhagakart.onrender.com/api/v1/auth/google';
+        // window.location.href = 'http://localhost:4000/api/v1/auth/google';
     };
 
     useEffect(() => {
