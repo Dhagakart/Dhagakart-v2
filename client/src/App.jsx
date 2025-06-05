@@ -36,7 +36,15 @@ import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
-import oAuthSuccess from './components/oAuthSuccess';
+// import oAuthSuccess from './components/oAuthSuccess';
+
+// DG ROUTES
+import LoginDG from './components/User/LoginDG';
+import OtpDG from './components/User/OtpDG.jsx';
+import LoginDG2 from './components/User/LoginDG2';
+import HeaderDG from './components/Layouts/Header/HeaderDG';
+import ForgotPasswordDG from './components/User/ForgotPasswordDG';
+import FooterDG from './components/Layouts/Footer/FooterDG';
 
 function App() {
 
@@ -73,11 +81,18 @@ function App() {
   
   return (
     <>
-      <Header />
+      {/* <Header /> */}
+      <HeaderDG />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* DG ROUTES */}
+        <Route path="/loginDG" element={<LoginDG />} />
+        <Route path="/otpDG" element={<OtpDG />} />
+        <Route path="/loginDG2" element={<LoginDG2 />} />
+        <Route path="/forgotPasswordDG" element={<ForgotPasswordDG />} />
 
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/products" element={<Products />} />
@@ -231,10 +246,11 @@ function App() {
         } ></Route>
 
         <Route path="*" element={<NotFound />}></Route>
-        <Route path="/oauth-success" element={<oAuthSuccess />} />
+        {/* <Route path="/oauth-success" element={<oAuthSuccess />} /> */}
 
       </Routes>
-      <Footer />
+      {/* <Footer />  */}
+      <FooterDG />
     </>
   );
 }

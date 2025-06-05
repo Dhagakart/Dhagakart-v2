@@ -13,7 +13,7 @@ export const newOrder = (order) => async (dispatch) => {
         };
 
         const { data } = await axios.post('https://dhagakart.onrender.com/api/v1/order/new', order, config);
-        // const { data } = await axios.post('https://dhagakart.onrender.com/api/v1/order/new', order, config);
+        // const { data } = await axios.post('http://localhost:4000/api/v1/order/new', order, config);
 
         dispatch({
             type: NEW_ORDER_SUCCESS,

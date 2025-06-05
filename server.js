@@ -6,10 +6,10 @@ const connectDatabase = require('./backend/config/database');
 
 // Load environment variables
 if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config({ path: 'backend/config/.env' });
+    require('dotenv').config({ path: 'backend/.env' });
 }
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 // UncaughtException Error - Handle any uncaught exceptions
 process.on('uncaughtException', (err) => {
@@ -23,9 +23,9 @@ connectDatabase();
 
 // Configure Cloudinary
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dnzj28iea',
-    api_key: process.env.CLOUDINARY_API_KEY || '916114165888191',
-    api_secret: process.env.CLOUDINARY_API_SECRET || '7nNwmmX6Vsw8Cpn3q0eoZalEZdY',
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Deployment configuration
@@ -48,7 +48,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Start the server
 const server = app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);    
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);    
     console.log(`Frontend URL: http://localhost:${process.env.FRONTEND_PORT || 5173}`);
     console.log(`Backend API: http://localhost:${PORT}/api/v1`);
 });

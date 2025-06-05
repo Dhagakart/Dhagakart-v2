@@ -19,7 +19,7 @@ const sendToken = require('../utils/sendToken');
 
 const router = express.Router();
 
-const FRONTEND_URL = 'https://dhagakart-jfaj.vercel.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://dhagakart-jfaj.vercel.app';
 // const FRONTEND_URL = 'http://localhost:5173';
 
 // ─── 1. START Google OAuth Flow ────────────────────────────────────────
@@ -31,14 +31,13 @@ router.get('/auth/google', passport.authenticate('google', {
 router.get(
   '/auth/google/callback',
   passport.authenticate('google', {
-      failureRedirect: 'https://dhagakart-jfaj.vercel.app/login',
-      // failureRedirect: 'http://localhost:5173/login',
+      failureRedirect: `${FRONTEND_URL}/login`,
       session: false
   }),
   async (req, res) => {
       try {
           // Set default redirect
-          const redirectUrl = 'https://dhagakart-jfaj.vercel.app/oauth-success';
+          const redirectUrl = `${FRONTEND_URL}/account` || 'https://dhagakart-jfaj.vercel.app/account';
           // const redirectUrl = 'http://localhost:5173/oauth-success';
 
           // Generate JWT token
@@ -56,7 +55,7 @@ router.get(
           res.redirect(redirectUrl);
       } catch (error) {
           console.error('OAuth callback error:', error);
-          res.redirect('https://dhagakart-jfaj.vercel.app/login?error=auth_failed');
+          res.redirect(`${FRONTEND_URL}/login?error=auth_failed`);
           // res.redirect('http://localhost:5173/login?error=auth_failed');
       }
   }
