@@ -7,7 +7,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos"
 
 // Example banner images (swap with your actual assets)
-import Banner1 from "../../../assets/images/Banner1.png"
+import Banner1 from "../../../assets/images/banner1.png"
 import BannerTop from "../../../assets/images/bannerTop.png"
 import BannerBottom from "../../../assets/images/bannerBottom.png"
 import poco from "../../../assets/images/Banners/poco-m4-pro.webp"
