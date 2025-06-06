@@ -1,7 +1,7 @@
 import React from 'react';
-import Poster1 from './Poster1.png';
-import Poster2 from './Poster2.png';
-import Poster3 from './Poster3.png';
+import Poster1 from './poster1.png';
+import Poster2 from './poster2.png';
+import Poster3 from './poster3.png';
 
 const Posters = () => {
   return (
