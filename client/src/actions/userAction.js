@@ -63,22 +63,36 @@ export const registerUser = (userData) => async (dispatch) => {
     try {
         dispatch({ type: REGISTER_USER_REQUEST });
 
-        const { data } = await api.post('/register', userData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        // Create a new object without the confirm password field
+        const { cpassword, ...userDataToSend } = userData;
 
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true // Important for cookies
+        };
+
+        const { data } = await api.post('/register', userDataToSend, config);
+
+        // The token is now in an HTTP-only cookie, no need to handle it manually
+        // The cookie will be sent automatically with subsequent requests
+
+        // Dispatch success action with user data
         dispatch({
             type: REGISTER_USER_SUCCESS,
             payload: data.user,
         });
 
+        return data; // Return the data for the component to use
+
     } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
         dispatch({
             type: REGISTER_USER_FAIL,
-            payload: error.response?.data?.message || 'Registration failed',
+            payload: errorMessage,
         });
+        throw new Error(errorMessage);
     }
 };
 

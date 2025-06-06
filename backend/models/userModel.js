@@ -14,9 +14,13 @@ const userSchema = new mongoose.Schema({
         required: [true, "Please Enter Your Email"],
         unique: true,
     },
-    gender: {
+    phone:{
         type: String,
-        required: false,
+        required: [true, "Please Enter Your Phone Number"],
+    },
+    city: {
+        type: String,
+        required: [true, "Please Enter Your City"],
     },
     password: {
         type: String,
@@ -24,13 +28,13 @@ const userSchema = new mongoose.Schema({
         minLength: [8, "Password should have atleast 8 chars"],
         select: false,
     },
-    avatar: {
-        public_id: {
-            type: String,
-        },
-        url: {
-            type: String,
-        }
+    businessName: {
+        type: String,
+        required: [true, "Please Enter Your Business Name"],
+    },
+    businessType: {
+        type: String,
+        required: [true, "Please Select Your Business Type"],
     },
     role: {
         type: String,

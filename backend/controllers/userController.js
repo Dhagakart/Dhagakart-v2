@@ -4,31 +4,36 @@ const sendToken = require('../utils/sendToken');
 const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
-const cloudinary = require('cloudinary');
 
 // Register User
 exports.registerUser = asyncErrorHandler(async (req, res, next) => {
+    try {
+        const { name, email, password, phone, city, businessName, businessType } = req.body;
 
-    const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: "avatars",
-        width: 150,
-        crop: "scale",
-    });
+        // Check if user already exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return next(new ErrorHandler('User already exists with this email', 400));
+        }
 
-    const { name, email, gender, password } = req.body;
+        const user = await User.create({
+            name,
+            email,
+            password,
+            phone,
+            city,
+            businessName,
+            businessType,
+            role: 'user' // Default role
+        });
 
-    const user = await User.create({
-        name, 
-        email,
-        gender,
-        password,
-        avatar: {
-            public_id: myCloud.public_id,
-            url: myCloud.secure_url,
-        },
-    });
-
-    sendToken(user, 201, res);
+        // Use sendToken to handle token in cookie
+        sendToken(user, 201, res);
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        return next(new ErrorHandler('Registration failed. Please try again.', 500));
+    }
 });
 
 // Login User

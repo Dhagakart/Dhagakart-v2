@@ -27,7 +27,7 @@ const DealSlider = ({ title }) => {
 
   return (
     <section className="bg-white w-full overflow-hidden py-4">
-      <div className="flex px-6 py-3 justify-between items-center">
+      <div className="flex py-3 justify-between items-center">
         <h1 className="text-xl font-medium text-gray-800">{title}</h1>
         <Link
           to="/products"
@@ -36,7 +36,7 @@ const DealSlider = ({ title }) => {
           Browse ALL Product <span className="ml-1">→</span>
         </Link>
       </div>
-      <div className="px-2">
+      <div>
         <Slider {...settings}>
           {itemsToShow.map((item) => {
             const currentPrice = typeof item.currentPrice === "string"
@@ -46,7 +46,7 @@ const DealSlider = ({ title }) => {
               ? parseInt(item.originalPrice.replace(/,/g, ""), 10)
               : item.originalPrice;
             return (
-              <div key={item._id || item.name} className="px-2 py-1">
+              <div key={item._id || item.name} className="py-1">
                 <Product
                   _id={item._id}
                   name={item.name}

@@ -196,23 +196,57 @@ const Register = () => {
         setActiveStep((prevStep) => prevStep - 1);
     };
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
+        
+        // Validate business details
         if (!user.businessName || !user.businessType) {
             enqueueSnackbar('Please fill all business details', { variant: 'error' });
             return;
         }
 
-        const formData = new FormData();
-        formData.set('name', user.name);
-        formData.set('email', user.email);
-        formData.set('password', user.password);
-        formData.set('phone', user.phone);
-        formData.set('city', user.city);
-        formData.set('businessName', user.businessName);
-        formData.set('businessType', user.businessType);
+        // Validate password match
+        if (user.password !== user.cpassword) {
+            enqueueSnackbar("Passwords don't match", { variant: 'error' });
+            return;
+        }
 
-        dispatch(registerUser(formData));
+        try {
+            // Create user data object
+            const userData = {
+                name: user.name,
+                email: user.email,
+                password: user.password,
+                phone: user.phone,
+                city: user.city,
+                businessName: user.businessName,
+                businessType: user.businessType
+            };
+
+            // Dispatch register action and wait for it to complete
+            const result = await dispatch(registerUser(userData));
+            
+            if (result?.user) {
+                // Show success message
+                enqueueSnackbar('Registration successful! Redirecting...', { variant: 'success' });
+                
+                // Redirect to home page after a short delay
+                setTimeout(() => {
+                    navigate('/');
+                }, 1500);
+            }
+            
+        } catch (error) {
+            // Log the error for debugging
+            console.error('Registration error:', error);
+            
+            // Show error message from the server or a default message
+            if (error.message) {
+                enqueueSnackbar(error.message, { variant: 'error' });
+            } else {
+                enqueueSnackbar('Registration failed. Please try again.', { variant: 'error' });
+            }
+        }
     };
 
     const steps = ['Personal Information', 'Business Details'];
