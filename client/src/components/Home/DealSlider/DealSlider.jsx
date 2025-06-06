@@ -1,64 +1,68 @@
-import Product from './Product';
-import Slider from 'react-slick';
-import { NextBtn, PreviousBtn } from '../Banner/Banner';
-import { Link } from 'react-router-dom';
-import { offerProducts } from '../../../utils/constants';
-import { getRandomProducts } from '../../../utils/functions';
+import Product from "./Product";
+import Slider from "react-slick";
+import { NextBtn, PreviousBtn } from "../Banner/Banner";
+import { Link } from "react-router-dom";
+import { offerProducts } from "../../../utils/constants";
+import { getRandomProducts } from "../../../utils/functions";
 
 export const settings = {
-    dots: false,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 6,
-    slidesToScroll: 6,
-    initialSlide: 1,
-    swipe: false,
-    prevArrow: <PreviousBtn />,
-    nextArrow: <NextBtn />,
-    responsive: [
-        {
-            breakpoint: 1024,
-            settings: {
-                slidesToShow: 3,
-                slidesToScroll: 3
-            }
-        },
-        {   
-            breakpoint: 600,
-            settings: {
-                slidesToShow: 2,
-                slidesToScroll: 2
-            }
-        },
-        {
-            breakpoint: 480,
-            settings: {
-                slidesToShow: 1,
-                slidesToScroll: 1
-            }
-        }
-    ]
+  dots: false,
+  infinite: false,
+  speed: 500,
+  slidesToShow: 5,
+  slidesToScroll: 5,
+  swipe: false,
+  prevArrow: <PreviousBtn />,
+  nextArrow: <NextBtn />,
+  responsive: [
+    { breakpoint: 1280, settings: { slidesToShow: 4, slidesToScroll: 4 } },
+    { breakpoint: 1024, settings: { slidesToShow: 3, slidesToScroll: 3 } },
+    { breakpoint: 768, settings: { slidesToShow: 2, slidesToScroll: 2 } },
+    { breakpoint: 480, settings: { slidesToShow: 1, slidesToScroll: 1 } },
+  ],
 };
 
 const DealSlider = ({ title }) => {
-    return (
-        <section className="bg-white w-full shadow overflow-hidden">
-            {/* <!-- header --> */}
-            <div className="flex px-6 py-3 justify-between items-center">
-                <h1 className="text-xl font-medium">{title}</h1>
-                <Link to="/products" className="bg-primary-blue text-xs font-medium text-white px-5 py-2.5 rounded-sm shadow-lg">VIEW ALL</Link>
-            </div>
-            <hr />
-            {/* <!-- header --> */}
+  const itemsToShow = getRandomProducts(offerProducts, 12);
 
-                <Slider {...settings}>
-                    {getRandomProducts(offerProducts, 12).map((item, i) => (
-                        <Product {...item} key={i} />
-                    ))}
-                </Slider>
-
-        </section>
-    );
+  return (
+    <section className="bg-white w-full overflow-hidden py-4">
+      <div className="flex px-6 py-3 justify-between items-center">
+        <h1 className="text-xl font-medium text-gray-800">{title}</h1>
+        <Link
+          to="/products"
+          className="text-blue-600 hover:text-blue-700 text-xs font-medium flex items-center"
+        >
+          Browse ALL Product <span className="ml-1">→</span>
+        </Link>
+      </div>
+      <div className="px-2">
+        <Slider {...settings}>
+          {itemsToShow.map((item) => {
+            const currentPrice = typeof item.currentPrice === "string"
+              ? parseInt(item.currentPrice.replace(/,/g, ""), 10)
+              : item.currentPrice;
+            const originalPrice = typeof item.originalPrice === "string"
+              ? parseInt(item.originalPrice.replace(/,/g, ""), 10)
+              : item.originalPrice;
+            return (
+              <div key={item._id || item.name} className="px-2 py-1">
+                <Product
+                  _id={item._id}
+                  name={item.name}
+                  description={item.description}
+                  images={[{ url: item.image }]}
+                  currentPrice={currentPrice}
+                  originalPrice={originalPrice}
+                  discount={item.discount}
+                />
+              </div>
+            );
+          })}
+        </Slider>
+      </div>
+    </section>
+  );
 };
 
 export default DealSlider;

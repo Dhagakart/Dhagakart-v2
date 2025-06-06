@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
@@ -9,6 +9,44 @@ const HeaderDG = () => {
   const navigate = useNavigate();
   const { cartItems } = useSelector((state) => state.cart);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userLocation, setUserLocation] = useState('Loading location...');
+  const [userPincode, setUserPincode] = useState('');
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            // Fetch location details
+            const locationResponse = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+            );
+            const locationData = await locationResponse.json();
+            
+            // Extract relevant location information
+            const address = locationData.address;
+            const location = address.city || address.town || address.village || address.county || '';
+            setUserLocation(location || 'Location not available');
+
+            // Get pincode from the same location data
+            setUserPincode(address.postcode || 'Pincode not available');
+          } catch (error) {
+            console.error('Error fetching location details:', error);
+            setUserLocation('Enable location access');
+            setUserPincode('Pincode not available');
+          }
+        },
+        (error) => {
+          setUserLocation('Enable location access');
+          setUserPincode('Pincode not available');
+        }
+      );
+    } else {
+      setUserLocation('Geolocation not supported');
+      setUserPincode('Pincode not available');
+    }
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -45,6 +83,21 @@ const HeaderDG = () => {
             <Link to="/" className="text-2xl font-bold text-white ml-8 mr-6">
               DhagaKart
             </Link>
+            
+            {/* Location Display */}
+            <div className="mr-4 flex items-center cursor-pointer hover:border hover:border-white/20 hover:bg-white/10 rounded px-2 py-1">
+              <div className="flex items-center">
+                <div className="text-left">
+                  {/* <div className="text-xs text-gray-200 font-normal">Delivery to</div> */}
+                  <div className="text-white font-medium text-sm flex items-center">
+                    <div className="flex flex-col">
+                      <span>{userLocation}</span>
+                      <span className="text-xs text-gray-200">Pincode: {userPincode}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* 
               Nav items (hidden on small screens, shown from md up). 

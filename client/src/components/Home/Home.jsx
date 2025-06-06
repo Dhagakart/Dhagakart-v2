@@ -29,7 +29,7 @@ const Home = () => {
       {/* <Categories /> */}
       <main className="flex flex-col gap-3 px-[65px] mt-16 sm:mt-10">
         <Banner />
-        <DealSlider title={"Discounts for You"} />
+        <DealSlider title={"Best Deals"} />
         {!loading && <ProductSlider title={"Suggested for You"} tagline={"Based on Your Activity"} />}
         <DealSlider title={"Top Brands, Best Price"} />
         {!loading && <ProductSlider title={"You May Also Like..."} tagline={"Based on Your Interest"} />}

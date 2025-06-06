@@ -1,3 +1,5 @@
+import Image from './image.png'
+
 // Categories Used In Entire App
 export const categories = [
     "Electronics",
@@ -11,159 +13,246 @@ export const categories = [
 // Product Sliders Offers
 export const offerProducts = [
     {
-        image: "https://rukminim1.flixcart.com/image/150/150/jqgy3rk0/computer-table/j/2/v/particle-board-dkl-comp-tb-09-delite-kom-brown-original-imafcheqbgers37z.jpeg",
-        name: "Office Study Tables",
-        offer: "From ₹3,290",
-        tag: "Made In India Brands",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/ksoz53k0/data-cable/micro-usb-cable/o/w/a/d4-lava-original-imag67jpby4fehga.jpeg",
-        name: "Mobiles & Accessories",
-        offer: "In Focus Now",
-        tag: "Buy Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/kffq2kw0/calculator/p/m/a/orpat-gt-ot-512-gt-calaculatot-original-imafvwdmnzpzufbb.jpeg",
-        name: "Calculators",
-        offer: "Min 70% Off",
-        tag: "Buy Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/krkyt8w0/office-study-chair/v/l/1/pp-polypropylene-shdelta-1001-savya-home-original-imag5ccydueur3es.jpeg",
-        name: "Office Study Chairs",
-        offer: "Min 40% Off",
-        tag: "Grab Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/ky0g58w0/smartwatch/v/w/p/33-android-ios-id116-plus-fitpro-yes-original-imagacdfj58fqtgf.jpeg",
-        name: "Smart Watches",
-        offer: "Min 40% Off",
-        tag: "Discover Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/khmbafk0-0/tripod/tripod/6/7/5/professional-3110-tripod-with-mobile-holder-light-aluminum-alloy-original-imafxhcaks7j2tq8.jpeg",
-        name: "Tripods",
-        offer: "Min 50% Off",
-        tag: "Great Savings!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/kjn6qvk0-0/shoe/d/c/v/ck2669-001nike-12-nike-black-white-smoke-grey-original-imafz5vwe5t53z3t.jpeg",
-        name: "Nike, Skechers & more",
-        offer: "Upto 40% Off",
-        tag: "Buy Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/flap/150/150/image/72e01243baf51459.jpg",
-        name: "Immunity Booster",
-        offer: "Upto 50% Off",
-        tag: "Great Savings!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/kskotjk0/headphone/p/c/b/nb120-tehalka-28-hours-playtime-neckband-aroma-original-imag6444my9aegkg.jpeg",
-        name: "Headphones",
-        offer: "Min 60% Off",
-        tag: "Grab Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/jrcdsi80/backpack/n/v/j/jersey-26l-blue-backpack-jersey19cbblu-backpack-safari-original-imaf8yr6yfbbhysk.jpeg",
-        name: "Trendy Backpacks",
-        offer: "Upto 30% Off",
-        tag: "Discover Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/kxdl3m80/air-conditioner-new/a/h/e/-original-imag9ua4eguhz7vr.jpeg",
-        name: "Air Conditioners",
-        offer: "Min 20% Off",
-        tag: "Shop Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/ku79vgw0/watch/t/f/y/nn9440nm01-titan-men-original-imag7cvayzwgazbm.jpeg",
-        name: "Titan, Fastrack, Casio",
-        offer: "Upto 75% Off",
-        tag: "Grab Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/ksoz53k0/data-cable/micro-usb-cable/o/w/a/d4-lava-original-imag67jpby4fehga.jpeg",
-        name: "Mobile Cables",
-        offer: "Min 50% Off",
-        tag: "Explore Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/jgcktjk0/sofa-set/z/b/u/grey-jute-nanoblkgr311-3-1-1-bharat-lifestyle-black-grey-original-imaf4myfta6nhkuh.jpeg",
-        name: "Sofa Sets",
-        offer: "Min 50% Off",
-        tag: "Great Savings!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/k6mibgw0/datacard/r/h/g/jiofi-jmr-541-original-imafpfhandhkptwc.jpeg",
-        name: "Data Cards",
-        offer: "Upto 60% Off",
-        tag: "Buy Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/jsrtn680/cooling-pad/f/j/z/tarkan-4-fans-original-imafe9w4gxyphh37.jpeg",
-        name: "Cooling Pads",
-        offer: "Upto 80% Off",
-        tag: "Grab Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/k5zn9u80/induction-cook-top/r/q/z/philips-phlps-2100-watt-induction-cooktop-black-original-imaf95d6gupffzr9.jpeg",
-        name: "Philips Inductions",
-        offer: "Upto 55% Off",
-        tag: "Top Rated",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/k7jdg280/lehenga-choli/m/h/f/free-na-102l10171-saara-original-imafprdmenpgbx2n.jpeg",
-        name: "Lehenga Cholis",
-        offer: "Min 60% Off",
-        tag: "Great Savings!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/ky3b0y80/television/s/k/h/-original-imagaedxhbam3wmx.jpeg",
-        name: "8K UHD | QLED TVs",
-        offer: "Upto 65% Off",
-        tag: "Discover Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/jlgwmfk0/coffee-table/c/h/9/rosewood-sheesham-inlct23-induscraft-honey-brown-original-imaf8kc3gprrchxd.jpeg",
-        name: "Coffee Tables",
-        offer: "From ₹1,900",
-        tag: "Relax & Work",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/ksdjma80/headphone/a/u/p/airdopes-131-airdopes-138-boat-original-imag5yz9sfz9bzq8.jpeg",
-        name: "Audio & Video",
-        offer: "Min 50% Off",
-        tag: "Explore Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/kbgu1e80/refrigerator-new/g/g/r/steel-inverter-technology-whirlpool-original-imafssu7ghxg5zgh.jpeg",
-        name: "Refrigerators",
-        offer: "Upto 20% Off",
-        tag: "Shop Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/kqidx8w0/television/o/h/9/43fa0a00-oneplus-original-imag4gy9perzvrdv.jpeg",
-        name: "Most Trending TVs",
-        offer: "Upto 60% Off",
-        tag: "Great Savings!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/keaaavk0/computer/x/m/y/lenovo-na-laptop-original-imafuzt8r5jqppfn.jpeg",
-        name: "Laptops",
-        offer: "Min 20% Off",
-        tag: "Great Savings!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/jtvtz0w0/sling-bag/d/u/k/ponam110-ponam-green-deniza-sling-bag-roseberries-original-imafyuvty2kzymr7.jpeg",
-        name: "Handbags",
-        offer: "Min 70% Off",
-        tag: "Grab Now!",
-    },
-    {
-        image: "https://rukminim1.flixcart.com/image/150/150/jjkbhjk0/sandwich-maker/5/q/g/nova-2-slice-sandwich-maker-original-imaf74a8zrqzfgug.jpeg",
-        name: "Sandwich Makers",
-        offer: "Upto 80% Off",
-        tag: "Buy Now!",
-    }
+        image: Image,
+        name: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
+        description: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
+        currentPrice: "2,300",
+        originalPrice: "4,000",
+        discount: 43, // Calculated: Math.round((1 - 2300 / 4000) * 100)
+        tag: "Best Seller"
+      },
+      {
+        image: Image,
+        name: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
+        description: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
+        currentPrice: "19,999",
+        originalPrice: "24,900",
+        discount: 20, // Matches original data, close to calculated 19.68%
+        tag: "Trending"
+      },
+      {
+        image: Image,
+        name: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
+        description: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
+        currentPrice: "22,990",
+        originalPrice: "29,990",
+        discount: 23, // Matches original data, close to calculated 23.34%
+        tag: "Limited Deal"
+      },
+      {
+        image: Image,
+        name: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
+        description: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
+        currentPrice: "14,990",
+        originalPrice: "19,990",
+        discount: 25, // Matches original data, close to calculated 25.01%
+        tag: "New Launch"
+      },
+      {
+        image: Image,
+        name: "Samsung Galaxy Watch 5",
+        description: "Samsung Galaxy Watch 5",
+        currentPrice: "17,999",
+        originalPrice: "29,998",
+        discount: 40, // Reflects original "Min 40% Off"
+        tag: "Discover Now"
+      },
+      {
+        image: Image,
+        name: "Manfrotto Compact Action Tripod",
+        description: "Manfrotto Compact Action Tripod",
+        currentPrice: "2,499",
+        originalPrice: "4,998",
+        discount: 50, // Reflects original "Min 50% Off"
+        tag: "Great Savings"
+      },
+      {
+        image: Image,
+        name: "Nike Air Zoom Pegasus 38",
+        description: "Nike Air Zoom Pegasus 38",
+        currentPrice: "5,999",
+        originalPrice: "9,998",
+        discount: 40, // Reflects original "Upto 40% Off"
+        tag: "Buy Now"
+      },
+      {
+        image: Image,
+        name: "Himalaya Ashvagandha Tablets",
+        description: "Himalaya Ashvagandha Tablets",
+        currentPrice: "149",
+        originalPrice: "298",
+        discount: 50, // Reflects original "Upto 50% Off"
+        tag: "Great Savings"
+      },
+      {
+        image: Image,
+        name: "JBL Tune 510BT Wireless Headphones",
+        description: "JBL Tune 510BT Wireless Headphones",
+        currentPrice: "1,999",
+        originalPrice: "4,998",
+        discount: 60, // Reflects original "Min 60% Off"
+        tag: "Grab Now"
+      },
+      {
+        image: Image,
+        name: "Wildcraft 45 Ltrs Trekking Backpack",
+        description: "Wildcraft 45 Ltrs Trekking Backpack",
+        currentPrice: "1,749",
+        originalPrice: "2,498",
+        discount: 30, // Reflects original "Upto 30% Off"
+        tag: "Discover Now"
+      },
+      {
+        image: Image,
+        name: "LG 1.5 Ton 5 Star Inverter Split AC",
+        description: "LG 1.5 Ton 5 Star Inverter Split AC",
+        currentPrice: "39,999",
+        originalPrice: "49,998",
+        discount: 20, // Reflects original "Min 20% Off"
+        tag: "Shop Now"
+      },
+      {
+        image: Image,
+        name: "Titan Neo Analog Watch",
+        description: "Titan Neo Analog Watch",
+        currentPrice: "1,999",
+        originalPrice: "7,996",
+        discount: 75, // Reflects original "Upto 75% Off"
+        tag: "Grab Now"
+      },
+      {
+        image: Image,
+        name: "Anker PowerLine+ II USB-C Cable",
+        description: "Anker PowerLine+ II USB-C Cable",
+        currentPrice: "499",
+        originalPrice: "998",
+        discount: 50, // Reflects original "Min 50% Off"
+        tag: "Explore Now"
+      },
+      {
+        image: Image,
+        name: "Wooden Street 3 Seater Fabric Sofa",
+        description: "Wooden Street 3 Seater Fabric Sofa",
+        currentPrice: "19,999",
+        originalPrice: "39,998",
+        discount: 50, // Reflects original "Min 50% Off"
+        tag: "Great Savings"
+      },        
+      {
+        image: Image,
+        name: "JioFi JMR541 Wireless Data Card",
+        description: "JioFi JMR541 Wireless Data Card",
+        currentPrice: "799",
+        originalPrice: "1,998",
+        discount: 60, // Reflects original "Upto 60% Off"
+        tag: "Buy Now"
+      },
+      {
+        image: Image,
+        name: "Cooler Master Notepal X3 Cooling Pad",
+        description: "Cooler Master Notepal X3 Cooling Pad",
+        currentPrice: "499",
+        originalPrice: "2,495",
+        discount: 80, // Reflects original "Upto 80% Off"
+        tag: "Grab Now"
+      },
+      {
+        image: Image,
+        name: "Philips Viva Collection Induction Cooktop",
+        description: "Philips Viva Collection Induction Cooktop",
+        currentPrice: "2,249",
+        originalPrice: "4,998",
+        discount: 55, // Reflects original "Upto 55% Off"
+        tag: "Top Rated"
+      },
+      {
+        image: Image,
+        name: "Designer Lehenga Choli with Dupatta",
+        description: "Designer Lehenga Choli with Dupatta",
+        currentPrice: "2,399",
+        originalPrice: "5,998",
+        discount: 60, // Reflects original "Min 60% Off"
+        tag: "Great Savings"
+      },
+      {
+        image: Image,
+        name: "Samsung 75-inch 8K QLED TV",
+        description: "Samsung 75-inch 8K QLED TV",
+        currentPrice: "174,999",
+        originalPrice: "499,997",
+        discount: 65, // Reflects original "Upto 65% Off"
+        tag: "Discover Now"
+      },
+      {
+        image: Image,
+        name: "Wooden Coffee Table with Storage",
+        description: "Wooden Coffee Table with Storage",
+        currentPrice: "1,999",
+        originalPrice: "2,498",
+        discount: 20, // Adjusted from "From ₹1,900" to reasonable discount
+        tag: "Relax & Work"
+      },
+      {
+        image: Image,
+        name: "Sony HT-S20R 5.1 Channel Soundbar",
+        description: "Sony HT-S20R 5.1 Channel Soundbar",
+        currentPrice: "9,999",
+        originalPrice: "19,998",
+        discount: 50, // Reflects original "Min 50% Off"
+        tag: "Explore Now"
+      },
+      {
+        image: Image,
+        name: "LG 260L Double Door Refrigerator",
+        description: "LG 260L Double Door Refrigerator",
+        currentPrice: "19,999",
+        originalPrice: "24,998",
+        discount: 20, // Reflects original "Upto 20% Off"
+        tag: "Shop Now"
+      },
+      {
+        image: Image,
+        name: "Mi 55-inch 4K Smart TV",
+        description: "Mi 55-inch 4K Smart TV",
+        currentPrice: "19,999",
+        originalPrice: "49,997",
+        discount: 60, // Reflects original "Upto 60% Off"
+        tag: "Great Savings"
+      },
+      {
+        image: Image,
+        name: "Dell Inspiron 15 Laptop",
+        description: "Dell Inspiron 15 Laptop",
+        currentPrice: "39,999",
+        originalPrice: "49,998",
+        discount: 20, // Reflects original "Min 20% Off"
+        tag: "Great Savings"
+      },
+      {
+        image: Image,
+        name: "Lavie Women's Handbag",
+        description: "Lavie Women's Handbag",
+        currentPrice: "749",
+        originalPrice: "2,496",
+        discount: 70, // Reflects original "Min 70% Off"
+        tag: "Grab Now"
+      },
+      {
+        image: Image,
+        name: "Prestige PGMFB Sandwich Maker",
+        description: "Prestige PGMFB Sandwich Maker",
+        currentPrice: "499",
+        originalPrice: "2,495",
+        discount: 80, // Reflects original "Upto 80% Off"
+        tag: "Buy Now"
+      },
+      {
+        image: Image,
+        name: "Prestige PGMFB Sandwich Maker",
+        description: "Prestige PGMFB Sandwich Maker",
+        currentPrice: "499",
+        originalPrice: "2,495",
+        discount: 80, // Reflects original "Upto 80% Off"
+        tag: "Buy Now"
+      }
 ]

@@ -1,66 +1,84 @@
-import StarIcon from '@mui/icons-material/Star';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import { Link } from 'react-router-dom';
-import { getDiscount } from '../../utils/functions';
-import { useDispatch, useSelector } from 'react-redux';
-import { addToWishlist, removeFromWishlist } from '../../actions/wishlistAction';
-import { useSnackbar } from 'notistack';
+import { Link } from "react-router-dom";
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import Image from './image.png';
 
-const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice }) => {
+// Default product image
+const defaultImage = Image;
 
-    const dispatch = useDispatch();
-    const { enqueueSnackbar } = useSnackbar();
-
-    const { wishlistItems } = useSelector((state) => state.wishlist);
-
-    const itemInWishlist = wishlistItems.some((i) => i.product === _id);
-
-    const addToWishlistHandler = () => {
-        if (itemInWishlist) {
-            dispatch(removeFromWishlist(_id));
-            enqueueSnackbar("Remove From Wishlist", { variant: "success" });
-        } else {
-            dispatch(addToWishlist(_id));
-            enqueueSnackbar("Added To Wishlist", { variant: "success" });
-        }
+const Product = ({ 
+  _id, 
+  name, 
+  images = [defaultImage], // This default value is overridden by always using defaultImage
+  currentPrice,   
+  originalPrice,  
+  discount        
+}) => {
+  // Function to safely parse and format prices
+  const formatPrice = (price) => {
+    if (price === undefined || price === null) return 0;
+    if (typeof price === 'string') {
+      return parseInt(price.replace(/,/g, ''), 10) || 0;
     }
+    return price;
+  };
 
-    return (
-        <div className="flex flex-col items-start gap-2 px-4 py-6 relative hover:shadow-lg rounded-sm">
-            {/* <!-- image & product title --> */}
-            <Link to={`/product/${_id}`} className="flex flex-col items-center text-center group">
-                <div className="w-44 h-48">
-                    <img draggable="false" className="w-full h-full object-contain" src={images && images[0].url} alt="" />
-                </div>
-                <h2 className="text-sm mt-4 group-hover:text-primary-blue text-left">{name.length > 85 ? `${name.substring(0, 85)}...` : name}</h2>
-            </Link>
-            {/* <!-- image & product title --> */}
+  const current = formatPrice(currentPrice);
+  const original = formatPrice(originalPrice);
+  const showDiscount = original > current && discount > 0;
 
-            {/* <!-- product description --> */}
-            <div className="flex flex-col gap-2 items-start">
-                {/* <!-- rating badge --> */}
-                <span className="text-sm text-gray-500 font-medium flex gap-2 items-center">
-                    <span className="text-xs px-1.5 py-0.5 bg-primary-green rounded-sm text-white flex items-center gap-0.5">{ratings.toFixed(1)} <StarIcon sx={{ fontSize: "14px" }} /></span>
-                    <span>({numOfReviews})</span>
-                </span>
-                {/* <!-- rating badge --> */}
+  return (
+    <Link
+      to={`/product/${_id}`}
+      className="relative block bg-white rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 h-80 w-56 flex flex-col overflow-hidden group"
+    >
+      {/* Hover Overlay: Shopping Cart and Buy Now Button */}
+      <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+        <ShoppingCartIcon className="h-6 w-6 text-white" />
+        <button className="text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-3 py-1 rounded">
+          Buy Now
+        </button>
+      </div>
 
-                {/* <!-- price container --> */}
-                <div className="flex items-center gap-1.5 text-md font-medium">
-                    <span>₹{price.toLocaleString()}</span>
-                    <span className="text-gray-500 line-through text-xs">₹{cuttedPrice.toLocaleString()}</span>
-                    <span className="text-xs text-primary-green">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
-                </div>
-                {/* <!-- price container --> */}
-            </div>
-            {/* <!-- product description --> */}
+      {/* Product Image */}
+      <div className="w-full h-48 flex items-center justify-center bg-gray-50 p-4">
+        <img
+          draggable="false"
+          className="h-full w-full object-contain"
+          src={defaultImage}
+          alt={name}
+        />
+      </div>
 
-            {/* <!-- wishlist badge --> */}
-            <span onClick={addToWishlistHandler} className={`${itemInWishlist ? "text-red-500" : "hover:text-red-500 text-gray-300"} absolute top-6 right-6 cursor-pointer`}><FavoriteIcon sx={{ fontSize: "18px" }} /></span>
-            {/* <!-- wishlist badge --> */}
-
+      {/* Product Info */}
+      <div className="p-3 text-center flex flex-col justify-between h-32">
+        <div>
+          <h2 className="text-sm text-gray-800 font-medium line-clamp-2">
+            {name}
+          </h2>
         </div>
-    );
+        <div className="mt-2 flex items-center justify-center space-x-2">
+          {/* Current Price */}
+          <span className="text-blue-900 font-bold text-base">
+            ₹{current.toLocaleString()}
+          </span>
+
+          {/* Original (Strikethrough) Price */}
+          {showDiscount && (
+            <span className="text-gray-500 text-sm line-through">
+              ₹{original.toLocaleString()}
+            </span>
+          )}
+
+          {/* Discount Percentage */}
+          {showDiscount && (
+            <span className="text-green-600 text-xs font-medium">
+              {discount}% OFF
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
 };
 
 export default Product;
