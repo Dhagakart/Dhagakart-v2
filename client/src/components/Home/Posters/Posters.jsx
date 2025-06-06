@@ -1,7 +1,9 @@
 import React from 'react';
-import Poster1 from './poster1.png';
-import Poster2 from './poster2.png';
-import Poster3 from './poster3.png';
+
+// Image paths from public folder
+const poster1 = '/images/posters/poster1.png';
+const poster2 = '/images/posters/poster2.png';
+const poster3 = '/images/posters/poster3.png';
 
 const Posters = () => {
   return (
@@ -24,7 +26,7 @@ const Posters = () => {
         {/* Image on the right */}
         <div className="flex-shrink-0 ml-4">
           <img
-            src={Poster1}
+            src={poster1}
             alt="Request a Quote"
             className="h-[200px] object-contain"
           />
@@ -49,7 +51,7 @@ const Posters = () => {
         {/* Image on the right */}
         <div className="flex-shrink-0 ml-4">
           <img
-            src={Poster2}
+            src={poster2}
             alt="Building Products"
             className="h-[200px] object-contain"
           />
@@ -74,7 +76,7 @@ const Posters = () => {
         {/* Image on the right */}
         <div className="flex-shrink-0 ml-4">
           <img
-            src={Poster3}
+            src={poster3}
             alt="Credit Finance"
             className="h-[200px] object-contain"
           />

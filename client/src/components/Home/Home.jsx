@@ -8,6 +8,7 @@ import { clearErrors, getSliderProducts } from '../../actions/productAction';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import Posters from './Posters/Posters';
+import CategorySlider from './CategorySlider/CategorySlider';
 
 const Home = () => {
 
