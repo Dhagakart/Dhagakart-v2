@@ -7,21 +7,15 @@ const api = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    // 'Accept': 'application/json',
   },
 });
 
 // Request interceptor to attach Authorization header
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+api.interceptors.request.use((config) => {
+  config.withCredentials = true;
+  return config;
+});
 
 // Response interceptor to handle auth errors
 // api.interceptors.response.use(

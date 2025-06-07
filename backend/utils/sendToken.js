@@ -8,7 +8,7 @@ const sendToken = (user, statusCode, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain: process.env.NODE_ENV === 'production' ? 'dhagakart-jfaj.vercel.app' : undefined
+        domain: process.env.NODE_ENV === 'production' ? '.dhagakart-jfaj.vercel.app' : undefined
     }
 
     res.status(statusCode).cookie('token', token, options).json({
