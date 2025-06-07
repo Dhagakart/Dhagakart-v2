@@ -9,6 +9,8 @@ import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import Posters from './Posters/Posters';
 import CategorySlider from './CategorySlider/CategorySlider';
+import Poster from './Poster/Poster';
+import BrowsingHistory from './BrowsingHistory/BrowsingHistory';
 
 const Home = () => {
 
@@ -34,11 +36,13 @@ const Home = () => {
         <DealSlider title={"Best Deals"} />
         <Posters />
         <CategorySlider />
-        {!loading && <ProductSlider title={"Suggested for You"} tagline={"Based on Your Activity"} />}
+        <Poster />
+        <BrowsingHistory />
+        {/* {!loading && <ProductSlider title={"Suggested for You"} tagline={"Based on Your Activity"} />}
         <DealSlider title={"Top Brands, Best Price"} />
         {!loading && <ProductSlider title={"You May Also Like..."} tagline={"Based on Your Interest"} />}
         <DealSlider title={"Top Offers On"} />
-        {!loading && <ProductSlider title={"Don't Miss These!"} tagline={"Inspired by your order"} />}
+        {!loading && <ProductSlider title={"Don't Miss These!"} tagline={"Inspired by your order"} />} */}
       </main>
     </>
   );

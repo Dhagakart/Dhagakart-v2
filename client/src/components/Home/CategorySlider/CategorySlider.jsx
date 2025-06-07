@@ -33,15 +33,16 @@ const CategorySlider = () => {
 
   return (
     <div className="w-full bg-white py-4">
-      <div className="max-w-7xl mx-auto">
+      <h1 className="text-2xl font-bold text-center mb-4">Shop With Categories</h1>
+      <div className="w-full mx-auto">
         <div className="relative">
           {/* Left Navigation Button */}
           <button
             onClick={handleScrollLeft}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-gray-100 focus:outline-none"
+            className="absolute bg-[#FA8232] -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full shadow-md hover:bg-gray-100 focus:outline-none"
             aria-label="Scroll left"
           >
-            <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -49,25 +50,25 @@ const CategorySlider = () => {
           {/* Categories Container */}
           <div
             ref={sliderRef}
-            className="flex overflow-x-auto scroll-smooth space-x 4 md:space-x-6 py-4"
+            className="flex overflow-x-auto scroll-smooth space-x-4 md:space-x-2 py-4"
             style={{
               msOverflowStyle: 'none',
               scrollbarWidth: 'none',
             }}
           >
             {categories.map((category, index) => (
-              <div key={index} className="flex-shrink-0 w-52 text-center">
-                <div className="w-48 h-48 mx-auto p-1 border border-gray-200">
-                  <img
+              <div key={index} className="flex-shrink-0 w-[16.1%] text-center">
+                <div className="w-full h-60 mx-auto rounded-xl border border-gray-200 flex flex-col justify-center items-center">
+                <img
                     src={category.img}
                     alt={category.label}
-                    className="w-full h-full object-contain"
+                    className="w-36 h-36 object-contain"
                     onError={(e) => {
                       e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTktOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4eiIvPjwvc3ZnPg==';
                     }}
                   />
+                  <p className="text-xs my-2 text-gray-700 line-clamp-2">{category.label}</p>
                 </div>
-                <p className="text-xs mt-2 text-gray-700 line-clamp-2">{category.label}</p>
               </div>
             ))}
           </div>
@@ -75,10 +76,10 @@ const CategorySlider = () => {
           {/* Right Navigation Button */}
           <button
             onClick={handleScrollRight}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-gray-100 focus:outline-none"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-[#FA8232] shadow-md hover:bg-gray-100 focus:outline-none"
             aria-label="Scroll right"
           >
-            <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
