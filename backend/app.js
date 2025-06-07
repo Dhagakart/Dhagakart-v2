@@ -16,20 +16,42 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: 'backend/config/config.env' });
 }
 
+// const corsOptions = {
+//     origin: [
+//         'https://dhagakart-jfaj.vercel.app',
+//         'http://localhost:5173' // for local development
+//     ],
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+//     exposedHeaders: ['Content-Range', 'X-Content-Range'],
+//     optionsSuccessStatus: 200
+// };
+
+const allowedOrigins = ['http://localhost:5173', 'https://dhagakart-jfaj.vercel.app'];
 const corsOptions = {
-    origin: [
-        'https://dhagakart-jfaj.vercel.app',
-        'http://localhost:5173' // for local development
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range'],
-    optionsSuccessStatus: 200
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  exposedHeaders: ['set-cookie', 'date', 'etag'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
-// Apply CORS with the options
 app.use(cors(corsOptions));
+
+// Apply CORS with the options
+// app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options('*', cors(corsOptions)); // Enable preflight for all routes
