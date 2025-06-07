@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import { FaChevronDown } from 'react-icons/fa';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const HeaderDG = () => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const HeaderDG = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userLocation, setUserLocation] = useState('Loading location...');
   const [userPincode, setUserPincode] = useState('');
+
+  const { isAuthenticated, user } = useSelector((state) => state.user);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -61,117 +64,75 @@ const HeaderDG = () => {
     <header
       // Exact navy background: #003366
       style={{ backgroundColor: '#003366' }}
-      className="w-full -mb-10"
+      className="w-full -mb-10 px-16"
     >
-      <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        {/* 
-          Container height = 56px (h-14). 
-          All items aligned center.
-        */}
-        <div className="h-16 flex items-center justify-between">
-
-          {/**=============================================== */}
-          {/** 1) LEFT: Logo + Nav Links                   **/}
-          {/**=============================================== */}
-          <div className="flex items-center">
-            {/* 
-              “DhagaKart”: 
-              - text‐2xl (≈24px), font‐bold, white 
-              - margin-left: 32px (ml-8) from left edge 
-              - margin-right: 24px (mr-6) before nav 
-            */}
-            <Link to="/" className="text-2xl font-bold text-white ml-8 mr-6">
+      <div className="w-full">
+        <div className="h-16 flex items-center justify-between gap-4">
+          {/** LEFT: Logo + Location */}
+          <div className="flex items-center min-w-0">
+            <Link to="/" className="text-2xl font-bold text-white whitespace-nowrap mr-6">
               DhagaKart
             </Link>
             
-            {/* Location Display */}
-            <div className="mr-4 flex items-center cursor-pointer hover:border hover:border-white/20 hover:bg-white/10 rounded px-2 py-1">
-              <div className="flex items-center">
-                <div className="text-left">
-                  {/* <div className="text-xs text-gray-200 font-normal">Delivery to</div> */}
-                  <div className="text-white font-medium text-sm flex items-center">
-                    <div className="flex flex-col">
-                      <span>{userLocation}</span>
-                      <span className="text-xs text-gray-200">Pincode: {userPincode}</span>
-                    </div>
-                  </div>
+            <div className="hidden md:flex items-center cursor-pointer hover:border hover:border-white/20 hover:bg-white/10 rounded px-2 py-1">
+              <div className="text-white font-medium text-sm">
+                <div className="flex flex-col min-w-0">
+                  <span className="truncate">{userLocation}</span>
+                  <span className="text-xs text-gray-200">Pincode: {userPincode}</span>
                 </div>
               </div>
             </div>
-
-            {/* 
-              Nav items (hidden on small screens, shown from md up). 
-              Each link: text-sm (14px), font-medium, color=gray-100 (#F3F4F6), hover→white.
-              Spaced 16px apart (space-x-4). 
-            */}
-            <nav className="hidden md:flex items-center space-x-4">
-              <Link
-                to="#"
-                className="
-                  flex items-center
-                  text-sm font-medium 
-                  text-gray-100 
-                  hover:text-white 
-                  transition-colors
-                "
-              >
-                <span>All Category</span>
-                <FaChevronDown className="ml-1 text-xs text-gray-100" />
-              </Link>
-
-              <Link
-                to="/bulk-order"
-                className="
-                  text-sm font-medium 
-                  text-gray-100 
-                  hover:text-white 
-                  transition-colors
-                "
-              >
-                Bulk Order
-              </Link>
-
-              <Link
-                to="/credit-finance"
-                className="
-                  text-sm font-medium 
-                  text-gray-100 
-                  hover:text-white 
-                  transition-colors
-                "
-              >
-                Credit Finance
-              </Link>
-            </nav>
           </div>
 
-
-          {/**=============================================== */}
-          {/** 2) CENTER: Search Bar                        **/}
-          {/**=============================================== */}
-          <div className="flex-1 flex justify-end pr-6">
-            <form onSubmit={handleSearch} className="w-full max-w-md flex justify-between items-center bg-white rounded-sm overflow-hidden shadow-md">
+          {/** CENTER: Search Bar */}
+          <div className="flex-1 max-w-xl ml-12">
+            <form onSubmit={handleSearch} className="w-full flex bg-white rounded-sm overflow-hidden shadow-md">
               <input
                 type="text"
                 placeholder="Search for products, brands and more"
-                className="text-sm flex-1 outline-none border-none px-4 py-2 placeholder-gray-500"
+                className="text-sm w-full outline-none border-none px-4 py-2 placeholder-gray-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <button 
                 type="submit" 
-                className="px-4 text-blue-600 hover:text-blue-800 transition-colors"
+                className="px-4 text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"
               >
                 <SearchIcon />
               </button>
             </form>
           </div>
 
+          {/** RIGHT: Navigation Links */}
+          <div className="hidden md:flex items-center space-x-8 min-w-0">
+            <Link
+              to="#"
+              className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
+            >
+              <span>Category</span>
+              <FaChevronDown className="ml-1 text-xs text-gray-100" />
+            </Link>
+
+            <Link
+              to="/bulk-order"
+              className="text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
+            >
+              Bulk Order
+            </Link>
+
+            <Link
+              to="/credit-finance"
+              className="text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
+            >
+              Credit Finance
+            </Link>
+          </div>
+
 
           {/**=============================================== */}
           {/** 3) RIGHT: Cart Icon + Login Button          **/}
           {/**=============================================== */}
-          <div className="flex items-center space-x-4 mr-8">
+          <div className="flex items-center space-x-8">
             {/* 
               Cart with badge:
               - Icon size = 24px 
@@ -213,7 +174,18 @@ const HeaderDG = () => {
               - Font=text-sm (14px), font-medium,
               - Hover→bg-gray-100 for a subtle light‐gray background. 
             */}
-            <Link
+            { isAuthenticated ? (
+              <Link
+                to="/account"
+                className="flex items-center text-white hover:text-gray-200 transition-colors space-x-1"
+              >
+                <AccountCircleIcon style={{ fontSize: 24 }} />
+                <span className="text-sm font-medium">
+                  {user?.name?.split(' ')[0] || 'Account'}
+                </span>
+              </Link>
+            ) : (
+              <Link
               to="/login"
               className="
                 h-8 
@@ -232,6 +204,7 @@ const HeaderDG = () => {
             >
               Login
             </Link>
+            )}
           </div>
 
         </div>
