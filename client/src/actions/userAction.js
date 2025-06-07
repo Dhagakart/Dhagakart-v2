@@ -100,12 +100,18 @@ export const registerUser = (userData) => async (dispatch) => {
 export const loadUser = () => async (dispatch) => {
     try {
         dispatch({ type: LOAD_USER_REQUEST });
-        const { data } = await api.get('/me');
+        const { data } = await api.get('/me', {
+            withCredentials: true,  // Ensure credentials are sent
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         dispatch({
             type: LOAD_USER_SUCCESS,
             payload: data.user,
         });
     } catch (error) {
+        console.error('Error loading user:', error);
         dispatch({
             type: LOAD_USER_FAIL,
             payload: error.response?.data?.message || 'Failed to load user',

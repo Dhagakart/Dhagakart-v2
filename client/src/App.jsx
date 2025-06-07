@@ -65,10 +65,18 @@ function App() {
     });
   });
 
-  useEffect(() => {
-    dispatch(loadUser());
-    // getStripeApiKey();
-  }, [dispatch]);
+// In App.jsx
+useEffect(() => {
+  const loadUserData = async () => {
+      try {
+          await dispatch(loadUser());
+      } catch (error) {
+          console.error('Error loading user:', error);
+      }
+  };
+  
+  loadUserData();
+}, [dispatch]);
 
   // always scroll to top on route/path change
   useEffect(() => {
