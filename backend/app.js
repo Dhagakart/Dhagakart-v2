@@ -100,7 +100,7 @@ const payment = require('./routes/paymentRoute');
 
 // API Routes
 app.use('/api/v1', user);
-app.use('/api/v1', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1', product);
 app.use('/api/v1', order);
 app.use('/api/v1', payment);
