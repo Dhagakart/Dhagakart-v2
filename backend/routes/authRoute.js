@@ -2,7 +2,7 @@
 const express      = require('express');
 const passport     = require('passport');
 const User         = require('../models/userModel');
-const sendToken    = require('../utils/jwtToken');
+const sendToken    = require('../utils/sendToken');
 const router       = express.Router();
 
 // Kick off Google OAuth
