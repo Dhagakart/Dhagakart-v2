@@ -61,34 +61,48 @@ router.get('/auth/google', passport.authenticate('google', {
 //   }
 // );
 
-// routes/auth.js
-router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+// ─── Google OAuth ────────────────────────────────────────────────────────
+// Kick off Google OAuth
+router.get(
+  '/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })
+);
+
+// Handle callback
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   async (req, res, next) => {
-    const { id: googleId, displayName: name, emails } = req.user; 
-    const email = emails[0].value;
+    try {
+      const { displayName: name, emails } = req.user;
+      const email = emails[0].value;
 
-    // 1) Existing user? Just send token
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return sendToken(existing, 200, res);
+      // If user exists, send token
+      let user = await User.findOne({ email });
+      if (user) {
+        return sendToken(user, 200, res);
+      }
+
+      // Else, stash in session and redirect to frontend for completion
+      req.session.oauthData = { name, email };
+      res.redirect(`${process.env.FRONTEND_URL}/oauth-complete-registration`);
+    } catch (err) {
+      next(err);
     }
+  }
+);
 
-    // 2) New user: stash name/email in session, redirect to frontend form
-    req.session.oauthData = { googleId, name, email };
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/oauth-complete-registration`
-    );
-});
-
-// routes/auth.js
+// Expose the stubbed data
 router.get('/oauth/data', (req, res) => {
   if (!req.session.oauthData) {
-    return res.status(404).json({ message: 'No OAuth data in session' });
+    return res.status(404).json({ message: 'No OAuth data' });
   }
   res.json(req.session.oauthData);
 });
 
+module.exports = router;
 
 // ─── Regular Auth Routes ─────────────────────────────────────────────────
 router.post('/register', registerUser);
