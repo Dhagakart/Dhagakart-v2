@@ -50,9 +50,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Apply CORS with the options
-// app.use(cors(corsOptions));
-
 // Handle preflight requests
 app.options('*', cors(corsOptions)); // Enable preflight for all routes
 
@@ -100,10 +97,36 @@ const payment = require('./routes/paymentRoute');
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1', user);
-app.use('/api/v1', product);
-app.use('/api/v1', order);
-app.use('/api/v1', payment);
+app.use('/api/v1/users', user);
+app.use('/api/v1/', product);
+app.use('/api/v1/', order);
+app.use('/api/v1/', payment);
+
+function printRoutes(stack, parentPath = '') {
+  return stack.flatMap(layer => {
+    if (layer.route && layer.route.path) {
+      // Route directly on app
+      const methods = Object.keys(layer.route.methods).join(',').toUpperCase();
+      return [`  ${methods} ${parentPath}${layer.route.path}`];
+    } else if (layer.name === 'router' && layer.handle.stack) {
+      // Nested router (e.g. /api/v1/users)
+      const newParentPath = parentPath + (layer.regexp.source
+        .replace('^\\/', '/')
+        .replace('\\/?(?=\\/|$)', '')
+        .replace('(?=\\/|$)', '')
+        .replace('^', '')
+        .replace('$', '')
+        .replace('\\', '')
+      );
+      return printRoutes(layer.handle.stack, newParentPath);
+    } else {
+      return [];
+    }
+  });
+}
+
+console.log('\n⚙️  Mounted routes:\n' + printRoutes(app._router.stack).join('\n') + '\n');
+
 
 // error middleware
 app.use(errorMiddleware);

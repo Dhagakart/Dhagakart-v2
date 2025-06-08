@@ -95,6 +95,7 @@ useEffect(() => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/oauth-complete-registration" element={<Register />} />
 
         {/* DG ROUTES */}
         <Route path="/loginDG" element={<LoginDG />} />

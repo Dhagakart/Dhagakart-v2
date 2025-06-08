@@ -638,6 +638,7 @@ const Register = () => {
 
   // OAuth detection
   const [isOAuth, setIsOAuth] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false); // New state for OAuth data loading
 
   // Form state
   const [user, setUser] = useState({
@@ -660,23 +661,38 @@ const Register = () => {
     if (isAuthenticated) {
       navigate('/');
     }
-  }, [error, isAuthenticated]);
+  }, [error, isAuthenticated, dispatch, enqueueSnackbar, navigate]);
 
-  // Detect OAuth callback stub
+  // Detect OAuth callback with debugging
   useEffect(() => {
+    console.log('Current path:', location.pathname);
     if (location.pathname === '/oauth-complete-registration') {
+      setIsOAuthLoading(true); // Set loading state
+      console.log('Fetching OAuth data...');
       axios.get('/api/v1/auth/oauth/data', { withCredentials: true })
         .then(res => {
+          console.log('OAuth API response:', res.data);
           setIsOAuth(true);
-          setUser(u => ({
-            ...u,
-            name: res.data.name,
-            email: res.data.email
-          }));
+          setUser(u => {
+            const updatedUser = {
+              ...u,
+              name: res.data.name || '',
+              email: res.data.email || ''
+            };
+            console.log('Updated user state:', updatedUser);
+            return updatedUser;
+          });
         })
-        .catch(() => navigate('/login'));
+        .catch(err => {
+          console.error('Error fetching OAuth data:', err.response ? err.response.data : err.message);
+          enqueueSnackbar('Failed to fetch OAuth data. Please try again.', { variant: 'error' });
+          navigate('/login');
+        })
+        .finally(() => {
+          setIsOAuthLoading(false); // Clear loading state
+        });
     }
-  }, [location.pathname]);
+  }, [location.pathname, navigate, enqueueSnackbar]);
 
   // Click-outside to close suggestions
   useEffect(() => {
@@ -769,14 +785,13 @@ const Register = () => {
   const steps = ['Personal Information', 'Business Details'];
 
   const handleNext = () => {
-    // Validate step 0
     if (activeStep === 0) {
       const { name, email, password, cpassword, phone, city } = user;
-      if (!name || !email || !phone || !city || (!isOAuth && (!password || !cpassword))) {
+      if (!name || !email || !password || !cpassword || !phone || !city) {
         enqueueSnackbar('Please fill all required fields', { variant: 'error' });
         return;
       }
-      if (!isOAuth && password !== cpassword) {
+      if (password !== cpassword) {
         enqueueSnackbar("Passwords don't match", { variant: 'error' });
         return;
       }
@@ -800,7 +815,7 @@ const Register = () => {
       city: user.city,
       businessName,
       businessType,
-      ...(isOAuth ? {} : { password: user.password })
+      password: user.password
     };
     try {
       const result = await dispatch(registerUser(payload));
@@ -813,13 +828,22 @@ const Register = () => {
     }
   };
 
+  // Show a loading indicator while fetching OAuth data
+  if (isOAuth && isOAuthLoading) {
+    return (
+      <Box className="min-h-[80vh] flex items-center justify-center">
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading your details...</Typography>
+      </Box>
+    );
+  }
+
   return (
     <>
       <MetaData title="Register | DhagaKart" />
       {loading && <BackdropLoader />}
       <Box className="min-h-[80vh] mt-10 flex items-center justify-center p-4">
         <Grid container component="main" className="max-w-6xl bg-white shadow-xl rounded-xl overflow-hidden">
-          {/* Left info */}
           <Grid item xs={12} md={5} sx={{ background: 'linear-gradient(135deg, #00264d 0%, #003366 100%)', p: 4, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Typography variant="h4" component="h1" sx={{ color: 'white', fontWeight: 700, mb: 2 }}>
               A–Z Textile Hub
@@ -837,7 +861,6 @@ const Register = () => {
             </Box>
           </Grid>
 
-          {/* Form */}
           <Grid item xs={12} md={7} sx={{ p: 5 }}>
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Create Business Account</Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
@@ -853,7 +876,6 @@ const Register = () => {
             <Box component="form" onSubmit={handleRegister}>
               {activeStep === 0 && (
                 <Grid container spacing={2}>
-                  {/* Name, email, phone, city, (password fields only if !isOAuth) */}
                   {[
                     { xs: 6, field: 'name', label: 'Full Name' },
                     { xs: 6, field: 'email', label: 'Email Address', type: 'email' },
@@ -872,7 +894,6 @@ const Register = () => {
                     </Grid>
                   ))}
 
-                  {/* City autocomplete */}
                   <Grid item xs={12} sm={6}>
                     <Box sx={{ position: 'relative' }} ref={cityInputRef}>
                       <TextField
@@ -936,33 +957,29 @@ const Register = () => {
                     </Box>
                   </Grid>
 
-                  {!isOAuth && (
-                    <>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Password"
-                          name="password"
-                          type="password"
-                          value={user.password}
-                          onChange={handleDataChange}
-                          required
-                          helperText="Min. 8 characters"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Confirm Password"
-                          name="cpassword"
-                          type="password"
-                          value={user.cpassword}
-                          onChange={handleDataChange}
-                          required
-                        />
-                      </Grid>
-                    </>
-                  )}
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Password"
+                      name="password"
+                      type="password"
+                      value={user.password}
+                      onChange={handleDataChange}
+                      required
+                      helperText="Min. 8 characters"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Confirm Password"
+                      name="cpassword"
+                      type="password"
+                      value={user.cpassword}
+                      onChange={handleDataChange}
+                      required
+                    />
+                  </Grid>
 
                   <Grid item xs={12} sx={{ textAlign: 'right' }}>
                     <Button variant="contained" onClick={handleNext}>

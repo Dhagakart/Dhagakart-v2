@@ -43,7 +43,7 @@ export const loginUser = (email, password) => async (dispatch) => {
     try {
         dispatch({ type: LOGIN_USER_REQUEST });
 
-        const { data } = await api.post('/login', { email, password });
+        const { data } = await api.post('/users/login', { email, password });
 
         dispatch({
             type: LOGIN_USER_SUCCESS,
@@ -63,7 +63,7 @@ export const registerUser = (userData) => async (dispatch) => {
     try {
         dispatch({ type: REGISTER_USER_REQUEST });
 
-        const { data } = await api.post('/register', userData, {
+        const { data } = await api.post('/users/register', userData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -88,7 +88,7 @@ export const loadUser = () => async (dispatch) => {
 
         dispatch({ type: LOAD_USER_REQUEST });
 
-        const { data } = await api.get('/me');
+        const { data } = await api.get('/users/me');
 
         dispatch({
             type: LOAD_USER_SUCCESS,
@@ -106,7 +106,7 @@ export const loadUser = () => async (dispatch) => {
 // Logout User
 export const logoutUser = () => async (dispatch) => {
     try {
-        await api.get('/logout');
+        await api.get('/users/logout');
         dispatch({ type: LOGOUT_USER_SUCCESS });
     } catch (error) {
         dispatch({
@@ -128,7 +128,7 @@ export const updateProfile = (userData) => async (dispatch) => {
             },
         }
 
-        const { data } = await api.put('/me/update', userData, config);
+        const { data } = await api.put('/users/me/update', userData, config);
 
         dispatch({
             type: UPDATE_PROFILE_SUCCESS,
@@ -155,7 +155,7 @@ export const updatePassword = (passwords) => async (dispatch) => {
             },
         }
 
-        const { data } = await api.put('/password/update', passwords, config);
+        const { data } = await api.put('/users/password/update', passwords, config);
 
         dispatch({
             type: UPDATE_PASSWORD_SUCCESS,
@@ -183,7 +183,7 @@ export const forgotPassword = (email) => async (dispatch) => {
             },
         }
 
-        const { data } = await api.post('/password/forgot', email, config);
+        const { data } = await api.post('/users/password/forgot', email, config);
 
         dispatch({
             type: FORGOT_PASSWORD_SUCCESS,
@@ -210,7 +210,7 @@ export const resetPassword = (token, passwords) => async (dispatch) => {
             },
         }
 
-        const { data } = await api.put(`/password/reset/${token}`, passwords, config);
+        const { data } = await api.put(`/users/password/reset/${token}`, passwords, config);
 
         dispatch({
             type: RESET_PASSWORD_SUCCESS,
@@ -230,7 +230,7 @@ export const getAllUsers = () => async (dispatch) => {
     try {
 
         dispatch({ type: ALL_USERS_REQUEST });
-        const { data } = await api.get('/admin/users');
+        const { data } = await api.get('/users/admin/users');
         dispatch({
             type: ALL_USERS_SUCCESS,
             payload: data.users,
@@ -249,7 +249,7 @@ export const getUserDetails = (id) => async (dispatch) => {
     try {
 
         dispatch({ type: USER_DETAILS_REQUEST });
-        const { data } = await api.get(`/admin/user/${id}`);
+        const { data } = await api.get(`/users/admin/user/${id}`);
 
         dispatch({
             type: USER_DETAILS_SUCCESS,
@@ -276,7 +276,7 @@ export const updateUser = (id, userData) => async (dispatch) => {
             },
         }
 
-        const { data } = await api.put(`/admin/user/${id}`, userData, config);
+        const { data } = await api.put(`/users/admin/user/${id}`, userData, config);
 
         dispatch({
             type: UPDATE_USER_SUCCESS,
@@ -296,7 +296,7 @@ export const deleteUser = (id) => async (dispatch) => {
     try {
 
         dispatch({ type: DELETE_USER_REQUEST });
-        const { data } = await api.delete(`/admin/user/${id}`);
+        const { data } = await api.delete(`/users/admin/user/${id}`);
 
         dispatch({
             type: DELETE_USER_SUCCESS,

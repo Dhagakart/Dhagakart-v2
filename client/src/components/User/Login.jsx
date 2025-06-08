@@ -7,6 +7,8 @@ import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
 import GoogleIcon from '../../assets/images/googleLogo.png'
 import { TextField, Button } from '@mui/material';
+import { Grid, Box, Typography } from '@mui/material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 const Login = () => {
     const dispatch = useDispatch();
@@ -49,27 +51,22 @@ const Login = () => {
             <main className="w-full min-h-[80vh] mt-10 flex justify-center items-center">
                 <div className="flex rounded-xl sm:w-4/6 sm:mt-6 m-auto mb-7 bg-white shadow-lg">
                     {/* Left Side - Blue Background */}
-                    <div className="bg-[#003366] rounded-tl-xl rounded-bl-xl text-white p-6 md:p-8 lg:p-10 md:w-1/2 flex flex-col justify-start">
-                        <h1 className="text-2xl md:text-3xl font-bold mb-4">Your one-stop platform for A to Z textile.</h1>
-                        <ul className="space-y-3 text-base">
-                            <li className="flex items-start">
-                                <span className="mr-2">•</span>
-                                <span>Get everything related to textile</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="mr-2">•</span>
-                                <span>See all the latest machines and buy it</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="mr-2">•</span>
-                                <span>Buy pricing material available to buy</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="mr-2">•</span>
-                                <span>Fast delivery to your doorstep</span>
-                            </li>
-                        </ul>
-                    </div>
+                    <Grid item xs={12} md={5} sx={{ background: 'linear-gradient(135deg, #00264d 0%, #003366 100%)', p: 4, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRadius: '8px 0 0 8px' }}>
+                        <Typography variant="h4" component="h1" sx={{ color: 'white', fontWeight: 700, mb: 2 }}>
+                            A–Z Textile Hub
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: 'white', opacity: 0.9, mb: 3 }}>
+                            Join DhagaKart today and discover a world of premium textile products.
+                        </Typography>
+                        <Box>
+                            {['Secure Business Account', 'Premium Textile Selection', 'Dedicated Account Manager', '24/7 Business Support'].map((t, i) => (
+                                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <CheckCircleOutlineIcon sx={{ color: 'warning.main' }} />
+                                    <Typography sx={{ color: 'white' }}>{t}</Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    </Grid>
 
                     {/* Right Side - Login Form */}
                     <div className="bg-white rounded-tr-xl rounded-br-xl p-6 md:p-8 lg:p-12 md:w-1/2 flex flex-col justify-center">
@@ -179,8 +176,8 @@ const Login = () => {
                             >
                                 Continue with Google
                             </Button>
-                            <Link to="/register" className="block mt-4 font-medium text-sm text-primary-blue">
-                                New to DhagaKart? Create an account
+                            <Link to="/register" className="block mt-4">
+                                New to DhagaKart? <span className="text-primary-blue font-medium hover:underline">Create an account</span>
                             </Link>
                         </div>
                     </div>

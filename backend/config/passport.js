@@ -18,33 +18,11 @@ passport.deserializeUser(async (id, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || '959569465279-5rsiuvee546ffk0g3kmilri42ff7js6c.apps.googleusercontent.com',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
-    callbackURL: "https://dhagakart.onrender.com/api/v1/auth/google/callback"
     // callbackURL: "http://localhost:4000/api/v1/auth/google/callback"
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
-        // Check if user already exists
-        let user = await User.findOne({ email: profile.emails[0].value });
-
-        if (user) {
-            return done(null, user);
-        }
-
-        // Create new user if doesn't exist
-        user = await User.create({
-            name: profile.displayName,
-            email: profile.emails[0].value,
-            avatar: {
-                public_id: 'default',
-                url: profile.photos[0].value
-            },
-            password: 'oauthuser', // You might want to handle this differently
-            isVerified: true
-        });
-
-        return done(null, user);
-    } catch (error) {
-        return done(error, null);
-    }
+    callbackURL: "https://dhagakart.onrender.com/api/v1/auth/google/callback"
+}, (accessToken, refreshToken, profile, done) => {
+    // Pass the profile data instead of creating a user
+    return done(null, profile);
 }));
 
 module.exports = passport;
