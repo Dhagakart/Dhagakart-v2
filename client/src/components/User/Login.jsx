@@ -11,8 +11,8 @@ import { TextField, Button } from '@mui/material';
 const Login = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const location = useLocation();
     const { enqueueSnackbar } = useSnackbar();
+    const location = useLocation();
 
     const { loading, isAuthenticated, error } = useSelector((state) => state.user);
 
@@ -22,12 +22,9 @@ const Login = () => {
     const handleLogin = (e) => {
         e.preventDefault();
         dispatch(loginUser(email, password));
-    };
+    }
 
-    const handleGoogleLogin = () => {
-        window.location.href = 'https://dhagakart.onrender.com/api/v1/auth/google';
-        // window.location.href = 'http://localhost:4000/api/v1/auth/google';
-    };
+    const redirect = location.search ? location.search.split("=")[1] : "account";
 
     useEffect(() => {
         if (error) {
@@ -35,9 +32,14 @@ const Login = () => {
             dispatch(clearErrors());
         }
         if (isAuthenticated) {
-            navigate(`/account`);
+            navigate(`/${redirect}`)
         }
-    }, [dispatch, error, isAuthenticated, navigate, enqueueSnackbar]);
+    }, [dispatch, error, isAuthenticated, redirect, navigate, enqueueSnackbar]);
+
+    const handleGoogleLogin = () => {
+        window.location.href = 'https://dhagakart.onrender.com/api/v1/auth/google';
+        // window.location.href = 'http://localhost:4000/api/v1/auth/google';
+    };
 
     return (
         <>

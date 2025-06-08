@@ -5,10 +5,7 @@ import { loginUser, clearErrors } from '../../actions/userAction';
 import { useSnackbar } from 'notistack';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
-// import Navbar from '../Layouts/Navbar';
-// import Footer from '../Layouts/Footer';
 import { TextField, Button } from '@mui/material';
-// import GoogleIcon from '@mui/icons-material/Google';
 import GoogleIcon from '../../assets/images/googleLogo.png'
 
 const LoginDG = () => {
@@ -18,9 +15,17 @@ const LoginDG = () => {
 
     const { loading, isAuthenticated, error } = useSelector((state) => state.user);
     const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:4000/api/v1/auth/google';
+        // window.location.href = 'http://localhost:4000/api/v1/auth/google';
+        window.location.href = 'https://dhagakart.onrender.com/api/v1/auth/google';
+    };
+
+    const handleLogin = (e) => {
+        e.preventDefault();
+        dispatch(loginUser(email, password));
     };
 
     useEffect(() => {
@@ -108,7 +113,7 @@ const LoginDG = () => {
                                         textTransform: 'none',  // Prevents uppercase transformation
                                         fontWeight: 'medium',   // Makes text slightly bolder
                                     }}
-                                    onClick={() => { }}
+                                    onClick={handleLogin}
                                 >
                                     Continue
                                 </Button>
