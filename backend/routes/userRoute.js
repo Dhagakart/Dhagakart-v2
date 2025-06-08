@@ -28,38 +28,66 @@ router.get('/auth/google', passport.authenticate('google', {
 }));
 
 // ─── Google OAuth Callback ────────────────────────────────────────────────
-router.get(
-  '/auth/google/callback',
-  passport.authenticate('google', {
-      failureRedirect: `${FRONTEND_URL}/login`,
-      session: false
-  }),
-  async (req, res) => {
-      try {
-          // Set default redirect
-          const redirectUrl = `${FRONTEND_URL}/account` || 'https://dhagakart-jfaj.vercel.app/account';
-          // const redirectUrl = 'http://localhost:5173/oauth-success';
+// router.get(
+//   '/auth/google/callback',
+//   passport.authenticate('google', {
+//       failureRedirect: `${FRONTEND_URL}/login`,
+//       session: false
+//   }),
+//   async (req, res) => {
+//       try {
+//           // Set default redirect
+//           const redirectUrl = `${FRONTEND_URL}/account` || 'https://dhagakart-jfaj.vercel.app/account';
+//           // const redirectUrl = 'http://localhost:5173/oauth-success';
 
-          // Generate JWT token
-          const token = req.user.getJWTToken();
+//           // Generate JWT token
+//           const token = req.user.getJWTToken();
 
-          // Set token in a cookie
-          res.cookie('token', token, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'none',
-              expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-          });
+//           // Set token in a cookie
+//           res.cookie('token', token, {
+//               httpOnly: true,
+//               secure: process.env.NODE_ENV === 'production',
+//               sameSite: 'none',
+//               expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+//           });
 
-          // Redirect to frontend
-          res.redirect(redirectUrl);
-      } catch (error) {
-          console.error('OAuth callback error:', error);
-          res.redirect(`${FRONTEND_URL}/login?error=auth_failed`);
-          // res.redirect('http://localhost:5173/login?error=auth_failed');
-      }
+//           // Redirect to frontend
+//           res.redirect(redirectUrl);
+//       } catch (error) {
+//           console.error('OAuth callback error:', error);
+//           res.redirect(`${FRONTEND_URL}/login?error=auth_failed`);
+//           // res.redirect('http://localhost:5173/login?error=auth_failed');
+//       }
+//   }
+// );
+
+// routes/auth.js
+router.get('/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  async (req, res, next) => {
+    const { id: googleId, displayName: name, emails } = req.user; 
+    const email = emails[0].value;
+
+    // 1) Existing user? Just send token
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return sendToken(existing, 200, res);
+    }
+
+    // 2) New user: stash name/email in session, redirect to frontend form
+    req.session.oauthData = { googleId, name, email };
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/oauth-complete-registration`
+    );
+});
+
+// routes/auth.js
+router.get('/oauth/data', (req, res) => {
+  if (!req.session.oauthData) {
+    return res.status(404).json({ message: 'No OAuth data in session' });
   }
-);
+  res.json(req.session.oauthData);
+});
 
 
 // ─── Regular Auth Routes ─────────────────────────────────────────────────
