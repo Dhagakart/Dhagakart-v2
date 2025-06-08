@@ -66,7 +66,7 @@ exports.logoutUser = asyncErrorHandler(async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain: process.env.NODE_ENV === 'production' ? '.dhagakart.onrender.com' : undefined
+        // domain: process.env.NODE_ENV === 'production' ? '.dhagakart.onrender.com' : undefined
     });
 
     res.status(200).json({
