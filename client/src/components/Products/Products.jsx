@@ -84,7 +84,7 @@ const Products = () => {
                             <div className="flex flex-col gap-2 py-3 text-sm overflow-hidden">
 
                                 {/* price slider filter */}
-                                <div className="flex flex-col gap-2 border-b px-4">
+                                {/* <div className="flex flex-col gap-2 border-b px-4">
                                     <span className="font-medium text-xs">PRICE</span>
 
                                     <Slider
@@ -101,7 +101,7 @@ const Products = () => {
                                         <span className="font-medium text-gray-400">to</span>
                                         <span className="flex-1 border px-4 py-1 rounded-sm text-gray-800 bg-gray-50">₹{price[1].toLocaleString()}</span>
                                     </div>
-                                </div>
+                                </div> */}
                                 {/* price slider filter */}
 
                                 {/* category filter */}
@@ -136,7 +136,7 @@ const Products = () => {
                                 {/* category filter */}
 
                                 {/* ratings filter */}
-                                <div className="flex flex-col border-b px-4">
+                                {/* <div className="flex flex-col border-b px-4">
 
                                     <div className="flex justify-between cursor-pointer py-2 pb-4 items-center" onClick={() => setRatingsToggle(!ratingsToggle)}>
                                         <p className="font-medium text-xs uppercase">ratings</p>
@@ -163,7 +163,7 @@ const Products = () => {
                                         </div>
                                     )}
 
-                                </div>
+                                </div> */}
                                 {/* ratings filter */}
 
                             </div>

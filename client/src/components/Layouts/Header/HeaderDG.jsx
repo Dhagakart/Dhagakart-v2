@@ -74,7 +74,7 @@ const HeaderDG = () => {
               DhagaKart
             </Link>
             
-            <div className="hidden md:flex items-center cursor-pointer hover:border hover:border-white/20 hover:bg-white/10 rounded px-2 py-1">
+            <div className="hidden md:flex items-center cursor-pointer rounded px-2 py-1">
               <div className="text-white font-medium text-sm">
                 <div className="flex flex-col min-w-0">
                   <span className="truncate">{userLocation}</span>
