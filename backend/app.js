@@ -63,10 +63,10 @@ app.use(session({
     saveUninitialized: false,
     store: MongoStore.create({
         mongoUrl: process.env.MONGO_URI || 'mongodb+srv://dsharpstechnology:ek51DYZg5p1isPQr@cluster0.q5ok6w4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-        ttl: 14 * 24 * 60 * 60 // = 14 days. Default
+        ttl: process.env.COOKIE_EXPIRE * 24 * 60 * 60 // = 5 days. Default
     }),
     cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        maxAge: process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000, // 5 days
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'none'
