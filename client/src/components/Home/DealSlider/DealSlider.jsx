@@ -26,7 +26,7 @@ const DealSlider = ({ title }) => {
   const itemsToShow = getRandomProducts(offerProducts, 12);
 
   return (
-    <section className="bg-white w-full overflow-hidden py-4">
+    <section className="bg-white w-full overflow-hidden pb-4">
       <div className="flex py-3 justify-between items-center">
         <h1 className="text-xl font-medium text-gray-800">{title}</h1>
         <Link

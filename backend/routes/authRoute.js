@@ -17,24 +17,20 @@ router.get(
 // Handle Google’s callback
 router.get(
   '/google/callback',
-  // **NOTE**: we leave session: true so we can write to req.session
   passport.authenticate('google', { failureRedirect: '/login' }),
   async (req, res, next) => {
     try {
       const { displayName: name, emails } = req.user;
       const email = emails[0].value;
 
-      // 1) If they already exist, just issue JWT cookie:
       let user = await User.findOne({ email });
-      if (user) {
-        return sendToken(user, 200, res);
-      }
+      if (user) { return sendToken(user, 200, res, `${process.env.FRONTEND_URL}/account`); }
+      // if (user) { return sendToken(user, 200, res, `http://localhost:5173/account`); }
 
-      // 2) NEW user → stash name/email and redirect to your React form
-      req.session.oauthData = { name, email };
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/oauth-complete-registration`
-      );
+      // Instead of session, redirect with data in query params
+      const redirectUrl = `${process.env.FRONTEND_URL}/oauth-complete-registration?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
+      // const redirectUrl = `http://localhost:5173/oauth-complete-registration?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
+      return res.redirect(redirectUrl);
     } catch (err) {
       next(err);
     }
