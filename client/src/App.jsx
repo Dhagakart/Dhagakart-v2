@@ -101,7 +101,7 @@ useEffect(() => {
         <Route path="/loginDG" element={<LoginDG />} />
         <Route path="/otpDG" element={<OtpDG />} />
         <Route path="/loginDG2" element={<LoginDG2 />} />
-        <Route path="/forgotPasswordDG" element={<ForgotPasswordDG />} />
+        <Route path="/password/forgot" element={<ForgotPasswordDG />} />
 
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/products" element={<Products />} />
@@ -172,7 +172,7 @@ useEffect(() => {
           </ProtectedRoute>
         } ></Route>
 
-        <Route path="/password/forgot" element={<ForgotPassword />} />
+        {/* <Route path="/password/forgot" element={<ForgotPassword />} /> */}
 
         <Route path="/password/reset/:token" element={<ResetPassword />} />
 

@@ -17,32 +17,31 @@ const ForgotPasswordDG = () => {
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    
+    const { error, message, loading } = useSelector((state) => state.forgotPassword);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         setIsLoading(true);
         
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            setIsSubmitted(true);
-            // Uncomment for actual API integration
-            // const formData = new FormData();
-            // formData.set('email', email);
-            // dispatch(forgotPassword(formData));
-        }, 1000);
+        const formData = new FormData();
+        formData.set('email', email);
+        dispatch(forgotPassword(formData));
     };
 
-    // Error handling for API integration (commented out for mock)
-    // useEffect(() => {
-    //     if (error) {
-    //         enqueueSnackbar(error, { variant: 'error' });
-    //         dispatch(clearErrors());
-    //     }
-    //     if (message) {
-    //         enqueueSnackbar(message, { variant: 'success' });
-    //     }
-    // }, [dispatch, error, message, enqueueSnackbar]);
+    // Handle API responses
+    useEffect(() => {
+        if (error) {
+            enqueueSnackbar(error, { variant: 'error' });
+            dispatch(clearErrors());
+            setIsLoading(false);
+        }
+        if (message) {
+            enqueueSnackbar(message, { variant: 'success' });
+            setIsSubmitted(true);
+            setIsLoading(false);
+        }
+    }, [dispatch, error, message, enqueueSnackbar]);
 
     return (
         <>
