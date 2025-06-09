@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import FolderIcon from '@mui/icons-material/Folder';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -9,6 +10,7 @@ import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { logoutUser } from '../../actions/userAction';
+import LogoutConfirmationModal from './LogoutConfirmationModal';
 
 const Sidebar = ({ activeTab }) => {
 
@@ -17,12 +19,13 @@ const Sidebar = ({ activeTab }) => {
     const { enqueueSnackbar } = useSnackbar();
 
     const { user } = useSelector(state => state.user);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const handleLogout = () => {
         dispatch(logoutUser());
         enqueueSnackbar("Logout Successfully", { variant: "success" });
         navigate("/login");
-    }
+    };
 
     return (
         <div className="hidden sm:flex flex-col gap-4 w-1/4 px-1">
@@ -105,10 +108,16 @@ const Sidebar = ({ activeTab }) => {
                 {/* <!-- logout tab --> */}
                 <div className="flex items-center gap-5 px-4 py-4 border-b">
                     <span className="text-primary-blue"><PowerSettingsNewIcon /></span>
-                    <div className="flex w-full justify-between font-medium text-gray-500 hover:text-primary-blue cursor-pointer" onClick={handleLogout}>
+                    <div className="flex w-full justify-between font-medium text-gray-500 hover:text-primary-blue cursor-pointer" onClick={() => setShowLogoutConfirm(true)}>
                         Logout
                         <span><ChevronRightIcon /></span>
                     </div>
+                    
+                    <LogoutConfirmationModal
+                        isOpen={showLogoutConfirm}
+                        onConfirm={handleLogout}
+                        onCancel={() => setShowLogoutConfirm(false)}
+                    />
                 </div>
                 {/* <!-- logout tab --> */}
 

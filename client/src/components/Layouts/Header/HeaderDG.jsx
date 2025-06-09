@@ -74,14 +74,20 @@ const HeaderDG = () => {
               DhagaKart
             </Link>
             
-            <div className="hidden md:flex items-center rounded px-2 py-1">
-              <div className="text-white font-medium text-sm">
-                <div className="flex flex-col min-w-0">
-                  <span className="truncate">{userLocation}</span>
-                  <span className="text-xs text-gray-200">Pincode: {userPincode}</span>
+            { isAuthenticated ? (
+              <div className="hidden md:flex items-center rounded px-2 py-1">
+                <div className="text-white font-medium text-sm">
+                  <div className="flex flex-col min-w-0">
+                    <span className="truncate">{userLocation}</span>
+                    <span className="text-xs text-gray-200">Pincode: {userPincode}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                
+              </div>
+            )}
           </div>
 
           {/** CENTER: Search Bar */}
@@ -181,7 +187,7 @@ const HeaderDG = () => {
               >
                 <AccountCircleIcon style={{ fontSize: 24 }} />
                 <span className="text-sm font-medium">
-                  {user?.name?.split(' ')[0] || 'Account'}
+                  {'Hey, ' + user?.name?.split(' ')[0] || 'Account'}
                 </span>
               </Link>
             ) : (

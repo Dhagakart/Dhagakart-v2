@@ -89,7 +89,6 @@ useEffect(() => {
   
   return (
     <>
-      {/* <Header /> */}
       <HeaderDG />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -256,9 +255,7 @@ useEffect(() => {
 
         <Route path="*" element={<NotFound />}></Route>
         {/* <Route path="/oauth-success" element={<oAuthSuccess />} /> */}
-
       </Routes>
-      {/* <Footer />  */}
       <FooterDG />
     </>
   );

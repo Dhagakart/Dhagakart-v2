@@ -141,7 +141,7 @@ exports.forgotPassword = asyncErrorHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // const resetPasswordUrl = `${req.protocol}://${req.get("host")}/password/reset/${resetToken}`;
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://dhagakart-jfaj.vercel.app';
     const resetPasswordUrl = `${frontendUrl}/password/reset/${resetToken}`;
 
     const message = `

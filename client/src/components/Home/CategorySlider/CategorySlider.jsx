@@ -39,7 +39,7 @@ const CategorySlider = () => {
           {/* Left Navigation Button */}
           <button
             onClick={handleScrollLeft}
-            className="absolute bg-[#FA8232] -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full shadow-md hover:bg-gray-100 focus:outline-none"
+            className="absolute bg-[#FA8232] -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full shadow-md"
             aria-label="Scroll left"
           >
             <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,7 +76,7 @@ const CategorySlider = () => {
           {/* Right Navigation Button */}
           <button
             onClick={handleScrollRight}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-[#FA8232] shadow-md hover:bg-gray-100 focus:outline-none"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-[#FA8232] shadow-md"
             aria-label="Scroll right"
           >
             <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
