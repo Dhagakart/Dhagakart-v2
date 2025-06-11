@@ -383,3 +383,42 @@ exports.deleteUser = asyncErrorHandler(async (req, res, next) => {
         success: true
     });
 });
+
+// Add Address
+exports.addAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) return next(new ErrorHandler("User not found", 404));
+    
+    user.addresses.push(req.body);
+    await user.save();
+    
+    res.status(200).json({ success: true, user });
+});
+
+// Update Address
+exports.updateAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) return next(new ErrorHandler("User not found", 404));
+    
+    const address = user.addresses.id(req.params.id);
+    if (!address) return next(new ErrorHandler("Address not found", 404));
+    
+    address.set(req.body);
+    await user.save();
+    
+    res.status(200).json({ success: true, user });
+});
+
+// Delete Address
+exports.deleteAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) return next(new ErrorHandler("User not found", 404));
+    
+    const address = user.addresses.id(req.params.id);
+    if (!address) return next(new ErrorHandler("Address not found", 404));
+    
+    address.remove();
+    await user.save();
+    
+    res.status(200).json({ success: true, user });
+});

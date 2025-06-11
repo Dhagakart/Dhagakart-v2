@@ -44,11 +44,11 @@ export const emptyCart = () => async (dispatch, getState) => {
 
 // save shipping info
 export const saveShippingInfo = (data) => async (dispatch) => {
-
     dispatch({
         type: SAVE_SHIPPING_INFO,
-        payload: data,
+        payload: data
     });
-
+    
+    // Save to localStorage
     localStorage.setItem('shippingInfo', JSON.stringify(data));
-}
+};

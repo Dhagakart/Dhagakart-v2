@@ -12,7 +12,10 @@ const {
   getAllUsers,
   getSingleUser,
   updateUserRole,
-  deleteUser
+  deleteUser,
+  addAddress,
+  updateAddress,
+  deleteAddress
 } = require('../controllers/userController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 const router = express.Router();
@@ -36,5 +39,10 @@ router
   .get(isAuthenticatedUser, authorizeRoles('admin'), getSingleUser)
   .put(isAuthenticatedUser, authorizeRoles('admin'), updateUserRole)
   .delete(isAuthenticatedUser, authorizeRoles('admin'), deleteUser);
+
+// ─── User Address ───────────────────────────────────────────────────────
+router.route('/me/address/add').post(isAuthenticatedUser, addAddress);
+router.route('/me/address/:id').put(isAuthenticatedUser, updateAddress);
+router.route('/me/address/:id').delete(isAuthenticatedUser, deleteAddress);
 
 module.exports = router;
