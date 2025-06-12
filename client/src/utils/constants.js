@@ -8,18 +8,6 @@ export const categories = [
     "Fashion",
     "Appliances",
     "Home",
-    "Electronics",
-    "Mobiles",
-    "Laptops",
-    "Fashion",
-    "Appliances",
-    "Home",
-    "Electronics",
-    "Mobiles",
-    "Laptops",
-    "Fashion",
-    "Appliances",
-    "Home",
 ];
 
 // Product Sliders Offers

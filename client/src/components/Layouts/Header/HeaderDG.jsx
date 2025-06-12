@@ -5,6 +5,7 @@ import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import { FaChevronDown } from 'react-icons/fa';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import Logo from './logo.png';
 
 const HeaderDG = () => {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ const HeaderDG = () => {
           {/** LEFT: Logo + Location */}
           <div className="flex items-center min-w-0">
             <Link to="/" className="text-2xl font-bold text-white whitespace-nowrap mr-6">
-              DhagaKart
+              <img src={Logo} alt='logo' className='w-[133.3px]' />
             </Link>
             
             { isAuthenticated ? (

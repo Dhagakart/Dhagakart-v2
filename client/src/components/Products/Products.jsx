@@ -63,8 +63,8 @@ const Products = () => {
         <>
             <MetaData title="All Products | Flipkart" />
 
-            <MinCategory />
-            <main className="w-full mt-14 sm:mt-0">
+            {/* <MinCategory /> */}
+            <main className="w-full mt-10">
 
                 {/* <!-- row --> */}
                 <div className="flex gap-3 mt-2 sm:mt-2 sm:mx-3 m-auto mb-7">
@@ -76,10 +76,10 @@ const Products = () => {
                         <div className="flex flex-col bg-white rounded-sm shadow">
 
                             {/* <!-- filters header --> */}
-                            <div className="flex items-center justify-between gap-5 px-4 py-2 border-b">
+                            {/* <div className="flex items-center justify-between gap-5 px-4 py-2 border-b">
                                 <p className="text-lg font-medium">Filters</p>
                                 <span className="uppercase text-primary-blue text-xs cursor-pointer font-medium" onClick={() => clearFilters()}>clear all</span>
-                            </div>
+                            </div> */}
 
                             <div className="flex flex-col gap-2 py-3 text-sm overflow-hidden">
 
@@ -105,7 +105,7 @@ const Products = () => {
                                 {/* price slider filter */}
 
                                 {/* category filter */}
-                                <div className="flex flex-col border-b px-4">
+                                <div className="flex flex-col px-4">
 
                                     <div className="flex justify-between cursor-pointer py-2 pb-4 items-center" onClick={() => setCategoryToggle(!categoryToggle)}>
                                         <p className="font-medium text-xs uppercase">Category</p>
@@ -186,13 +186,13 @@ const Products = () => {
                         )}
 
                         {loading ? <Loader /> : (
-                            <div className="flex flex-col gap-2 pb-4 justify-center items-center w-full overflow-hidden bg-white">
-
-                                <div className="grid grid-cols-1 sm:grid-cols-4 w-full place-content-start overflow-hidden pb-4 border-b">
+                            <div className="w-full bg-white">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
                                     {products?.map((product) => (
-                                            <Product {...product} key={product._id} />
-                                        ))
-                                    }
+                                        <div key={product._id} className="flex justify-center">
+                                            <Product {...product} />
+                                        </div>
+                                    ))}
                                 </div>
                                 {filteredProductsCount > resultPerPage && (
                                     <Pagination

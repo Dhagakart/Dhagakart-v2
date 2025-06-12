@@ -34,7 +34,7 @@ const LoginDG = () => {
             dispatch(clearErrors());
         }
         if (isAuthenticated) {
-            navigate('/account');
+            navigate('/');
         }
     }, [dispatch, error, isAuthenticated, navigate, enqueueSnackbar]);
 

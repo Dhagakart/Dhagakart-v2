@@ -45,6 +45,7 @@ import LoginDG2 from './components/User/LoginDG2';
 import HeaderDG from './components/Layouts/Header/HeaderDG';
 import ForgotPasswordDG from './components/User/ForgotPasswordDG';
 import FooterDG from './components/Layouts/Footer/FooterDG';
+import ProductDetailsDG from './components/ProductDetails/ProductDetailsDG';
 
 function App() {
 
@@ -102,7 +103,8 @@ useEffect(() => {
         <Route path="/loginDG2" element={<LoginDG2 />} />
         <Route path="/password/forgot" element={<ForgotPasswordDG />} />
 
-        <Route path="/product/:id" element={<ProductDetails />} />
+        {/* <Route path="/product/:id" element={<ProductDetails />} /> */}
+        <Route path="/product/:id" element={<ProductDetailsDG />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:keyword" element={<Products />} />
 

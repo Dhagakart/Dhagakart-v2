@@ -5,9 +5,12 @@ import { getDiscount } from '../../utils/functions';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToWishlist, removeFromWishlist } from '../../actions/wishlistAction';
 import { useSnackbar } from 'notistack';
-import { motion } from 'framer-motion';
+import StarRating from '../Common/StarRating';
 
-const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice }) => {
+// const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice }) => {
+const Product = ({ _id, images, ratings, numOfReviews, price, cuttedPrice }) => {
+
+    const name = '2020 Apple Macbook Pro with Apple M1 Chip (13 inch, 8 gb RAM, 256 gb SSD) - Space Gray';
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
@@ -27,61 +30,50 @@ const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice 
     }
 
     return (
-        <motion.div 
-            className="flex flex-col items-start gap-3 px-4 py-6 relative bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-        >
+        <div className="flex flex-col items-center justify-center gap-2 mx-2 py-2 px-4 relative border border-gray-200 rounded-lg">
             {/* <!-- image & product title --> */}
-            <Link to={`/product/${_id}`} className="flex flex-col items-center text-center group">
-                <div className="w-44 h-48 relative overflow-hidden rounded-lg">
-                    <img 
-                        draggable="false" 
-                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-                        src={images && images[0].url} 
-                        alt="Product image"
-                    />
+            <Link to={`/product/${_id}`} className="flex flex-col justify-center items-center text-center">
+                <div className="w-48 h-48">
+                    <img draggable="false" className="w-full h-full object-contain" src={images && images[0].url} alt="" />
                 </div>
-                <h2 className="text-base font-medium text-gray-900 group-hover:text-primary-blue transition-colors duration-200 text-left">{name.length > 85 ? `${name.substring(0, 85)}...` : name}</h2>
             </Link>
             {/* <!-- image & product title --> */}
 
             {/* <!-- product description --> */}
             <div className="flex flex-col gap-2 items-start">
                 {/* <!-- rating badge --> */}
-                <span className="text-sm text-gray-600 font-medium flex gap-2 items-center">
-                    <span className="bg-primary-green px-2 py-1 rounded-full text-xs text-white flex items-center gap-1">{ratings.toFixed(1)} <StarIcon sx={{ fontSize: "14px" }} /></span>
-                    <span>({numOfReviews})</span>
-                </span>
+                <div className="flex items-start gap-1.5 mt-1">
+                    {/* <div className="flex items-center bg-green-700 text-white text-xs px-1.5 py-0.5 rounded">
+                        <span className="font-medium">{ratings.toFixed(1)}</span>
+                        <svg className="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                    </div> */}
+                    <StarRating rating={ratings} starSize="w-4 h-4" showText={false} />
+                    <span className="text-xs text-gray-500">({numOfReviews})</span>
+                </div>
                 {/* <!-- rating badge --> */}
 
+                {/* <h2 className="text-sm mt-4 text-center">{name.length > 85 ? `${name.substring(0, 85)}...` : name}</h2> */}
+                <h2 className="text-sm mt-4 text-start">{name.length > 65 ? `${name.substring(0, 65)}...` : name}</h2>
+
                 {/* <!-- price container --> */}
-                <div className="flex items-center gap-2 text-lg font-semibold">
-                    <span className="text-2xl font-bold text-primary-blue">₹{price.toLocaleString()}</span>
-                    <span className="text-gray-500 line-through text-base">₹{cuttedPrice.toLocaleString()}</span>
-                    <span className="text-sm text-primary-green bg-primary-green/10 px-2 py-1 rounded-full">{getDiscount(price, cuttedPrice)}% off</span>
+                <div className="flex items-center gap-1.5 text-md font-medium">
+                    <span className='text-[#003366]'>₹{price.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-md font-medium">
+                    <span className="text-gray-500 line-through text-xs">₹{cuttedPrice.toLocaleString()}</span>
+                    <span className="text-xs text-green-500">{getDiscount(price, cuttedPrice)}%&nbsp;off</span>
                 </div>
                 {/* <!-- price container --> */}
             </div>
             {/* <!-- product description --> */}
 
             {/* <!-- wishlist badge --> */}
-            <motion.span 
-                onClick={addToWishlistHandler} 
-                className="absolute top-6 right-6 cursor-pointer"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-            >
-                <FavoriteIcon 
-                    sx={{ 
-                        fontSize: "24px",
-                        color: itemInWishlist ? "#ff4444" : "#888",
-                        transition: "color 0.3s ease"
-                    }} 
-                />
-            </motion.span>
+            {/* <span onClick={addToWishlistHandler} className={`${itemInWishlist ? "text-red-500" : "hover:text-red-500 text-gray-300"} absolute top-6 right-6 cursor-pointer`}><FavoriteIcon sx={{ fontSize: "18px" }} /></span> */}
             {/* <!-- wishlist badge --> */}
 
-        </motion.div>
+        </div>
     );
 };
 

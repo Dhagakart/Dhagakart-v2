@@ -68,79 +68,30 @@ exports.getAdminProducts = asyncErrorHandler(async (req, res, next) => {
 
 // Create Product ---ADMIN
 exports.createProduct = asyncErrorHandler(async (req, res, next) => {
-
-    let images = [];
-    if (typeof req.body.images === "string") {
-        images.push(req.body.images);
-    } else {
-        images = req.body.images;
-    }
-
-    const imagesLink = [];
-
-    for (let i = 0; i < images.length; i++) {
-        const result = await cloudinary.v2.uploader.upload(images[i], {
-            folder: "products",
-        });
-
-        imagesLink.push({
-            public_id: result.public_id,
-            url: result.secure_url,
-        });
-    }
-
-    const result = await cloudinary.v2.uploader.upload(req.body.logo, {
-        folder: "brands",
-    });
-    const brandLogo = {
-        public_id: result.public_id,
-        url: result.secure_url,
+    // Helper function to flatten nested arrays
+    const flattenArray = (arr) => {
+        return arr.reduce((flat, item) => {
+            return flat.concat(Array.isArray(item) ? flattenArray(item) : item);
+        }, []);
     };
 
-    req.body.brand = {
-        name: req.body.brandname,
-        logo: brandLogo
-    }
-    req.body.images = imagesLink;
-    req.body.user = req.user.id;
-
-    let specs = [];
-    req.body.specifications.forEach((s) => {
-        specs.push(JSON.parse(s))
-    });
-    req.body.specifications = specs;
-
-    const product = await Product.create(req.body);
-
-    res.status(201).json({
-        success: true,
-        product
-    });
-});
-
-// Update Product ---ADMIN
-exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
-
-    let product = await Product.findById(req.params.id);
-
-    if (!product) {
-        return next(new ErrorHandler("Product Not Found", 404));
-    }
-
-    if (req.body.images !== undefined) {
-        let images = [];
-        if (typeof req.body.images === "string") {
+    // Process images
+    let images = [];
+    if (req.body.images) {
+        if (typeof req.body.images === 'string') {
             images.push(req.body.images);
-        } else {
-            images = req.body.images;
+        } else if (Array.isArray(req.body.images)) {
+            // Flatten the nested arrays and filter out any empty values
+            images = flattenArray(req.body.images).filter(img => img && typeof img === 'string');
         }
-        for (let i = 0; i < product.images.length; i++) {
-            await cloudinary.v2.uploader.destroy(product.images[i].public_id);
-        }
+    }
 
-        const imagesLink = [];
-
+    // Upload images to Cloudinary
+    const imagesLink = [];
+    try {
         for (let i = 0; i < images.length; i++) {
+            if (typeof images[i] !== 'string') continue;
+            
             const result = await cloudinary.v2.uploader.upload(images[i], {
                 folder: "products",
             });
@@ -150,42 +101,249 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
                 url: result.secure_url,
             });
         }
-        req.body.images = imagesLink;
+    } catch (error) {
+        console.error('Error uploading images to Cloudinary:', error);
+        return next(new ErrorHandler('Error uploading product images', 500));
     }
 
-    if (req.body.logo.length > 0) {
-        await cloudinary.v2.uploader.destroy(product.brand.logo.public_id);
-        const result = await cloudinary.v2.uploader.upload(req.body.logo, {
-            folder: "brands",
-        });
-        const brandLogo = {
-            public_id: result.public_id,
-            url: result.secure_url,
-        };
+    // Handle brand logo
+    let brandLogo = {};
+    try {
+        if (req.body.logo) {
+            const result = await cloudinary.v2.uploader.upload(req.body.logo, {
+                folder: "brands",
+            });
+            brandLogo = {
+                public_id: result.public_id,
+                    url: result.secure_url,
+            };
+        }
+    } catch (error) {
+        console.error('Error uploading brand logo to Cloudinary:', error);
+        return next(new ErrorHandler('Error uploading brand logo', 500));
+    }
 
-        req.body.brand = {
-            name: req.body.brandname,
-            logo: brandLogo
+    // Process highlights - ensure it's a flat array of strings
+    let highlights = [];
+    if (req.body.highlights) {
+        if (Array.isArray(req.body.highlights)) {
+            highlights = flattenArray(req.body.highlights)
+                .filter(h => typeof h === 'string' && h.trim() !== '')
+                .map(h => h.trim());
+        } else if (typeof req.body.highlights === 'string') {
+            highlights = [req.body.highlights.trim()];
         }
     }
 
-    let specs = [];
-    req.body.specifications.forEach((s) => {
-        specs.push(JSON.parse(s))
-    });
-    req.body.specifications = specs;
-    req.body.user = req.user.id;
+    // Process specifications
+    let specifications = [];
+    if (req.body.specifications && Array.isArray(req.body.specifications)) {
+        const flattenedSpecs = flattenArray(req.body.specifications);
+        for (const spec of flattenedSpecs) {
+            try {
+                let specObj;
+                if (typeof spec === 'string') {
+                    specObj = JSON.parse(spec);
+                } else if (typeof spec === 'object') {
+                    specObj = spec;
+                } else {
+                    continue;
+                }
 
-    product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-        new: true,
-        runValidators: true,
-        useFindAndModify: false,
-    });
+                // Ensure required fields exist
+                if (specObj.title && specObj.description) {
+                    specifications.push({
+                        title: specObj.title,
+                        description: specObj.description
+                    });
+                }
+            } catch (e) {
+                console.error('Error parsing specification:', e);
+                continue;
+            }
+        }
+    }
 
-    res.status(201).json({
-        success: true,
-        product
-    });
+    // Prepare product data
+    const productData = {
+        ...req.body,
+        brand: {
+            name: req.body.brandname,
+            logo: brandLogo
+        },
+        images: imagesLink,
+        highlights: highlights,
+        specifications: specifications,
+        user: req.user.id,
+        // Convert string numbers to numbers
+        price: parseFloat(req.body.price) || 0,
+        cuttedPrice: parseFloat(req.body.cuttedPrice) || 0,
+        stock: parseInt(req.body.stock) || 0,
+        warranty: parseInt(req.body.warranty) || 0
+    };
+
+    // Create the product
+    try {
+        const product = await Product.create(productData);
+        
+        res.status(201).json({
+            success: true,
+            product
+        });
+    } catch (error) {
+        console.error('Error creating product:', error);
+        return next(new ErrorHandler('Error creating product: ' + error.message, 500));
+    }
+});
+
+// Update Product ---ADMIN
+exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
+    let product = await Product.findById(req.params.id);
+
+    if (!product) {
+        return next(new ErrorHandler("Product Not Found", 404));
+    }
+
+    // Helper function to flatten nested arrays
+    const flattenArray = (arr) => {
+        return arr.reduce((flat, item) => {
+            return flat.concat(Array.isArray(item) ? flattenArray(item) : item);
+        }, []);
+    };
+
+    // Process new images if provided
+    let imagesLink = [...product.images];
+    if (req.body.images && req.body.images.length > 0) {
+        let newImages = [];
+        if (typeof req.body.images === 'string') {
+            newImages.push(req.body.images);
+        } else if (Array.isArray(req.body.images)) {
+            newImages = flattenArray(req.body.images).filter(img => img && typeof img === 'string');
+        }
+
+        // Upload new images to Cloudinary
+        for (let i = 0; i < newImages.length; i++) {
+            if (typeof newImages[i] !== 'string') continue;
+            
+            try {
+                const result = await cloudinary.v2.uploader.upload(newImages[i], {
+                    folder: "products",
+                });
+
+                imagesLink.push({
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                });
+            } catch (error) {
+                console.error('Error uploading new images to Cloudinary:', error);
+                // Continue with other images if one fails
+            }
+        }
+    }
+
+    // Handle brand logo update if provided
+    let brandLogo = product.brand?.logo || {};
+    if (req.body.logo && req.body.logo !== product.brand?.logo?.url) {
+        try {
+            // Delete old logo if exists
+            if (brandLogo.public_id) {
+                await cloudinary.v2.uploader.destroy(brandLogo.public_id);
+            }
+            
+            const result = await cloudinary.v2.uploader.upload(req.body.logo, {
+                folder: "brands",
+            });
+            
+            brandLogo = {
+                public_id: result.public_id,
+                url: result.secure_url,
+            };
+        } catch (error) {
+            console.error('Error updating brand logo:', error);
+            return next(new ErrorHandler('Error updating brand logo', 500));
+        }
+    }
+
+    // Process highlights
+    let highlights = product.highlights || [];
+    if (req.body.highlights) {
+        if (Array.isArray(req.body.highlights)) {
+            highlights = flattenArray(req.body.highlights)
+                .filter(h => typeof h === 'string' && h.trim() !== '')
+                .map(h => h.trim());
+        } else if (typeof req.body.highlights === 'string') {
+            highlights = [req.body.highlights.trim()];
+        }
+    }
+
+    // Process specifications
+    let specifications = product.specifications || [];
+    if (req.body.specifications && Array.isArray(req.body.specifications)) {
+        const flattenedSpecs = flattenArray(req.body.specifications);
+        specifications = [];
+        
+        for (const spec of flattenedSpecs) {
+            try {
+                let specObj;
+                if (typeof spec === 'string') {
+                    specObj = JSON.parse(spec);
+                } else if (typeof spec === 'object') {
+                    specObj = spec;
+                } else {
+                    continue;
+                }
+
+                if (specObj.title && specObj.description) {
+                    specifications.push({
+                        title: specObj.title,
+                        description: specObj.description
+                    });
+                }
+            } catch (e) {
+                console.error('Error parsing specification:', e);
+                continue;
+            }
+        }
+    }
+
+    // Prepare update data
+    const updateData = {
+        ...req.body,
+        brand: {
+            name: req.body.brandname || product.brand?.name,
+            logo: brandLogo
+        },
+        images: imagesLink,
+        highlights: highlights,
+        specifications: specifications,
+        // Convert string numbers to numbers if provided, otherwise keep existing values
+        price: req.body.price ? parseFloat(req.body.price) : product.price,
+        cuttedPrice: req.body.cuttedPrice ? parseFloat(req.body.cuttedPrice) : product.cuttedPrice,
+        stock: req.body.stock ? parseInt(req.body.stock) : product.stock,
+        warranty: req.body.warranty ? parseInt(req.body.warranty) : product.warranty
+    };
+
+    // Remove fields that shouldn't be updated
+    delete updateData.brandname;
+    delete updateData.logo; // Already handled separately
+
+    // Update the product
+    try {
+        // Find and update the product
+        product = await Product.findByIdAndUpdate(req.params.id, updateData, {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false
+        });
+
+        res.status(200).json({
+            success: true,
+            product
+        });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        return next(new ErrorHandler('Error updating product: ' + error.message, 500));
+    }
 });
 
 // Delete Product ---ADMIN

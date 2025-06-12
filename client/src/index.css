@@ -7,9 +7,9 @@ body {
 
 /* hover navbar dropdown arrow */
 .arrow_down {
-border-left: 11px solid transparent;
-border-right: 11px solid transparent;
-border-bottom: 11px solid #fff;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-bottom: 11px solid #fff;
 }
 /* hover navbar dropdown arrow */
 
@@ -19,4 +19,13 @@ border-bottom: 11px solid #fff;
   background-position: center 85%;
   background-repeat: no-repeat;
 }
-/* login signup sidebar bg image */
+
+/* Scrollbar hide utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
