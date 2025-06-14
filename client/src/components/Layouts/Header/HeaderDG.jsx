@@ -6,7 +6,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { FaChevronDown } from 'react-icons/fa';
 import ProfileIcon from './profile.png';
 import Logo from './logo.png';
-import PinIcon from './pin.png';
+import PinIcon from './Pin.png';
 
 const HeaderDG = () => {
   const navigate = useNavigate();
