@@ -24,7 +24,7 @@ router.get(
       const email = emails[0].value;
 
       let user = await User.findOne({ email });
-      if (user) { return sendToken(user, 200, res, `${process.env.FRONTEND_URL}/account`); }
+      if (user) { return sendToken(user, 200, res, `${process.env.FRONTEND_URL}/`); }
       // if (user) { return sendToken(user, 200, res, `http://localhost:5173/account`); }
 
       // Instead of session, redirect with data in query params

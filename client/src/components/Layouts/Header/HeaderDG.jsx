@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import { FaChevronDown } from 'react-icons/fa';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ProfileIcon from './profile.png';
 import Logo from './logo.png';
+import PinIcon from './pin.png';
 
 const HeaderDG = () => {
   const navigate = useNavigate();
@@ -13,6 +14,32 @@ const HeaderDG = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userLocation, setUserLocation] = useState('Loading location...');
   const [userPincode, setUserPincode] = useState('');
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'category', 'bulkOrder', 'profile', or null
+  const dropdownRefs = {
+    category: useRef(null),
+    bulkOrder: useRef(null),
+    profile: useRef(null)
+  };
+  const dropdownTimeout = useRef(null);
+  
+  // Close all other dropdowns when one is opened
+  const openDropdown = (dropdownName) => {
+    setActiveDropdown(dropdownName);
+    if (dropdownTimeout.current) {
+      clearTimeout(dropdownTimeout.current);
+    }
+  };
+  
+  const closeDropdown = () => {
+    if (dropdownTimeout.current) {
+      clearTimeout(dropdownTimeout.current);
+    }
+    dropdownTimeout.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 100); // 10ms delay before closing
+  };
+  
+  const isDropdownOpen = (dropdownName) => activeDropdown === dropdownName;
 
   const { isAuthenticated, user } = useSelector((state) => state.user);
 
@@ -34,21 +61,21 @@ const HeaderDG = () => {
             setUserLocation(location || 'Location not available');
 
             // Get pincode from the same location data
-            setUserPincode(address.postcode || 'Pincode not available');
+            setUserPincode(address.postcode || 'NA');
           } catch (error) {
             console.error('Error fetching location details:', error);
             setUserLocation('Enable location access');
-            setUserPincode('Pincode not available');
+            setUserPincode('NA');
           }
         },
         (error) => {
           setUserLocation('Enable location access');
-          setUserPincode('Pincode not available');
+          setUserPincode('NA');
         }
       );
     } else {
       setUserLocation('Geolocation not supported');
-      setUserPincode('Pincode not available');
+      setUserPincode('NA');
     }
   }, []);
 
@@ -59,6 +86,44 @@ const HeaderDG = () => {
     } else {
       navigate('/products');
     }
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const isOutsideAll = Object.values(dropdownRefs).every(
+        ref => !ref.current?.contains(event.target)
+      );
+      
+      if (isOutsideAll) {
+        closeDropdown();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+    };
+  }, []);
+
+  const handleMouseEnter = (dropdownName) => {
+    if (dropdownTimeout.current) {
+      clearTimeout(dropdownTimeout.current);
+    }
+    openDropdown(dropdownName);
+  };
+
+  const handleMouseLeave = () => {
+    closeDropdown();
+  };
+
+  const handleLogout = () => {
+    // Add your actual logout logic here
+    console.log('Logging out...');
+    // Example: 
+    // dispatch(logoutUser());
+    // navigate('/login');
   };
 
   return (
@@ -77,10 +142,13 @@ const HeaderDG = () => {
             
             { isAuthenticated ? (
               <div className="hidden md:flex items-center rounded px-2 py-1">
-                <div className="text-white font-medium text-sm">
+                <div className="text-white font-medium text-sm flex items-center gap-2">
+                  <img src={PinIcon} alt="pin" className="w-6 h-6" />
                   <div className="flex flex-col min-w-0">
-                    <span className="truncate">{userLocation}</span>
-                    <span className="text-xs text-gray-200">Pincode: {userPincode}</span>
+                    {/* <span className="truncate">{userLocation}</span> */}
+                    <span className="truncate text-xs">Delivery to {user?.name?.split(' ')[0]}</span>
+                    {/* <span className="text-xs text-gray-200">Pincode: {userPincode}</span> */}
+                    <span className="text-sm text-gray-200">{userLocation}, {userPincode}</span>
                   </div>
                 </div>
               </div>
@@ -112,23 +180,86 @@ const HeaderDG = () => {
 
           {/** RIGHT: Navigation Links */}
           <div className="hidden md:flex items-center space-x-8 min-w-0">
-            <Link
-              to="#"
-              className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
+            <div 
+              className="relative py-2"
+              ref={dropdownRefs.category}
+              onMouseEnter={() => handleMouseEnter('category')}
+              onMouseLeave={handleMouseLeave}
             >
-              <span>Category</span>
-              <FaChevronDown className="ml-1 text-xs text-gray-100" />
-            </Link>
+              <button
+                onClick={() => isDropdownOpen('category') ? closeDropdown() : openDropdown('category')}
+                className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap focus:outline-none hover:cursor-pointer"
+              >
+                <span>Category</span>
+                <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('category') ? 'transform rotate-180' : ''}`} />
+              </button>
+              {isDropdownOpen('category') && (
+                <div 
+                  className="absolute z-50 mt-4 w-96 px-4 -left-40 bg-white rounded-lg shadow-lg overflow-hidden"
+                  onMouseEnter={() => handleMouseEnter('category')}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <div className="grid grid-cols-3">
+                    <div className="p-3">
+                      <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">YARNS</h3>
+                      <ul className="space-y-1">
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyster Yarn</a></li>
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscous Yarn</a></li>
+                      </ul>
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">ZARI</h3>
+                      <ul className="space-y-1">
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Threads</a></li>
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Laces</a></li>
+                      </ul>
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">Machinary</h3>
+                      <ul className="space-y-1">
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">All Fabrics</a></li>
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Fabrics</a></li>
+                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Fabrics</a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div 
+              className="relative py-2"
+              ref={dropdownRefs.bulkOrder}
+              onMouseEnter={() => handleMouseEnter('bulkOrder')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button
+                onClick={() => isDropdownOpen('bulkOrder') ? closeDropdown() : openDropdown('bulkOrder')}
+                className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap focus:outline-none hover:cursor-pointer"
+              >
+                <span>Bulk Order</span>
+                <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('bulkOrder') ? 'transform rotate-180' : ''}`} />
+              </button>
+              {isDropdownOpen('bulkOrder') && (
+                <div 
+                  className="absolute z-50 mt-2 w-48 mt-4 bg-white rounded-md shadow-lg overflow-hidden"
+                  onMouseEnter={() => handleMouseEnter('bulkOrder')}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <div className="p-2">
+                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Enquiry</a>
+                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Track Bulk Order</a>
+                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Policy</a>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <Link
-              to="/bulk-order"
-              className="text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
-            >
-              Bulk Order
-            </Link>
-
-            <Link
-              to="/credit-finance"
+              to="/reqcredits"
               className="text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
             >
               Credit Finance
@@ -182,15 +313,41 @@ const HeaderDG = () => {
               - Hover→bg-gray-100 for a subtle light‐gray background. 
             */}
             { isAuthenticated ? (
-              <Link
-                to="/account"
-                className="flex items-center text-white hover:text-gray-200 transition-colors space-x-1"
+              <div 
+                className="relative py-2"
+                ref={dropdownRefs.profile}
+                onMouseEnter={() => handleMouseEnter('profile')}
+                onMouseLeave={handleMouseLeave}
               >
-                <AccountCircleIcon style={{ fontSize: 24 }} />
-                <span className="text-sm font-medium">
-                  {'Hey, ' + user?.name?.split(' ')[0] || 'Account'}
-                </span>
-              </Link>
+                <button
+                  onClick={() => isDropdownOpen('profile') ? closeDropdown() : openDropdown('profile')}
+                  className="flex items-center text-white hover:text-gray-200 transition-colors space-x-1 focus:outline-none"
+                >
+                  <img src={ProfileIcon} alt="Profile" className="w-8 h-8 rounded-full" />
+                  <span className="text-sm font-medium">
+                    {user?.name ? `Hey, ${user.name.split(' ')[0]}` : 'Account'}
+                    <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform inline ${isDropdownOpen('profile') ? 'transform rotate-180' : ''}`} />
+                  </span>
+                </button>
+                {isDropdownOpen('profile') && (
+                  <div 
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-50"
+                    onMouseEnter={() => handleMouseEnter('profile')}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <div className="p-2">
+                      <Link to="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Account</Link>
+                      <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Orders</Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link
               to="/login"

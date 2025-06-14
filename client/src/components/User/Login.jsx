@@ -26,7 +26,7 @@ const Login = () => {
         dispatch(loginUser(email, password));
     }
 
-    const redirect = location.search ? location.search.split("=")[1] : "account";
+    // const redirect = location.search ? location.search.split("=")[1] : "account";
 
     useEffect(() => {
         if (error) {
@@ -34,9 +34,9 @@ const Login = () => {
             dispatch(clearErrors());
         }
         if (isAuthenticated) {
-            navigate(`/${redirect}`)
+            navigate('/');
         }
-    }, [dispatch, error, isAuthenticated, redirect, navigate, enqueueSnackbar]);
+    }, [dispatch, error, isAuthenticated, navigate, enqueueSnackbar]);
 
     const handleGoogleLogin = () => {
         window.location.href = 'https://dhagakart.onrender.com/api/v1/auth/google';

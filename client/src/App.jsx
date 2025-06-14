@@ -5,13 +5,14 @@ import Login from './components/User/Login';
 import Register from './components/User/Register';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { loadUser } from './actions/userAction';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import UpdateProfile from './components/User/UpdateProfile';
 import UpdatePassword from './components/User/UpdatePassword';
 import ForgotPassword from './components/User/ForgotPassword';
 import ResetPassword from './components/User/ResetPassword';
-import Account from './components/User/Account';
+// import Account from './components/User/Account';
+import AccountDG from './components/User/AccountDG';
 import ProtectedRoute from './Routes/ProtectedRoute.jsx';
 import Home from './components/Home/Home';
 import ProductDetails from './components/ProductDetails/ProductDetails';
@@ -36,6 +37,8 @@ import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
+import ReqCredits from './components/ReqCredits/ReqCredits';
+import BulkOrder from './components/BulkOrder/BulkOrder';
 // import oAuthSuccess from './components/oAuthSuccess';
 
 // DG ROUTES
@@ -48,7 +51,7 @@ import FooterDG from './components/Layouts/Footer/FooterDG';
 import ProductDetailsDG from './components/ProductDetails/ProductDetailsDG';
 
 function App() {
-
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   // const [stripeApiKey, setStripeApiKey] = useState("");
@@ -64,20 +67,45 @@ function App() {
         families: ["Roboto:300,400,500,600,700"]
       },
     });
-  });
 
-// In App.jsx
-useEffect(() => {
-  const loadUserData = async () => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth > 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (!isDesktop) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        textAlign: 'center',
+        padding: '20px',
+        fontSize: '1.5rem',
+        lineHeight: '2rem',
+        fontWeight: 500
+      }}>
+        Kindly continue on a PC or laptop for the best experience.
+      </div>
+    );
+  }
+
+  // In App.jsx
+  useEffect(() => {
+    const loadUserData = async () => {
       try {
-          await dispatch(loadUser());
+        await dispatch(loadUser());
       } catch (error) {
-          console.error('Error loading user:', error);
+        console.error('Error loading user:', error);
       }
-  };
-  
-  loadUserData();
-}, [dispatch]);
+    };
+
+    loadUserData();
+  }, [dispatch]);
 
   // always scroll to top on route/path change
   useEffect(() => {
@@ -87,7 +115,7 @@ useEffect(() => {
       behavior: "smooth"
     });
   }, [pathname])
-  
+
   return (
     <>
       <HeaderDG />
@@ -123,6 +151,10 @@ useEffect(() => {
           </ProtectedRoute>
         } ></Route>
 
+        <Route path="/reqcredits" element={<ProtectedRoute><ReqCredits /></ProtectedRoute>} />
+
+        <Route path="/bulkorder" element={<ProtectedRoute><BulkOrder /></ProtectedRoute>} />
+
         <Route path="/process/payment" element={
           <ProtectedRoute>
             {/* // stripeApiKey && ( */}
@@ -157,7 +189,8 @@ useEffect(() => {
 
         <Route path="/account" element={
           <ProtectedRoute>
-            <Account />
+            {/* <Account /> */}
+            <AccountDG />
           </ProtectedRoute>
         } ></Route>
 

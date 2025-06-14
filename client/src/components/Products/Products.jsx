@@ -19,6 +19,7 @@ import { categories } from '../../utils/constants';
 import MetaData from '../Layouts/MetaData';
 import { getRandomProducts } from '../../utils/functions';
 import { useLocation } from 'react-router-dom';
+import NotFound from './Not_found.png'
 
 const Products = () => {
 
@@ -64,16 +65,16 @@ const Products = () => {
             <MetaData title="All Products | Flipkart" />
 
             {/* <MinCategory /> */}
-            <main className="w-full mt-10">
+            <main className="w-full min-h-[90vh] mt-10 px-16">
 
                 {/* <!-- row --> */}
-                <div className="flex gap-3 mt-2 sm:mt-2 sm:mx-3 m-auto mb-7">
+                <div className="min-h-[90vh] flex gap-3 mt-4 m-auto mb-7">
 
                     {/* <!-- sidebar column  --> */}
-                    <div className="hidden sm:flex flex-col w-1/5 px-1">
+                    <div className="hidden sm:flex flex-col mt-2 w-1/5 px-1">
 
                         {/* <!-- nav tiles --> */}
-                        <div className="flex flex-col bg-white rounded-sm shadow">
+                        <div className="flex flex-col bg-white rounded-sm shadow mt-2">
 
                             {/* <!-- filters header --> */}
                             {/* <div className="flex items-center justify-between gap-5 px-4 py-2 border-b">
@@ -81,28 +82,7 @@ const Products = () => {
                                 <span className="uppercase text-primary-blue text-xs cursor-pointer font-medium" onClick={() => clearFilters()}>clear all</span>
                             </div> */}
 
-                            <div className="flex flex-col gap-2 py-3 text-sm overflow-hidden">
-
-                                {/* price slider filter */}
-                                {/* <div className="flex flex-col gap-2 border-b px-4">
-                                    <span className="font-medium text-xs">PRICE</span>
-
-                                    <Slider
-                                        value={price}
-                                        onChange={priceHandler}
-                                        valueLabelDisplay="auto"
-                                        getAriaLabel={() => 'Price range slider'}
-                                        min={0}
-                                        max={200000}
-                                    />
-
-                                    <div className="flex gap-3 items-center justify-between mb-2 min-w-full">
-                                        <span className="flex-1 border px-4 py-1 rounded-sm text-gray-800 bg-gray-50">₹{price[0].toLocaleString()}</span>
-                                        <span className="font-medium text-gray-400">to</span>
-                                        <span className="flex-1 border px-4 py-1 rounded-sm text-gray-800 bg-gray-50">₹{price[1].toLocaleString()}</span>
-                                    </div>
-                                </div> */}
-                                {/* price slider filter */}
+                            <div className="flex flex-col gap-2 text-sm overflow-hidden">
 
                                 {/* category filter */}
                                 <div className="flex flex-col px-4">
@@ -178,10 +158,9 @@ const Products = () => {
                     <div className="flex-1">
 
                         {!loading && products?.length === 0 && (
-                            <div className="flex flex-col items-center justify-center gap-3 bg-white shadow-sm rounded-sm p-6 sm:p-16">
-                                <img draggable="false" className="w-1/2 h-44 object-contain" src="https://static-assets-web.flixcart.com/www/linchpin/fk-cp-zion/img/error-no-search-results_2353c5.png" alt="Search Not Found" />
-                                <h1 className="text-2xl font-medium text-gray-900">Sorry, no results found!</h1>
-                                <p className="text-xl text-center text-primary-grey">Please check the spelling or try searching for something else</p>
+                            <div className="min-h-[90vh] flex flex-col items-center justify-center gap-3 bg-white shadow-sm rounded-sm">
+                                <img draggable="false" className="w-1/2 h-44 object-contain" src={NotFound} alt="Search Not Found" />
+                                <h1 className="text-2xl font-medium text-gray-900">No results found!</h1>
                             </div>
                         )}
 
