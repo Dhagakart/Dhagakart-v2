@@ -1,23 +1,30 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
 import OrderHistory from './OrderHistory';
 import RFQsAndQuotes from './RFQsAndQuotes';
 import TrackOrder from './TrackOrder';
+import { logoutUser } from '../../actions/userAction';
+import LogoutConfirmationModal from './LogoutConfirmationModal';
 
 // Icons
 import { User, ShoppingBag, Truck, FileText, LogOut, FileSearch } from 'lucide-react';
 
 const AccountDG = () => {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
     const { user, loading, isAuthenticated } = useSelector(state => state.user);
     const [activeTab, setActiveTab] = useState('profile');
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const handleLogout = () => {
-        // Logout logic here
-        console.log('Logging out...');
+        dispatch(logoutUser());
+        enqueueSnackbar("Logout Successful", { variant: "success" });
+        navigate("/login");
     };
 
     useEffect(() => {
@@ -37,41 +44,48 @@ const AccountDG = () => {
                     <aside className="w-full md:w-64">
                         <div className="bg-gray-100 rounded-lg shadow-sm py-4">
                             <nav className="space-y-1">
-                                <button
-                                    onClick={() => setActiveTab('profile')}
-                                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-r-md hover:cursor-pointer ${activeTab === 'profile' ? 'text-blue-700 bg-white border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'}`}
-                                >
-                                    <User className="mr-3 h-5 w-5" />
-                                    Profile
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('orders')}
-                                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-r-md hover:cursor-pointer ${activeTab === 'orders' ? 'text-blue-700 bg-white border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'}`}
-                                >
-                                    <ShoppingBag className="mr-3 h-5 w-5" />
-                                    Order History
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('track-order')}
-                                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-r-md hover:cursor-pointer ${activeTab === 'track-order' ? 'text-blue-700 bg-white border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'}`}
-                                >
-                                    <Truck className="mr-3 h-5 w-5" />
-                                    Track Order
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('rfqs')}
-                                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-r-md hover:cursor-pointer ${activeTab === 'rfqs' ? 'text-blue-700 bg-white border-l-4 border-blue-600' : 'text-gray-700 hover:bg-gray-200'}`}
-                                >
-                                    <FileSearch className="mr-3 h-5 w-5" />
-                                    My RFQ's & Quotes
-                                </button>
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md hover:cursor-pointer"
-                                >
-                                    <LogOut className="mr-3 h-5 w-5" />
-                                    Log-out
-                                </button>
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={() => setActiveTab('profile')}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'profile' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                    >
+                                        <User className="h-5 w-5" />
+                                        <span>Profile</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('orders')}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'orders' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                    >
+                                        <ShoppingBag className="h-5 w-5" />
+                                        <span>Order History</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('track-order')}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'track-order' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                    >
+                                        <Truck className="h-5 w-5" />
+                                        <span>Track Order</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('rfqs')}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'rfqs' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                    >
+                                        <FileSearch className="h-5 w-5" />
+                                        <span>My RFQ's & Quotes</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowLogoutConfirm(true)}
+                                        className="flex items-center gap-2 px-4 py-3 text-red-600 rounded-lg hover:bg-red-50 hover:cursor-pointer"
+                                    >
+                                        <LogOut className="h-5 w-5" />
+                                        <span>Logout</span>
+                                    </button>
+                                </div>
+                                <LogoutConfirmationModal 
+                                    isOpen={showLogoutConfirm}
+                                    onCancel={() => setShowLogoutConfirm(false)}
+                                    onConfirm={handleLogout}
+                                />
                             </nav>
                         </div>
                     </aside>

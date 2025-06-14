@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSnackbar } from 'notistack';
+import { logoutUser } from '../../../actions/userAction';
+import LogoutConfirmationModal from '../../../components/User/LogoutConfirmationModal';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import { FaChevronDown } from 'react-icons/fa';
@@ -41,7 +44,10 @@ const HeaderDG = () => {
   
   const isDropdownOpen = (dropdownName) => activeDropdown === dropdownName;
 
+  const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
   const { isAuthenticated, user } = useSelector((state) => state.user);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -118,20 +124,24 @@ const HeaderDG = () => {
     closeDropdown();
   };
 
-  const handleLogout = () => {
-    // Add your actual logout logic here
-    console.log('Logging out...');
-    // Example: 
-    // dispatch(logoutUser());
-    // navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser());
+      enqueueSnackbar("Logout Successful", { variant: "success" });
+      setShowLogoutConfirm(false); // Close the modal
+      navigate("/login");
+    } catch (error) {
+      enqueueSnackbar("Failed to logout. Please try again.", { variant: "error" });
+    }
   };
 
   return (
-    <header
-      // Exact navy background: #003366
-      style={{ backgroundColor: '#003366' }}
-      className="w-full -mb-10 px-16"
-    >
+    <>
+      <header
+        // Exact navy background: #003366
+        style={{ backgroundColor: '#003366' }}
+        className="w-full -mb-10 px-16"
+      >
       <div className="w-full">
         <div className="h-16 flex items-center justify-between gap-4">
           {/** LEFT: Logo + Location */}
@@ -338,12 +348,12 @@ const HeaderDG = () => {
                     <div className="p-2">
                       <Link to="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Account</Link>
                       <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Orders</Link>
-                      <button 
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
-                      >
-                        Logout
-                      </button>
+                      <button
+                                onClick={() => setShowLogoutConfirm(true)}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
+                              >
+                                Logout
+                              </button>
                     </div>
                   </div>
                 )}
@@ -373,7 +383,16 @@ const HeaderDG = () => {
 
         </div>
       </div>
-    </header>
+      </header>
+      
+      <LogoutConfirmationModal 
+        isOpen={showLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={() => {
+          handleLogout();
+        }}
+      />
+    </>
   );
 };
 
