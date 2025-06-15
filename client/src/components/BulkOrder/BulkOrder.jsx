@@ -448,9 +448,13 @@ const BulkOrder = () => {
                 )}
               </div>
               {!userLocation && (
-                <p className="mt-1 text-xs text-gray-500">
-                  Enable location access in the header to use this feature
-                </p>
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  className="mt-1 text-xs text-blue-600 hover:text-blue-800 hover:underline focus:outline-none text-left"
+                >
+                  Click to enable location access
+                </button>
               )}
             </div>
           </div>
