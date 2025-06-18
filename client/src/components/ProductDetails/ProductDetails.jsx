@@ -151,21 +151,37 @@ const ProductDetails = () => {
                                         </div>
                                     </div>
 
-                                    <div className="w-full flex gap-3">
-                                        {/* <!-- add to cart btn --> */}
-                                        {product.stock > 0 && (
-                                            <button onClick={itemInCart ? goToCart : addToCartHandler} className="p-4 w-1/2 flex items-center justify-center gap-2 text-white bg-primary-yellow rounded-sm shadow hover:shadow-lg">
-                                                <ShoppingCartIcon />
-                                                {itemInCart ? "GO TO CART" : "ADD TO CART"}
+                                    <div className="w-full flex flex-wrap gap-3">
+                                        {product.stock > 0 ? (
+                                            <>
+                                                {/* Add to Cart Button */}
+                                                <button 
+                                                    onClick={itemInCart ? goToCart : addToCartHandler} 
+                                                    className="flex-1 min-w-[120px] p-3 flex items-center justify-center gap-2 text-white bg-primary-yellow rounded-sm shadow hover:shadow-lg"
+                                                >
+                                                    <ShoppingCartIcon />
+                                                    {itemInCart ? "GO TO CART" : "ADD TO CART"}
+                                                </button>
+                                                
+                                                {/* Buy Now Button */}
+                                                <button 
+                                                    onClick={buyNow} 
+                                                    className="flex-1 min-w-[120px] p-3 flex items-center justify-center gap-2 text-white bg-primary-orange rounded-sm shadow hover:shadow-lg"
+                                                >
+                                                    <FlashOnIcon />
+                                                    BUY NOW
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button 
+                                                disabled 
+                                                className="w-full p-3 flex items-center justify-center gap-2 text-white bg-red-600 cursor-not-allowed rounded-sm shadow"
+                                            >
+                                                <FlashOnIcon />
+                                                OUT OF STOCK
                                             </button>
                                         )}
-                                        <button onClick={buyNow} disabled={product.stock < 1 ? true : false} className={product.stock < 1 ? "p-4 w-full flex items-center justify-center gap-2 text-white bg-red-600 cursor-not-allowed rounded-sm shadow hover:shadow-lg" : "p-4 w-1/2 flex items-center justify-center gap-2 text-white bg-primary-orange rounded-sm shadow hover:shadow-lg"}>
-                                            <FlashOnIcon />
-                                            {product.stock < 1 ? "OUT OF STOCK" : "BUY NOW"}
-                                        </button>
-                                        {/* <!-- add to cart btn --> */}
                                     </div>
-
                                 </div>
                                 {/* <!-- imgbox --> */}
                             </div>
@@ -202,7 +218,7 @@ const ProductDetails = () => {
                                     {Array(3).fill("").map((el, i) => (
                                         <p className="text-sm flex items-center gap-1" key={i}>
                                             <span className="text-primary-lightGreen"><LocalOfferIcon sx={{ fontSize: "20px" }} /></span>
-                                            <span className="font-medium ml-2">Bank Offer</span> 15% Instant discount on first Flipkart Pay Later order of 500 and above <Link className="text-primary-blue font-medium" to="/">T&C</Link>
+                                            <span className="font-medium ml-2">Bank Offer</span> 15% Instant discount on first DhagaKart Pay Later order of 500 and above <Link className="text-primary-blue font-medium" to="/">T&C</Link>
                                         </p>
                                     ))}
                                     {/* <!-- banks offers --> */}

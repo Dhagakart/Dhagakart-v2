@@ -11,6 +11,14 @@ import RadioGroup from '@mui/material/RadioGroup';
 import MetaData from '../Layouts/MetaData';
 import { formatPrice } from '../../utils/formatPrice';
 
+import Paytm from './paytm.png';
+import Gpay from './gpay.png';
+import Phonepe from './phonepe.png';
+import Netbanking from './netbanking.png';
+import UPI from './upi.png';
+import CreditCard from './creditcard.png';
+import COD from './cod.png';
+
 const Payment = () => {
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
@@ -145,7 +153,7 @@ const Payment = () => {
 
     return (
         <>
-            <MetaData title="Flipkart: Secure Payment | Paytm" />
+            <MetaData title="DhagaKart: Secure Payment | Paytm" />
             <main className="w-full mt-20">
                 <div className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-11/12 mt-10 sm:mt-4 m-auto sm:mb-7">
                     {/* Payment Methods Section */}
@@ -161,7 +169,7 @@ const Payment = () => {
                                 >
                                     <div className='flex items-center'>
                                         <div className='w-8 h-8 flex items-center justify-center mr-3'>
-                                            <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/visaIcon_5a64f76.png" alt="Net Banking" className='h-6 w-6' />
+                                            <img src={Netbanking} alt="Net Banking" className='h-6 w-6' />
                                         </div>
                                         <div>
                                             <p className='text-sm font-medium'>Net Banking</p>
@@ -177,7 +185,7 @@ const Payment = () => {
                                 >
                                     <div className='flex items-center'>
                                         <div className='w-8 h-8 flex items-center justify-center mr-3'>
-                                            <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/upi_16d58e.png" alt="UPI" className='h-6 w-6' />
+                                            <img src={UPI} alt="UPI" className='h-6 w-6' />
                                         </div>
                                         <div>
                                             <p className='text-sm font-medium'>UPI</p>
@@ -193,7 +201,7 @@ const Payment = () => {
                                 >
                                     <div className='flex items-center'>
                                         <div className='w-8 h-8 flex items-center justify-center mr-3'>
-                                            <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/credit-card_0f0f2b4.png" alt="Cards" className='h-6 w-6' />
+                                            <img src={CreditCard} alt="Cards" className='h-6 w-6' />
                                         </div>
                                         <div>
                                             <p className='text-sm font-medium'>Credit & Debit Card</p>
@@ -209,7 +217,7 @@ const Payment = () => {
                                 >
                                     <div className='flex items-center'>
                                         <div className='w-8 h-8 flex items-center justify-center mr-3'>
-                                            <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/cod_icon_4b2334.png" alt="Cash on Delivery" className='h-6 w-6' />
+                                            <img src={COD} alt="Cash on Delivery" className='h-6 w-6' />
                                         </div>
                                         <div>
                                             <p className='text-sm font-medium'>Pay on Delivery</p>
@@ -229,9 +237,9 @@ const Payment = () => {
                                         {/* UPI Apps */}
                                         <div className='grid grid-cols-3 gap-3 mb-6'>
                                             {[
-                                                { id: 'paytm', name: 'Paytm UPI', icon: 'https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/paytm_195fd5.png' },
-                                                { id: 'gpay', name: 'Google Pay', icon: 'https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/gpay_2x_0d4ff2.png' },
-                                                { id: 'phonepe', name: 'PhonePe UPI', icon: 'https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/phonepe_554a3f.png' }
+                                                { id: 'paytm', name: 'Paytm UPI', icon: Paytm },
+                                                { id: 'gpay', name: 'Google Pay', icon: Gpay },
+                                                { id: 'phonepe', name: 'PhonePe UPI', icon: Phonepe }
                                             ].map(app => (
                                                 <div 
                                                     key={app.id}

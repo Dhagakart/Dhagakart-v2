@@ -93,7 +93,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Company Info */}
           <div className="lg:col-span-2">
-            <h3 className="text-white text-2xl font-bold mb-4">Flipkart</h3>
+            <h3 className="text-white text-2xl font-bold mb-4">DhagaKart</h3>
             <p className="mb-4">Your trusted online shopping destination</p>
             
             <div className="flex flex-col space-y-3">
@@ -107,7 +107,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center">
                 <FaEnvelope className="mr-3 text-blue-400" />
-                <a href="mailto:care@flipkart.com" className="hover:text-white">care@flipkart.com</a>
+                <a href="mailto:care@DhagaKart.com" className="hover:text-white">care@DhagaKart.com</a>
               </div>
             </div>
           </div>

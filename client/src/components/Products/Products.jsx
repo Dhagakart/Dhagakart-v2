@@ -61,7 +61,7 @@ const Products = () => {
 
     return (
         <>
-            <MetaData title="All Products | Flipkart" />
+            <MetaData title="All Products | DhagaKart" />
 
             {/* <MinCategory /> */}
             <main className="w-full min-h-[90vh] mt-10 px-16">

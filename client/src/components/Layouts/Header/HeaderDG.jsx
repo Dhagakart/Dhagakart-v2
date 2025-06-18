@@ -48,9 +48,22 @@ const HeaderDG = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    // Check if we already have location data in localStorage
+    const savedLocation = localStorage.getItem('userLocation');
+    const savedPincode = localStorage.getItem('userPincode');
+
+    if (savedLocation && savedPincode) {
+      setUserLocation(savedLocation);
+      setUserPincode(savedPincode);
+      setHasFetchedLocation(true);
+      return;
+    }
+
+    // Only fetch location if we don't have it saved
+    if (navigator.geolocation && !hasFetchedLocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
@@ -64,10 +77,15 @@ const HeaderDG = () => {
             // Extract relevant location information
             const address = locationData.address;
             const location = address.city || address.town || address.village || address.county || '';
-            setUserLocation(location || 'Location not available');
-
-            // Get pincode from the same location data
-            setUserPincode(address.postcode || 'NA');
+            const locationText = location || 'Location not available';
+            const pincode = address.postcode || 'NA';
+            
+            // Update state and localStorage
+            setUserLocation(locationText);
+            setUserPincode(pincode);
+            localStorage.setItem('userLocation', locationText);
+            localStorage.setItem('userPincode', pincode);
+            setHasFetchedLocation(true);
           } catch (error) {
             console.error('Error fetching location details:', error);
             setUserLocation('Enable location access');
@@ -170,7 +188,7 @@ const HeaderDG = () => {
           </div>
 
           {/** CENTER: Search Bar */}
-          <div className="flex-1 max-w-xl ml-12">
+          <div className="flex-1 max-w-[470px] ml-12">
             <form onSubmit={handleSearch} className="w-full flex bg-white rounded-sm overflow-hidden shadow-md">
               <input
                 type="text"
@@ -213,26 +231,26 @@ const HeaderDG = () => {
                     <div className="p-3">
                       <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">YARNS</h3>
                       <ul className="space-y-1">
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyster Yarn</a></li>
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscous Yarn</a></li>
+                        <li><a href="/products/silk%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
+                        <li><a href="/products/cotton%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
+                        <li><a href="/products/polyster%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyster Yarn</a></li>
+                        <li><a href="/products/viscous%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscous Yarn</a></li>
                       </ul>
                     </div>
                     <div className="p-3">
                       <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">ZARI</h3>
                       <ul className="space-y-1">
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Threads</a></li>
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Laces</a></li>
+                        <li><a href="/products/flora%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
+                        <li><a href="/products/pure%20threads" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Threads</a></li>
+                        <li><a href="/products/metallic%20laces" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Laces</a></li>
                       </ul>
                     </div>
                     <div className="p-3">
                       <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">Machinary</h3>
                       <ul className="space-y-1">
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">All Fabrics</a></li>
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Fabrics</a></li>
-                        <li><a href="#" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Fabrics</a></li>
+                        <li><a href="/products/all%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">All Fabrics</a></li>
+                        <li><a href="/products/cotton%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Fabrics</a></li>
+                        <li><a href="/products/silk%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Fabrics</a></li>
                       </ul>
                     </div>
                   </div>
@@ -260,9 +278,9 @@ const HeaderDG = () => {
                   onMouseLeave={handleMouseLeave}
                 >
                   <div className="p-2">
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Enquiry</a>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Track Bulk Order</a>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Policy</a>
+                    <a href="/bulkorder" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Enquiry</a>
+                    {/* <a href="/bulkorder/track" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Track Bulk Order</a> */}
+                    <a href="/bulkorder/policy" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Policy</a>
                   </div>
                 </div>
               )}

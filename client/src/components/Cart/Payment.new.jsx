@@ -144,7 +144,7 @@ const Payment = () => {
 
     return (
         <>
-            <MetaData title="Payment | Flipkart" />
+            <MetaData title="Payment | DhagaKart" />
             <main className="w-full min-h-[90vh] flex justify-center items-start px-4 sm:px-6 lg:px-8 py-12">
                 <div className="w-full max-w-7xl mx-auto">
                     <Stepper activeStep={3} />
