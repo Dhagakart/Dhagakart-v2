@@ -11,9 +11,14 @@ const Cart = () => {
     const navigate = useNavigate();
     const { cartItems } = useSelector((state) => state.cart);
     const { saveForLaterItems } = useSelector((state) => state.saveForLater);
+    const { loading, isAuthenticated, error } = useSelector((state) => state.user);
 
     const placeOrderHandler = () => {
-        navigate('/login?redirect=shipping');
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        navigate('/shipping');
     }
 
     // Calculate cart totals
@@ -52,12 +57,12 @@ const Cart = () => {
                 </div>
                 <button
                     onClick={placeOrderHandler}
-                    disabled={cartItems.length === 0}
+                    disabled={cartItems.length === 0 || !isAuthenticated}
                     className={`w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md transition-colors duration-200 mt-6 font-medium shadow-md hover:shadow-lg hover:cursor-pointer ${
-                        cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                        cartItems.length === 0 || !isAuthenticated ? 'opacity-50' : ''
                     }`}
                 >
-                    Proceed to Checkout
+                    {cartItems.length === 0 || !isAuthenticated ? 'Login to Checkout' : 'Proceed to Checkout'}
                 </button>
             </div>
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">

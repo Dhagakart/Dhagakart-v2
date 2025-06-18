@@ -28,18 +28,17 @@ const Products = () => {
     const params = useParams();
     const location = useLocation();
 
-    const [price, setPrice] = useState([0, 200000]);
-    const [category, setCategory] = useState(location.search ? location.search.split("=")[1] : "");
-    const [ratings, setRatings] = useState(0);
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedSubcategory, setSelectedSubcategory] = useState("");
 
     // pagination
     const [currentPage, setCurrentPage] = useState(1);
 
     // filter toggles
     const [categoryToggle, setCategoryToggle] = useState(true);
-    const [ratingsToggle, setRatingsToggle] = useState(true);
+    const [subcategoryToggle, setSubcategoryToggle] = useState(true);
 
-    const { products, loading, error, productsCount, resultPerPage, filteredProductsCount } = useSelector((state) => state.products);
+    const { products, loading, error, productsCount, resultPerPage } = useSelector((state) => state.products);
     const keyword = params.keyword;
 
     const priceHandler = (e, newPrice) => {
@@ -47,9 +46,8 @@ const Products = () => {
     }
 
     const clearFilters = () => {
-        setPrice([0, 200000]);
-        setCategory("");
-        setRatings(0);
+        setSelectedCategory("");
+        setSelectedSubcategory("");
     }
 
     useEffect(() => {
@@ -57,8 +55,9 @@ const Products = () => {
             enqueueSnackbar(error, { variant: "error" });
             dispatch(clearErrors());
         }
-        dispatch(getProducts(keyword, category, price, ratings, currentPage));
-    }, [dispatch, keyword, category, price, ratings, currentPage, error, enqueueSnackbar]);
+        // Pass default values for price and ratings
+        dispatch(getProducts(keyword, selectedCategory || "", [0, 200000], 0, currentPage));
+    }, [dispatch, keyword, selectedCategory, currentPage, error, enqueueSnackbar]);
 
     return (
         <>
@@ -76,11 +75,11 @@ const Products = () => {
                         {/* <!-- nav tiles --> */}
                         <div className="flex flex-col bg-white rounded-sm shadow mt-2">
 
-                            {/* <!-- filters header --> */}
-                            {/* <div className="flex items-center justify-between gap-5 px-4 py-2 border-b">
+                            {/* filters header */}
+                            <div className="flex items-center justify-between gap-5 px-4 py-2 border-b">
                                 <p className="text-lg font-medium">Filters</p>
-                                <span className="uppercase text-primary-blue text-xs cursor-pointer font-medium" onClick={() => clearFilters()}>clear all</span>
-                            </div> */}
+                                <span className="uppercase text-primary-blue text-xs cursor-pointer font-medium" onClick={clearFilters}>Clear all</span>
+                            </div>
 
                             <div className="flex flex-col gap-2 text-sm overflow-hidden">
 
@@ -102,10 +101,24 @@ const Products = () => {
                                                     aria-labelledby="category-radio-buttons-group"
                                                     onChange={(e) => setCategory(e.target.value)}
                                                     name="category-radio-buttons"
-                                                    value={category}
+                                                    value={selectedCategory}
                                                 >
-                                                    {categories.map((el, i) => (
-                                                        <FormControlLabel value={el} control={<Radio size="small" />} label={<span className="text-sm" key={i}>{el}</span>} />
+                                                    {categories.map((category, i) => (
+                                                        <FormControlLabel 
+                                                            key={category.name}
+                                                            value={category.name} 
+                                                            control={
+                                                                <Radio 
+                                                                    size="small" 
+                                                                    checked={selectedCategory === category.name}
+                                                                    onChange={() => {
+                                                                        setSelectedCategory(category.name);
+                                                                        setSelectedSubcategory("");
+                                                                    }}
+                                                                />
+                                                            } 
+                                                            label={<span className="text-sm">{category.name}</span>} 
+                                                        />
                                                     ))}
                                                 </RadioGroup>
                                             </FormControl>
@@ -115,36 +128,45 @@ const Products = () => {
                                 </div>
                                 {/* category filter */}
 
-                                {/* ratings filter */}
-                                {/* <div className="flex flex-col border-b px-4">
-
-                                    <div className="flex justify-between cursor-pointer py-2 pb-4 items-center" onClick={() => setRatingsToggle(!ratingsToggle)}>
-                                        <p className="font-medium text-xs uppercase">ratings</p>
-                                        {ratingsToggle ?
+                                {/* SubCategory filter - UI Only */}
+                                <div className="flex flex-col px-4 border-t border-gray-200">
+                                    <div 
+                                        className="flex justify-between cursor-pointer py-2 pb-4 items-center"
+                                        onClick={() => setSubcategoryToggle(!subcategoryToggle)}
+                                    >
+                                        <p className="font-medium text-xs uppercase">SubCategory</p>
+                                        {subcategoryToggle ?
                                             <ExpandLessIcon sx={{ fontSize: "20px" }} /> :
                                             <ExpandMoreIcon sx={{ fontSize: "20px" }} />
                                         }
                                     </div>
 
-                                    {ratingsToggle && (
+                                    {subcategoryToggle && selectedCategory && (
                                         <div className="flex flex-col pb-1">
                                             <FormControl>
                                                 <RadioGroup
-                                                    aria-labelledby="ratings-radio-buttons-group"
-                                                    onChange={(e) => setRatings(e.target.value)}
-                                                    value={ratings}
-                                                    name="ratings-radio-buttons"
+                                                    aria-labelledby="subcategory-radio-buttons-group"
+                                                    name="subcategory-radio-buttons"
                                                 >
-                                                    {[4, 3, 2, 1].map((el, i) => (
-                                                        <FormControlLabel value={el} key={i} control={<Radio size="small" />} label={<span className="flex items-center text-sm">{el}<StarIcon sx={{ fontSize: "12px", mr: 0.5 }} /> & above</span>} />
-                                                    ))}
+                                                    {categories
+                                                        .find(cat => cat.name === selectedCategory)?.subcategories
+                                                        .map((subcategory, i) => (
+                                                            <FormControlLabel 
+                                                                key={subcategory}
+                                                                value={subcategory} 
+                                                                control={<Radio size="small" disabled />} 
+                                                                label={<span className="text-sm text-gray-500">{subcategory}</span>} 
+                                                            />
+                                                        ))
+                                                    }
                                                 </RadioGroup>
                                             </FormControl>
                                         </div>
                                     )}
-
-                                </div> */}
-                                {/* ratings filter */}
+                                    {subcategoryToggle && !selectedCategory && (
+                                        <p className="text-xs text-gray-500 pb-2">Select a category first</p>
+                                    )}
+                                </div>
 
                             </div>
 
@@ -173,13 +195,15 @@ const Products = () => {
                                         </div>
                                     ))}
                                 </div>
-                                {filteredProductsCount > resultPerPage && (
-                                    <Pagination
-                                        count={Number(((filteredProductsCount + 6) / resultPerPage).toFixed())}
-                                        page={currentPage}
-                                        onChange={(e, val) => setCurrentPage(val)}
-                                        color="primary"
-                                    />
+                                {productsCount > resultPerPage && (
+                                    <div className="flex justify-center p-4">
+                                        <Pagination
+                                            count={Math.ceil(productsCount / resultPerPage)}
+                                            page={currentPage}
+                                            onChange={(e, val) => setCurrentPage(val)}
+                                            color="primary"
+                                        />
+                                    </div>
                                 )}
                             </div>
                         )}

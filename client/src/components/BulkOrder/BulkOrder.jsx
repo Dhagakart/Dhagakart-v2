@@ -436,7 +436,7 @@ const BulkOrder = () => {
                     </>
                   ) : (
                     <>
-                      <FiMapPin className="w-4 h-4 mr-1" />
+                      <FiMapPin className="w-4 h-4 mr-1 hover:cursor-pointer" />
                       Use my current location
                     </>
                   )}

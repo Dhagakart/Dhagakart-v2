@@ -91,7 +91,7 @@ const ProductDetailsDG = () => {
                   {product?.images?.map((img, index) => (
                     <div
                       key={index}
-                      className={`h-16 w-16 p-[1px] rounded-sm overflow-hidden cursor-pointer transition-all duration-300 ${selectedImage === index
+                      className={`h-16 w-16 p-[1px] rounded-sm overflow-hidden cursor-pointer transition-all  ${selectedImage === index
                         ? 'shadow-md border border-blue-600'
                         : 'hover:shadow-sm'
                         }`}
@@ -124,7 +124,8 @@ const ProductDetailsDG = () => {
           {/* Brand and Title */}
           <div className="mb-1 max-w-lg mb-6">
             {/* <h1 className="text-2xl font-medium text-gray-900 mb-2">{product.name}</h1> */}
-            <h1 className="text-2xl font-medium text-gray-900 mb-2">2020 Apple Macbook Pro with Apple M1 Chip (13 inch, 8 gb RAM, 256 gb SSD) - Space Gray</h1>
+            {/* <h1 className="text-2xl font-medium text-gray-900 mb-2">2020 Apple Macbook Pro with Apple M1 Chip (13 inch, 8 gb RAM, 256 gb SSD) - Space Gray</h1> */}
+            <h1 className="text-2xl font-medium text-gray-900 mb-2">{product.name}</h1>
           </div>
 
           {/* Price Section */}

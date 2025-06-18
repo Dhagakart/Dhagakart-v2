@@ -1,85 +1,71 @@
 import React from 'react';
-
-// Image paths from public folder
-const poster1 = '/images/posters/poster1.png';
-const poster2 = '/images/posters/poster2.png';
-const poster3 = '/images/posters/poster3.png';
+import poster1 from './poster1.png';
+import poster2 from './poster2.png';
+import poster3 from './poster3.png';
 
 const Posters = () => {
+  const cards = [
+    {
+      image: poster1,
+      title: "Request a Quote",
+      description: "Order in bulk with ease",
+      buttonText: "Upload Here",
+      bgColor: "bg-gray-50",
+    },
+    {
+      image: poster2,
+      title: "Building Products",
+      description: "at wholesome Price",
+      buttonText: "Explore Now",
+      bgColor: "bg-gray-50",
+    },
+    {
+      image: poster3,
+      title: "Credit Finance",
+      description: "Flexible Financing",
+      buttonText: "Learn More about it",
+      bgColor: "bg-gray-50",
+    }
+  ];
+
   return (
-    <div className="w-full h-[300px] flex justify-center items-center gap-6">
-      {/* ─────────────── Card #1 ─────────────── */}
-      <div className="w-1/3 h-full bg-[#F9FBFE] rounded-xl border border-gray-200 flex items-center px-6">
-        {/* Text on the left */}
-        <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Request a Quote
-          </h2>
-          <p className="text-sm text-gray-600 mt-2">
-            Order in bulk with ease
-          </p>
-          <button className="mt-4 px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition">
-            Upload Here
-          </button>
-        </div>
-
-        {/* Image on the right */}
-        <div className="flex-shrink-0 ml-4">
-          <img
-            src={poster1}
-            alt="Request a Quote"
-            className="h-[200px] object-contain"
-          />
-        </div>
-      </div>
-
-      {/* ─────────────── Card #2 ─────────────── */}
-      <div className="w-1/3 h-full bg-[#F9FBFE] rounded-xl border border-gray-200 flex items-center px-6">
-        {/* Text on the left */}
-        <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Building Products
-          </h2>
-          <p className="text-sm text-gray-600 mt-2">
-            at wholesome Price
-          </p>
-          <button className="mt-4 px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition">
-            Explore Now
-          </button>
-        </div>
-
-        {/* Image on the right */}
-        <div className="flex-shrink-0 ml-4">
-          <img
-            src={poster2}
-            alt="Building Products"
-            className="h-[200px] object-contain"
-          />
-        </div>
-      </div>
-
-      {/* ─────────────── Card #3 ─────────────── */}
-      <div className="w-1/3 h-full bg-[#F9FBFE] rounded-xl border border-gray-200 flex items-center px-6">
-        {/* Text on the left */}
-        <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Credit Finance
-          </h2>
-          <p className="text-sm text-gray-600 mt-2">
-            Flexible Financing
-          </p>
-          <button className="mt-4 px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition">
-            Learn More about it
-          </button>
-        </div>
-
-        {/* Image on the right */}
-        <div className="flex-shrink-0 ml-4">
-          <img
-            src={poster3}
-            alt="Credit Finance"
-            className="h-[200px] object-contain"
-          />
+    <div className="w-full py-12 bg-white">
+      <div className="mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {cards.map((card, index) => (
+            <div 
+              key={index}
+              className={`${card.bgColor} rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 h-full`}
+            >
+              <div className="flex h-full">
+                {/* Text and Button Section */}
+                <div className="flex flex-col justify-between p-6 w-1/2">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-1">
+                      {card.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                      {card.description}
+                    </p>
+                  </div>
+                  <button 
+                    className={`px-4 py-2 text-sm font-medium rounded-md border border-[#003366] hover:cursor-pointer hover:border-[#003366]/90 transition-all text-[#003366] duration-200 self-start`}
+                  >
+                    {card.buttonText}
+                  </button>
+                </div>
+                
+                {/* Image Section */}
+                <div className="w-1/2 flex items-end justify-end">
+                  <img 
+                    src={card.image} 
+                    alt={card.title} 
+                    className="w-48 h-48 object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
