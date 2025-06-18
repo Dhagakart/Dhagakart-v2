@@ -15,7 +15,7 @@ import Paytm from './paytm.png';
 import Gpay from './gpay.png';
 import Phonepe from './phonepe.png';
 import Netbanking from './netbanking.png';
-import UPI from './upi.png';
+import UPI from './UPI.png';
 import CreditCard from './creditcard.png';
 import COD from './cod.png';
 
