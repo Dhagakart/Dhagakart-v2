@@ -2,6 +2,7 @@ import React from 'react';
 import poster1 from './poster1.png';
 import poster2 from './poster2.png';
 import poster3 from './poster3.png';
+import { Link } from 'react-router-dom';
 
 const Posters = () => {
   const cards = [
@@ -11,13 +12,15 @@ const Posters = () => {
       description: "Order in bulk with ease",
       buttonText: "Upload Here",
       bgColor: "bg-gray-50",
+      link: '/bulkorder'
     },
     {
       image: poster2,
       title: "Building Products",
       description: "at wholesome Price",
       buttonText: "Explore Now",
-      bgColor: "bg-gray-50",
+      bgColor: "bg-gray-50", 
+      link: '/products'
     },
     {
       image: poster3,
@@ -25,6 +28,7 @@ const Posters = () => {
       description: "Flexible Financing",
       buttonText: "Learn More about it",
       bgColor: "bg-gray-50",
+      link: '/reqcredits'
     }
   ];
 
@@ -48,11 +52,12 @@ const Posters = () => {
                       {card.description}
                     </p>
                   </div>
-                  <button 
+                  <Link
+                    to={card.link}
                     className={`px-4 py-2 text-sm font-medium rounded-md border border-[#003366] hover:cursor-pointer hover:border-[#003366]/90 transition-all text-[#003366] duration-200 self-start`}
                   >
                     {card.buttonText}
-                  </button>
+                  </Link>
                 </div>
                 
                 {/* Image Section */}
