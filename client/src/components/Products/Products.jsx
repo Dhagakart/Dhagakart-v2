@@ -73,29 +73,45 @@ const Products = () => {
                     <div className="hidden sm:flex flex-col mt-2 w-1/5 px-1">
 
                         {/* <!-- nav tiles --> */}
-                        <div className="flex flex-col bg-white rounded-sm shadow mt-2">
+                        <div className="flex flex-col bg-white mt-4 rounded-xl shadow-lg w-full max-w-sm mx-auto">
 
-                            {/* filters header */}
-                            <div className="flex items-center justify-between gap-5 px-4 py-2 border-b">
-                                <p className="text-lg font-medium">Filters</p>
-                                <span className="uppercase text-primary-blue text-xs cursor-pointer font-medium" onClick={clearFilters}>Clear all</span>
-                            </div>
+                            <div className="flex flex-col gap-4 text-sm">
 
-                            <div className="flex flex-col gap-2 text-sm overflow-hidden">
-
-                                {/* category filter */}
-                                <div className="flex flex-col px-4">
-
-                                    <div className="flex justify-between cursor-pointer py-2 pb-4 items-center" onClick={() => setCategoryToggle(!categoryToggle)}>
-                                        <p className="font-medium text-xs uppercase">Category</p>
-                                        {categoryToggle ?
-                                            <ExpandLessIcon sx={{ fontSize: "20px" }} /> :
-                                            <ExpandMoreIcon sx={{ fontSize: "20px" }} />
-                                        }
+                                {/* Category filter */}
+                                <div className="flex flex-col px-6 py-4">
+                                    <div
+                                        className="flex justify-between items-center cursor-pointer py-3 group"
+                                        onClick={() => setCategoryToggle(!categoryToggle)}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <h3 className="font-semibold text-gray-700 hover:cursor-pointer">
+                                                Category
+                                            </h3>
+                                            <button
+                                                className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Prevent toggling category when clicking Clear All
+                                                    clearFilters();
+                                                }}
+                                            >
+                                                Clear All
+                                            </button>
+                                        </div>
+                                        <span className="text-gray-500 group-hover:text-blue-600 transition-transform duration-200 transform">
+                                            {categoryToggle ? (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            )}
+                                        </span>
                                     </div>
 
                                     {categoryToggle && (
-                                        <div className="flex flex-col pb-1">
+                                        <div className="flex flex-col mt-2 space-y-2">
                                             <FormControl>
                                                 <RadioGroup
                                                     aria-labelledby="category-radio-buttons-group"
@@ -104,45 +120,58 @@ const Products = () => {
                                                     value={selectedCategory}
                                                 >
                                                     {categories.map((category, i) => (
-                                                        <FormControlLabel 
+                                                        <FormControlLabel
                                                             key={category.name}
-                                                            value={category.name} 
+                                                            value={category.name}
                                                             control={
-                                                                <Radio 
-                                                                    size="small" 
+                                                                <Radio
+                                                                    size="small"
+                                                                    className="text-blue-600"
                                                                     checked={selectedCategory === category.name}
                                                                     onChange={() => {
                                                                         setSelectedCategory(category.name);
                                                                         setSelectedSubcategory("");
                                                                     }}
                                                                 />
-                                                            } 
-                                                            label={<span className="text-sm">{category.name}</span>} 
+                                                            }
+                                                            label={
+                                                                <span className="text-sm text-gray-700 hover:text-blue-600 transition-colors duration-200">
+                                                                    {category.name}
+                                                                </span>
+                                                            }
+                                                            className="py-1 hover:bg-blue-50 rounded-md transition-colors duration-150"
                                                         />
                                                     ))}
                                                 </RadioGroup>
                                             </FormControl>
                                         </div>
                                     )}
-
                                 </div>
-                                {/* category filter */}
 
-                                {/* SubCategory filter - UI Only */}
-                                <div className="flex flex-col px-4 border-t border-gray-200">
-                                    <div 
-                                        className="flex justify-between cursor-pointer py-2 pb-4 items-center"
+                                {/* SubCategory filter */}
+                                <div className="flex flex-col px-6 py-4 border-t border-gray-100">
+                                    <div
+                                        className="flex justify-between items-center cursor-pointer py-3 group"
                                         onClick={() => setSubcategoryToggle(!subcategoryToggle)}
                                     >
-                                        <p className="font-medium text-xs uppercase">SubCategory</p>
-                                        {subcategoryToggle ?
-                                            <ExpandLessIcon sx={{ fontSize: "20px" }} /> :
-                                            <ExpandMoreIcon sx={{ fontSize: "20px" }} />
-                                        }
+                                        <h3 className="font-semibold text-gray-700 group-hover:text-blue-600 transition-colors duration-200">
+                                            Subcategory
+                                        </h3>
+                                        <span className="text-gray-500 group-hover:text-blue-600 transition-transform duration-200 transform">
+                                            {subcategoryToggle ? (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            )}
+                                        </span>
                                     </div>
 
                                     {subcategoryToggle && selectedCategory && (
-                                        <div className="flex flex-col pb-1">
+                                        <div className="flex flex-col mt-2 space-y-2">
                                             <FormControl>
                                                 <RadioGroup
                                                     aria-labelledby="subcategory-radio-buttons-group"
@@ -151,11 +180,22 @@ const Products = () => {
                                                     {categories
                                                         .find(cat => cat.name === selectedCategory)?.subcategories
                                                         .map((subcategory, i) => (
-                                                            <FormControlLabel 
+                                                            <FormControlLabel
                                                                 key={subcategory}
-                                                                value={subcategory} 
-                                                                control={<Radio size="small" disabled />} 
-                                                                label={<span className="text-sm text-gray-500">{subcategory}</span>} 
+                                                                value={subcategory}
+                                                                control={
+                                                                    <Radio
+                                                                        size="small"
+                                                                        className="text-blue-600"
+                                                                        disabled
+                                                                    />
+                                                                }
+                                                                label={
+                                                                    <span className="text-sm text-gray-500">
+                                                                        {subcategory}
+                                                                    </span>
+                                                                }
+                                                                className="py-1"
                                                             />
                                                         ))
                                                     }
@@ -164,7 +204,7 @@ const Products = () => {
                                         </div>
                                     )}
                                     {subcategoryToggle && !selectedCategory && (
-                                        <p className="text-xs text-gray-500 pb-2">Select a category first</p>
+                                        <p className="text-xs text-gray-500 py-2 italic">Select a category first</p>
                                     )}
                                 </div>
 

@@ -39,7 +39,7 @@ const HeaderDG = () => {
     }
     dropdownTimeout.current = setTimeout(() => {
       setActiveDropdown(null);
-    }, 100); // 10ms delay before closing
+    }, 100); // 100ms delay before closing
   };
   
   const isDropdownOpen = (dropdownName) => activeDropdown === dropdownName;
@@ -144,10 +144,11 @@ const HeaderDG = () => {
 
   const handleLogout = async () => {
     try {
-      await dispatch(logoutUser());
-      enqueueSnackbar("Logout Successful", { variant: "success" });
-      setShowLogoutConfirm(false); // Close the modal
-      navigate("/login");
+      await dispatch(logoutUser(() => {
+        enqueueSnackbar("Logout Successful", { variant: "success" });
+        setShowLogoutConfirm(false); // Close the modal
+        // Don't navigate, stay on the same page
+      }));
     } catch (error) {
       enqueueSnackbar("Failed to logout. Please try again.", { variant: "error" });
     }
@@ -156,251 +157,226 @@ const HeaderDG = () => {
   return (
     <>
       <header
-        // Exact navy background: #003366
         style={{ backgroundColor: '#003366' }}
-        className="w-full -mb-10 px-16"
+        className="w-full px-16 -mb-10"
       >
-      <div className="w-full">
-        <div className="h-16 flex items-center justify-between gap-4">
-          {/** LEFT: Logo + Location */}
-          <div className="flex items-center min-w-0">
-            <Link to="/" className="text-2xl font-bold text-white whitespace-nowrap mr-6">
-              <img src={Logo} alt='logo' className='w-[133.3px]' />
-            </Link>
-            
-            { isAuthenticated ? (
-              <div className="hidden md:flex items-center rounded px-2 py-1">
-                <div className="text-white font-medium text-sm flex items-center gap-2">
-                  <img src={PinIcon} alt="pin" className="w-6 h-6" />
-                  <div className="flex flex-col min-w-0">
-                    {/* <span className="truncate">{userLocation}</span> */}
-                    <span className="truncate text-xs">Delivery to {user?.name?.split(' ')[0]}</span>
-                    {/* <span className="text-xs text-gray-200">Pincode: {userPincode}</span> */}
-                    <span className="text-sm text-gray-200">{userLocation}, {userPincode}</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div>
-                
-              </div>
-            )}
-          </div>
-
-          {/** CENTER: Search Bar */}
-          <div className="flex-1 max-w-[470px] ml-12">
-            <form onSubmit={handleSearch} className="w-full flex bg-white rounded-sm overflow-hidden shadow-md">
-              <input
-                type="text"
-                placeholder="Search for products, brands and more"
-                className="text-sm w-full outline-none border-none px-4 py-2 placeholder-gray-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button 
-                type="submit" 
-                className="px-4 text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"
-              >
-                <SearchIcon />
-              </button>
-            </form>
-          </div>
-
-          {/** RIGHT: Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8 min-w-0">
-            <div 
-              className="relative py-2"
-              ref={dropdownRefs.category}
-              onMouseEnter={() => handleMouseEnter('category')}
-              onMouseLeave={handleMouseLeave}
-            >
-              <button
-                onClick={() => isDropdownOpen('category') ? closeDropdown() : openDropdown('category')}
-                className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap focus:outline-none hover:cursor-pointer"
-              >
-                <span>Category</span>
-                <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('category') ? 'transform rotate-180' : ''}`} />
-              </button>
-              {isDropdownOpen('category') && (
-                <div 
-                  className="absolute z-50 mt-4 w-96 px-4 -left-40 bg-white rounded-lg shadow-lg overflow-hidden"
-                  onMouseEnter={() => handleMouseEnter('category')}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <div className="grid grid-cols-3">
-                    <div className="p-3">
-                      <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">YARNS</h3>
-                      <ul className="space-y-1">
-                        <li><a href="/products/silk%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
-                        <li><a href="/products/cotton%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
-                        <li><a href="/products/polyster%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyster Yarn</a></li>
-                        <li><a href="/products/viscous%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscous Yarn</a></li>
-                      </ul>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">ZARI</h3>
-                      <ul className="space-y-1">
-                        <li><a href="/products/flora%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
-                        <li><a href="/products/pure%20threads" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Threads</a></li>
-                        <li><a href="/products/metallic%20laces" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Laces</a></li>
-                      </ul>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">Machinary</h3>
-                      <ul className="space-y-1">
-                        <li><a href="/products/all%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">All Fabrics</a></li>
-                        <li><a href="/products/cotton%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Fabrics</a></li>
-                        <li><a href="/products/silk%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Fabrics</a></li>
-                      </ul>
+        <div className="w-full mx-auto">
+          <div className="h-16 flex items-center justify-between gap-4">
+            {/** LEFT: Logo + Location */}
+            <div className="flex items-center w-80 shrink-0">
+              <Link to="/" className="text-2xl font-bold text-white whitespace-nowrap mr-4">
+                <img src={Logo} alt='logo' className='w-[133.3px]' />
+              </Link>
+              
+              { isAuthenticated ? (
+                <div className="hidden md:flex items-center rounded px-2 py-1 w-40">
+                  <div className="text-white font-medium text-sm flex items-center gap-1">
+                    <img src={PinIcon} alt="pin" className="w-5 h-5" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate text-xs">Delivery to {user?.name?.split(' ')[0]}</span>
+                      <span className="truncate text-sm text-gray-200">{userLocation}, {userPincode}</span>
                     </div>
                   </div>
                 </div>
+              ) : (
+                <div className="w-40"></div>
               )}
             </div>
 
-            <div 
-              className="relative py-2"
-              ref={dropdownRefs.bulkOrder}
-              onMouseEnter={() => handleMouseEnter('bulkOrder')}
-              onMouseLeave={handleMouseLeave}
-            >
-              <button
-                onClick={() => isDropdownOpen('bulkOrder') ? closeDropdown() : openDropdown('bulkOrder')}
-                className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap focus:outline-none hover:cursor-pointer"
-              >
-                <span>Bulk Order</span>
-                <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('bulkOrder') ? 'transform rotate-180' : ''}`} />
-              </button>
-              {isDropdownOpen('bulkOrder') && (
-                <div 
-                  className="absolute z-50 mt-2 w-48 mt-4 bg-white rounded-md shadow-lg overflow-hidden"
-                  onMouseEnter={() => handleMouseEnter('bulkOrder')}
-                  onMouseLeave={handleMouseLeave}
+            {/** CENTER: Search Bar */}
+            <div className="w-[470px] shrink-0">
+              <form onSubmit={handleSearch} className="w-full flex bg-white rounded-sm overflow-hidden shadow-md">
+                <input
+                  type="text"
+                  placeholder="Search for products, brands and more"
+                  className="text-sm w-full outline-none border-none px-4 py-2 placeholder-gray-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button 
+                  type="submit" 
+                  className="px-4 text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"
                 >
-                  <div className="p-2">
-                    <a href="/bulkorder" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Enquiry</a>
-                    {/* <a href="/bulkorder/track" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Track Bulk Order</a> */}
-                    <a href="/bulkorder/policy" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Policy</a>
-                  </div>
-                </div>
-              )}
+                  <SearchIcon />
+                </button>
+              </form>
             </div>
 
-            <Link
-              to="/reqcredits"
-              className="text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
-            >
-              Credit Finance
-            </Link>
-          </div>
-
-
-          {/**=============================================== */}
-          {/** 3) RIGHT: Cart Icon + Login Button          **/}
-          {/**=============================================== */}
-          <div className="flex items-center space-x-8">
-            {/* 
-              Cart with badge:
-              - Icon size = 24px 
-              - Badge: 16×16px white circle, navy text. 
-                Positioned -4px from top, -8px from right of the icon.
-            */}
-            <Link
-              to="/cart"
-              className="relative text-white hover:text-gray-200 transition-colors"
-            >
-              <ShoppingCartOutlinedIcon style={{ fontSize: 24 }} />
-              <span
-                className="
-                  absolute 
-                  -top-1 
-                  -right-2 
-                  bg-white 
-                  text-[#003366] 
-                  text-xs 
-                  font-bold 
-                  rounded-full 
-                  h-4 
-                  w-4 
-                  flex 
-                  items-center 
-                  justify-center
-                "
-              >
-                {cartItems.length || 0}
-              </span>
-            </Link>
-
-            {/*
-              Login button:
-              - Height=32px (h-8), 
-              - Horizontal padding=px-4 (16px each side), 
-              - Rounded corners=rounded-md (6px radius). 
-              - Background=white, text=#003366 (navy), 
-              - Font=text-sm (14px), font-medium,
-              - Hover→bg-gray-100 for a subtle light‐gray background. 
-            */}
-            { isAuthenticated ? (
+            {/** RIGHT: Navigation Links */}
+            <div className="hidden md:flex items-center space-x-6 w-80 shrink-0">
               <div 
                 className="relative py-2"
-                ref={dropdownRefs.profile}
-                onMouseEnter={() => handleMouseEnter('profile')}
+                ref={dropdownRefs.category}
+                onMouseEnter={() => handleMouseEnter('category')}
                 onMouseLeave={handleMouseLeave}
               >
                 <button
-                  onClick={() => isDropdownOpen('profile') ? closeDropdown() : openDropdown('profile')}
-                  className="flex items-center text-white hover:text-gray-200 transition-colors space-x-1 focus:outline-none"
+                  onClick={() => isDropdownOpen('category') ? closeDropdown() : openDropdown('category')}
+                  className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap focus:outline-none hover:cursor-pointer"
                 >
-                  <img src={ProfileIcon} alt="Profile" className="w-8 h-8 rounded-full" />
-                  <span className="text-sm font-medium">
-                    {user?.name ? `Hey, ${user.name.split(' ')[0]}` : 'Account'}
-                    <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform inline ${isDropdownOpen('profile') ? 'transform rotate-180' : ''}`} />
-                  </span>
+                  <span>Category</span>
+                  <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('category') ? 'transform rotate-180' : ''}`} />
                 </button>
-                {isDropdownOpen('profile') && (
+                {isDropdownOpen('category') && (
                   <div 
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-50"
-                    onMouseEnter={() => handleMouseEnter('profile')}
+                    className="absolute z-50 mt-4 w-96 px-4 -left-40 bg-white rounded-lg shadow-lg overflow-hidden"
+                    onMouseEnter={() => handleMouseEnter('category')}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <div className="p-2">
-                      <Link to="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Account</Link>
-                      <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Orders</Link>
-                      <button
-                                onClick={() => setShowLogoutConfirm(true)}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
-                              >
-                                Logout
-                              </button>
+                    <div className="grid grid-cols-3">
+                      <div className="p-3">
+                        <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">YARNS</h3>
+                        <ul className="space-y-1">
+                          <li><a href="/products/silk%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
+                          <li><a href="/products/cotton%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
+                          <li><a href="/products/polyster%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyster Yarn</a></li>
+                          <li><a href="/products/viscous%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscous Yarn</a></li>
+                        </ul>
+                      </div>
+                      <div className="p-3">
+                        <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">ZARI</h3>
+                        <ul className="space-y-1">
+                          <li><a href="/products/flora%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
+                          <li><a href="/products/pure%20threads" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Threads</a></li>
+                          <li><a href="/products/metallic%20laces" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Laces</a></li>
+                        </ul>
+                      </div>
+                      <div className="p-3">
+                        <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">Machinery</h3>
+                        <ul className="space-y-1">
+                          <li><a href="/products/all%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">All Fabrics</a></li>
+                          <li><a href="/products/cotton%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Fabrics</a></li>
+                          <li><a href="/products/silk%20fabrics" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Fabrics</a></li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
-            ) : (
-              <Link
-              to="/login"
-              className="
-                h-8 
-                px-4 
-                flex 
-                items-center 
-                justify-center 
-                bg-white 
-                text-[#003366] 
-                rounded-md 
-                text-sm 
-                font-medium 
-                hover:bg-gray-100 
-                transition-colors
-              "
-            >
-              Login
-            </Link>
-            )}
-          </div>
 
+              <div 
+                className="relative py-2"
+                ref={dropdownRefs.bulkOrder}
+                onMouseEnter={() => handleMouseEnter('bulkOrder')}
+                onMouseLeave={handleMouseLeave}
+              >
+                <button
+                  onClick={() => isDropdownOpen('bulkOrder') ? closeDropdown() : openDropdown('bulkOrder')}
+                  className="flex items-center text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap focus:outline-none hover:cursor-pointer"
+                >
+                  <span>Bulk Order</span>
+                  <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('bulkOrder') ? 'transform rotate-180' : ''}`} />
+                </button>
+                {isDropdownOpen('bulkOrder') && (
+                  <div 
+                    className="absolute z-50 mt-2 w-48 mt-4 bg-white rounded-md shadow-lg overflow-hidden"
+                    onMouseEnter={() => handleMouseEnter('bulkOrder')}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <div className="p-2">
+                      <a href="/bulkorder" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Enquiry</a>
+                      <a href="/bulkorder/policy" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Bulk Order Policy</a>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Link
+                to="/reqcredits"
+                className="text-sm font-medium text-gray-100 hover:text-white transition-colors whitespace-nowrap"
+              >
+                Credit Finance
+              </Link>
+            </div>
+
+            {/** RIGHT: Cart Icon + Login Button */}
+            <div className="flex items-center space-x-4 w-48 shrink-0">
+              <Link
+                to="/cart"
+                className="relative text-white hover:text-gray-200 transition-colors"
+              >
+                <ShoppingCartOutlinedIcon style={{ fontSize: 24 }} />
+                <span
+                  className="
+                    absolute 
+                    -top-1 
+                    -right-2 
+                    bg-white 
+                    text-[#003366] 
+                    text-xs 
+                    font-bold 
+                    rounded-full 
+                    h-4 
+                    w-4 
+                    flex 
+                    items-center 
+                    justify-center
+                  "
+                >
+                  {cartItems.length || 0}
+                </span>
+              </Link>
+
+              { isAuthenticated ? (
+                <div 
+                  className="relative py-2"
+                  ref={dropdownRefs.profile}
+                  onMouseEnter={() => handleMouseEnter('profile')}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <button
+                    onClick={() => isDropdownOpen('profile') ? closeDropdown() : openDropdown('profile')}
+                    className="flex items-center text-white hover:text-gray-200 transition-colors space-x-1 focus:outline-none"
+                  >
+                    <img src={ProfileIcon} alt="Profile" className="w-8 h-8 rounded-full" />
+                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden" style={{ maxWidth: '120px' }}>
+                      {user?.name ? `Hey, ${user.name.split(' ')[0]}` : 'Account'}
+                      <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform inline ${isDropdownOpen('profile') ? 'transform rotate-180' : ''}`} />
+                    </span>
+                  </button>
+                  {isDropdownOpen('profile') && (
+                    <div 
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-50"
+                      onMouseEnter={() => handleMouseEnter('profile')}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="p-2">
+                        <Link to="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Account</Link>
+                        <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Orders</Link>
+                        <button
+                          onClick={() => setShowLogoutConfirm(true)}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="
+                    h-8 
+                    px-4 
+                    flex 
+                    items-center 
+                    justify-center 
+                    bg-white 
+                    text-[#003366] 
+                    rounded-md 
+                    text-sm 
+                    font-medium 
+                    hover:bg-gray-100 
+                    transition-colors
+                  "
+                >
+                  Login
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
       </header>
       
       <LogoutConfirmationModal 

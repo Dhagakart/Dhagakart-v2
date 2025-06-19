@@ -104,10 +104,13 @@ export const loadUser = () => async (dispatch) => {
 };
 
 // Logout User
-export const logoutUser = () => async (dispatch) => {
+export const logoutUser = (callback) => async (dispatch) => {
     try {
         await api.get('/users/logout');
         dispatch({ type: LOGOUT_USER_SUCCESS });
+        if (callback && typeof callback === 'function') {
+            callback();
+        }
     } catch (error) {
         dispatch({
             type: LOGOUT_USER_FAIL,

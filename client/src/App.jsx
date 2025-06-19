@@ -153,7 +153,7 @@ function App() {
 
         <Route path="/reqcredits" element={<ProtectedRoute><ReqCredits /></ProtectedRoute>} />
 
-        <Route path="/bulkorder" element={<ProtectedRoute><BulkOrder /></ProtectedRoute>} />
+        <Route path="/bulkorder" element={<BulkOrder />} />
 
         <Route path="/process/payment" element={
           <ProtectedRoute>

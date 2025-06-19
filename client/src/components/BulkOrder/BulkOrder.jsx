@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FiUpload, FiMapPin, FiSearch, FiX, FiFile } from 'react-icons/fi';
 import api from '../../utils/api';
+import Loader from '../Layouts/Loader';
 
 // Debounce helper
 const debounce = (fn, delay) => {
@@ -42,6 +43,7 @@ const BulkOrder = () => {
   const [pincodeError, setPincodeError] = useState('');
   const [userLocation, setUserLocation] = useState(null);
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Debounced product search
   const searchProducts = useCallback(
@@ -191,19 +193,49 @@ const BulkOrder = () => {
     }
   }, []);
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
     const formatted = products
       .filter(p => p.productId && p.qty)
-      .map(p => ({ product: p.product, productId: p.productId, quantity: +p.qty }));
+      .map(({ productId, qty }) => ({
+        product: productId,
+        quantity: Number(qty)
+      }));
+
     if (!formatted.length) {
       alert('Add at least one product with quantity');
       return;
     }
+    
+    setIsSubmitting(true);
     const payload = { products: formatted, profession, address, comments };
-    console.log('Submit:', payload);
-    // api.post('/bulk-order', payload)...
+    
+    try {
+      console.log('Submitting:', payload);
+      // Uncomment and use your actual API call
+      // const response = await api.post('/bulk-order', payload);
+      // console.log('Response:', response.data);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Show success message or redirect
+      alert('Bulk order submitted successfully!');
+      // Reset form or redirect as needed
+      setProducts([{ product: '', qty: '', productId: '' }]);
+      setAddress('');
+      setComments('');
+    } catch (error) {
+      console.error('Error submitting bulk order:', error);
+      alert('Failed to submit bulk order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isSubmitting) {
+    return <Loader />;
+  }
 
   return (
     <div className="min-h-[90vh] max-w-7xl mx-auto mt-10 py-8 px-16">
