@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.6.8",
     "chart.js": "^4.4.1",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.16.0",
     "heroicons": "^2.2.0",
     "lucide-react": "^0.515.0",
