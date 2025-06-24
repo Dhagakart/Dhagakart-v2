@@ -21,6 +21,7 @@ const Shipping = () => {
     const { cartItems, shippingInfo } = useSelector((state) => state.cart);
     const [addresses, setAddresses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isNewAddress, setIsNewAddress] = useState(false);
@@ -85,6 +86,7 @@ const Shipping = () => {
     // Add new address
     const handleAddAddress = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             console.log('Sending address data:', formData);
             const { data } = await addAddress(formData);
@@ -118,12 +120,15 @@ const Shipping = () => {
                 error.response?.data?.message || 'Failed to add address', 
                 { variant: 'error' }
             );
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     // Update address
     const handleUpdateAddress = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             await updateAddress(selectedAddress, formData);
             const { data } = await getAddresses();
@@ -141,6 +146,8 @@ const Shipping = () => {
                 error.response?.data?.message || 'Failed to update address', 
                 { variant: 'error' }
             );
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -249,7 +256,7 @@ const Shipping = () => {
                 className={`w-full text-white py-3 rounded-md transition-colors duration-200 mt-6 font-medium shadow-md hover:shadow-lg hover:cursor-pointer ${
                     !selectedAddress
                         ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
+                        : 'bg-[#003366] hover:bg-[#003366]/99'
                 }`}
             >
                 Proceed to Payment
@@ -365,7 +372,16 @@ const Shipping = () => {
                                             </div>
                                         ))
                                     ) : (
-                                        <p className="text-gray-600 text-sm">No addresses found</p>
+                                        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                                            <div className="mb-4">
+                                                <svg className="w-24 h-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                </svg>
+                                            </div>
+                                            <h4 className="text-lg font-medium text-gray-700 mb-2">No Addresses Found</h4>
+                                            <p className="text-gray-500 max-w-md">You haven't saved any addresses yet. Add your first address to get started with your order.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -593,9 +609,20 @@ const Shipping = () => {
                                         </button>
                                         <button
                                             type="submit"
-                                            className="px-4 py-2 bg-[#003366] text-white rounded-md hover:cursor-pointer"
+                                            disabled={isSubmitting}
+                                            className={`w-48 hover:cursor-pointer bg-[#003366] text-white py-2 px-4 rounded-md hover:bg-[#00264d] transition-colors duration-200 flex items-center justify-center ${isSubmitting ? 'opacity-75' : ''}`}
                                         >
-                                            {isEditing ? 'Update Address' : 'Save Address'}
+                                            {isSubmitting ? (
+                                                <>
+                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    {isEditing ? 'Updating...' : 'Saving...'}
+                                                </>
+                                            ) : (
+                                                isEditing ? 'Update Address' : 'Save Address'
+                                            )}
                                         </button>
                                     </div>
                                 </form>

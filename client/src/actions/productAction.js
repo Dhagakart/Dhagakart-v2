@@ -99,18 +99,30 @@ export const getProductDetails = (id) => async (dispatch) => {
 export const newReview = (reviewData) => async (dispatch) => {
     try {
         dispatch({ type: NEW_REVIEW_REQUEST });
-        const config = { header: { "Content-Type": "application/json" } }
+        const config = { 
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            withCredentials: true
+        };
+        
         const { data } = await api.put("/review", reviewData, config);
 
         dispatch({
             type: NEW_REVIEW_SUCCESS,
             payload: data.success,
         });
+        
+        // Return the response data including the updated product
+        return data;
     } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Failed to submit review';
         dispatch({
             type: NEW_REVIEW_FAIL,
-            payload: error.response.data.message,
+            payload: errorMessage,
         });
+        throw new Error(errorMessage);
     }
 }
 

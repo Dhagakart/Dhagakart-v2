@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import MetaData from '../Layouts/MetaData';
 import CartItem from './CartItem';
 import EmptyCart from './EmptyCart';
+import LoginModal from '../User/LoginModal';
 import { formatPrice } from '../../utils/formatPrice';
 
 const Cart = () => {
-
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const navigate = useNavigate();
     const { cartItems } = useSelector((state) => state.cart);
     const { saveForLaterItems } = useSelector((state) => state.saveForLater);
@@ -15,7 +17,7 @@ const Cart = () => {
 
     const placeOrderHandler = () => {
         if (!isAuthenticated) {
-            navigate('/login');
+            setShowLoginModal(true);
             return;
         }
         navigate('/shipping');
@@ -57,12 +59,12 @@ const Cart = () => {
                 </div>
                 <button
                     onClick={placeOrderHandler}
-                    disabled={cartItems.length === 0 || !isAuthenticated}
-                    className={`w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md transition-colors duration-200 mt-6 font-medium shadow-md hover:shadow-lg hover:cursor-pointer ${
-                        cartItems.length === 0 || !isAuthenticated ? 'opacity-50' : ''
+                    disabled={cartItems.length === 0}
+                    className={`w-full bg-[#003366] hover:bg-[#003366] text-white py-3 rounded-md transition-colors duration-200 mt-6 font-medium shadow-md hover:shadow-lg hover:cursor-pointer ${
+                        cartItems.length === 0 ? 'opacity-50' : ''
                     }`}
                 >
-                    {cartItems.length === 0 || !isAuthenticated ? 'Login to Checkout' : 'Proceed to Checkout'}
+                    {cartItems.length === 0 ? 'Your cart is empty' : isAuthenticated ? 'Proceed to Checkout' : 'Login to Checkout'}
                 </button>
             </div>
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
@@ -73,7 +75,7 @@ const Cart = () => {
                         placeholder="Enter coupon code"
                         className="flex-1 border border-gray-300 rounded-l-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                    <button className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-r-md transition-colors duration-200 text-sm font-medium">
+                    <button className="bg-[#003366] hover:bg-[#003366] text-white px-4 py-2 rounded-r-md transition-colors duration-200 text-sm font-medium hover:cursor-pointer">
                         Apply
                     </button>
                 </div>
@@ -139,6 +141,10 @@ const Cart = () => {
                     </div>
                 </div>
             </main>
+            <LoginModal 
+                isOpen={showLoginModal} 
+                onClose={() => setShowLoginModal(false)} 
+            />
         </>
     );
 };

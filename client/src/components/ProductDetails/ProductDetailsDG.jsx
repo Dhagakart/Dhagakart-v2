@@ -22,6 +22,11 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
+const getDiscount = (price, cuttedPrice) => {
+  if (!price || !cuttedPrice || cuttedPrice <= price) return 0;
+  return Math.round(((cuttedPrice - price) / cuttedPrice) * 100);
+};
+
 const ProductDetailsDG = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
@@ -42,6 +47,36 @@ const ProductDetailsDG = () => {
     quantity: 1,
     message: '',
   });
+
+  // Format date to relative time (e.g., "2 days ago")
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Some time ago';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Some time ago';
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    const intervals = {
+      year: 31536000,
+      month: 2592000,
+      week: 604800,
+      day: 86400,
+      hour: 3600,
+      minute: 60,
+      second: 1
+    };
+    
+    for (const [unit, seconds] of Object.entries(intervals)) {
+      const interval = Math.floor(diffInSeconds / seconds);
+      if (interval >= 1) {
+        return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
+      }
+    }
+    
+    return 'Just now';
+  };
 
   const productId = id;
   const itemInWishlist = wishlistItems.some((i) => i.product === productId);
@@ -111,23 +146,48 @@ const ProductDetailsDG = () => {
     handleQuoteClose();
   };
 
-  const reviewSubmitHandler = () => {
+  const reviewSubmitHandler = async () => {
     if (rating === 0 || !comment.trim()) {
       enqueueSnackbar("Please provide both rating and comment", { variant: "error" });
       return;
     }
-    
-    setIsSubmittingReview(true);
-    const formData = new FormData();
-    formData.set("rating", rating);
-    formData.set("comment", comment);
-    formData.set("productId", id);
 
-    // The page is refreshed when review is published
-    // window.location.reload();
-    
-    dispatch(newReview(formData));
-  }
+    try {
+      setIsSubmittingReview(true);
+      const formData = new FormData();
+      formData.set("rating", rating);
+      formData.set("comment", comment);
+      formData.set("productId", id);
+
+      // Dispatch the review action and wait for it to complete
+      const result = await dispatch(newReview(formData));
+      
+      if (result?.success) {
+        // If we have the updated product in the response, update the local state
+        if (result.product) {
+          // This will trigger a re-render with the updated product data
+          dispatch({ type: 'PRODUCT_DETAILS_SUCCESS', payload: result.product });
+        } else {
+          // Fallback: Refresh product details if not included in the response
+          await dispatch(getProductDetails(id));
+        }
+        
+        // Reset form
+        setRating(0);
+        setComment('');
+        setActiveTab('review');
+      }
+      
+    } catch (error) {
+      console.error('Review submission error:', error);
+      enqueueSnackbar(error.message || "Failed to submit review. Please try again.", { 
+        variant: "error",
+        autoHideDuration: 5000
+      });
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   useEffect(() => {
     if (success) {
@@ -138,7 +198,7 @@ const ProductDetailsDG = () => {
       setActiveTab('review');
       dispatch({ type: NEW_REVIEW_RESET });
     }
-    
+
     if (reviewError) {
       enqueueSnackbar(reviewError, { variant: "error" });
       dispatch(clearErrors());
@@ -229,7 +289,7 @@ const ProductDetailsDG = () => {
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm overflow-visible">
             <div className="flex justify-center items-center">
               <div className="w-full max-w-md relative">
-                <Slider ref={mainSlider} {...mainSliderSettings} className="w-full h-">
+                <Slider ref={mainSlider} {...mainSliderSettings} className="w-full h-96">
                   {product?.images?.map((img, index) => (
                     <div key={index} className="h-96 flex items-center justify-center">
                       <div className="flex justify-center items-center w-full h-full">
@@ -295,7 +355,7 @@ const ProductDetailsDG = () => {
                   ₹{product.cuttedPrice?.toLocaleString()}
                 </span>
               </span>
-              <span className="text-green-700 text-lg">18% off</span>
+              <span className="text-green-700 text-lg">{getDiscount(product.price, product.cuttedPrice)}% off</span>
             </div>
           </div>
           <div className="mb-6">
@@ -363,15 +423,15 @@ const ProductDetailsDG = () => {
             </div>
           </div>
         </div>
-        <div className="w-[25%] ml-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-medium text-gray-800 mb-3">Want to buy bulk quantity?</h3>
-            <button className="w-full py-2 mb-2 bg-[#7BC363] text-white rounded-md text-sm font-medium transition-colors hover:cursor-pointer">
+        <div className="md:w-[25%] ml-6 sticky top-24 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Bulk Purchase Options</h3>
+            <button className="w-full flex items-center justify-center gap-2 py-3 mb-3 bg-green-600 text-white rounded-lg text-base font-medium hover:bg-green-700 transition-colors duration-200 hover:cursor-pointer">
               Chat on WhatsApp
             </button>
             <button
               onClick={handleQuoteOpen}
-              className="w-full py-2 bg-[#003366] text-white rounded-md text-sm font-medium hover:bg-[#002b57] transition-colors hover:cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-blue-900 text-white rounded-lg text-base font-medium hover:bg-blue-950 transition-colors duration-200 hover:cursor-pointer"
             >
               Request a Quote
             </button>
@@ -517,49 +577,64 @@ const ProductDetailsDG = () => {
               </div>
               {/* Reviews List */}
               {product.numOfReviews > 0 && product.reviews && product.reviews.length > 0 ? (
-                <div className="space-y-6">
-                  {/* Overall Rating */}
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div>
-                      <span className="text-4xl font-bold text-gray-800">{product.ratings.toFixed(1)}</span>
-                      <p className="text-sm text-gray-600">Product Rating</p>
-                    </div>
-                    <div className="flex-1">
-                      {[5, 4, 3, 2, 1].map((star) => {
-                        const count = product.reviews.filter((r) => r.rating === star).length;
-                        const percentage = product.numOfReviews > 0 ? (count / product.numOfReviews) * 100 : 0;
-                        return (
-                          <div key={star} className="flex items-center mb-2">
-                            <span className="w-12 text-sm">{star} star</span>
-                            <div className="flex-1 bg-gray-200 h-2 rounded">
-                              <div className="bg-green-600 h-2 rounded" style={{ width: `${percentage}%` }}></div>
+                <div className="flex gap-6">
+                  {/* Overall Rating (Review Widget) */}
+                  <div className="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200 w-2/3 h-96 flex flex-col">
+                    <h3 className="text-lg font-semibold mb-4">Review</h3>
+                    <div className="flex items-center gap-6 flex-1">
+                      <div className="text-4xl font-bold text-gray-800">{(product.ratings || 0).toFixed(1)}</div>
+                      <div className="flex-1">
+                        <div className="flex items-center mb-2">
+                          <StarRating rating={product.ratings || 0} starSize="w-5 h-5" showText={false} />
+                          <span className="ml-2 text-sm text-gray-600">Product Rating</span>
+                        </div>
+                        {[5, 4, 3, 2, 1].map((star) => {
+                          const count = product.reviews.filter((r) => r.rating === star).length;
+                          const percentage = product.numOfReviews > 0 ? (count / product.numOfReviews) * 100 : 0;
+                          return (
+                            <div key={star} className="flex items-center gap-4 mb-2">
+                              <span className="w-12 text-sm text-gray-600">{star} star</span>
+                              <div className="flex-1 bg-gray-200 h-4 rounded-full">
+                                <div
+                                  className="bg-green-600 h-4 rounded-full"
+                                  style={{ width: `${percentage}%` }}
+                                ></div>
+                              </div>
+                              <span className="w-12 text-sm text-gray-600 text-right">{percentage.toFixed(0)}%</span>
                             </div>
-                            <span className="w-12 text-right text-sm">{percentage.toFixed(1)}%</span>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
+
                   {/* Individual Reviews */}
-                  <div className="space-y-4">
-                    {product.reviews.map((review, index) => (
-                      <div key={index} className="flex gap-4">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
-                          {review.name[0].toUpperCase()}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-gray-800">{review.name}</span>
-                            {/* <span className="text-gray-500 text-sm">{review.date || '3 Days ago'}</span> */}
+                  <div className="w-1/3 h-96 overflow-y-auto space-y-4 pr-2">
+                    {[...product.reviews]
+                      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+                      .map((review, index) => (
+                      <div key={`${review._id || index}`} className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-lg font-semibold">
+                            {review.name?.[0]?.toUpperCase() || 'U'}
                           </div>
-                          <StarRating rating={review.rating} starSize="w-4 h-4" showText={false} />
-                          <p className="text-gray-700 text-sm">
-                            {review.comment ||
-                              'There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour.'}
-                          </p>
-                          <div className="flex gap-4 mt-1">
-                            <button className="text-blue-600 text-sm underline">Like</button>
-                            <button className="text-blue-600 text-sm underline">Reply</button>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <span className="text-blue-600 font-medium">{review.name || 'Anonymous'}</span>
+                                <span className="text-gray-500 text-sm ml-2">
+                                  {formatDate(review.createdAt)}
+                                </span>
+                              </div>
+                              <StarRating rating={review.rating} starSize="w-4 h-4" showText={false} />
+                            </div>
+                            <p className="text-gray-700 text-sm mb-2">
+                              {review.comment || 'No review content available.'}
+                            </p>
+                            {/* <div className="flex gap-4">
+                              <button className="text-blue-600 text-sm underline">Like</button>
+                              <button className="text-blue-600 text-sm underline">Reply</button>
+                            </div> */}
                           </div>
                         </div>
                       </div>

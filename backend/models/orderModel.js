@@ -26,6 +26,18 @@ const orderSchema = new mongoose.Schema({
             type: Number,
             required: true
         },
+        email: {
+            type: String,
+            required: true
+        },
+        businessName: {
+            type: String,
+            required: true
+        },
+        businessType: {
+            type: String,
+            required: true
+        }
     },
     orderItems: [
         {

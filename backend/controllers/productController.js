@@ -348,7 +348,6 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
 
 // Delete Product ---ADMIN
 exports.deleteProduct = asyncErrorHandler(async (req, res, next) => {
-
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -360,15 +359,15 @@ exports.deleteProduct = asyncErrorHandler(async (req, res, next) => {
     }
 
     await product.remove();
-
-    res.status(201).json({
-        success: true
+    
+    res.status(200).json({
+        success: true,
+        message: 'Product deleted successfully'
     });
 });
 
 // Create OR Update Reviews
 exports.createProductReview = asyncErrorHandler(async (req, res, next) => {
-
     const { rating, comment, productId } = req.body;
 
     const review = {
@@ -376,46 +375,99 @@ exports.createProductReview = asyncErrorHandler(async (req, res, next) => {
         name: req.user.name,
         rating: Number(rating),
         comment,
-    }
+        createdAt: Date.now()
+    };
 
-    const product = await Product.findById(productId);
+    // Start a session for transaction
+    const session = await Product.startSession();
+    session.startTransaction();
 
-    if (!product) {
-        return next(new ErrorHandler("Product Not Found", 404));
-    }
+    try {
+        const product = await Product.findById(productId).session(session);
 
-    const isReviewed = product.reviews.find(review => review.user.toString() === req.user._id.toString());
+        if (!product) {
+            await session.abortTransaction();
+            session.endSession();
+            return next(new ErrorHandler("Product Not Found", 404));
+        }
 
-    if (isReviewed) {
 
-        product.reviews.forEach((rev) => { 
-            if (rev.user.toString() === req.user._id.toString())
-                (rev.rating = rating, rev.comment = comment);
+        // Check if user has already reviewed the product
+        const reviewIndex = product.reviews.findIndex(
+            (rev) => rev.user.toString() === req.user._id.toString()
+        );
+
+        // Create a new array to avoid mutating the original reviews directly
+        const updatedReviews = [...product.reviews];
+        
+        if (reviewIndex >= 0) {
+            // Update existing review while preserving its _id and createdAt
+            const existingReview = updatedReviews[reviewIndex];
+            updatedReviews[reviewIndex] = {
+                ...existingReview,
+                rating: review.rating,
+                comment: review.comment,
+                // Keep the original createdAt date
+            };
+        } else {
+            // Add new review
+            updatedReviews.push(review);
+        }
+
+
+        // Calculate average rating
+        const totalRatings = updatedReviews.reduce(
+            (sum, item) => sum + item.rating,
+            0
+        );
+        
+        const ratings = updatedReviews.length > 0 ? totalRatings / updatedReviews.length : 0;
+        const numOfReviews = updatedReviews.length;
+
+        // Update the product with the new reviews and ratings
+        await Product.findByIdAndUpdate(
+            productId, 
+            {
+                $set: {
+                    reviews: updatedReviews,
+                    ratings,
+                    numOfReviews
+                }
+            },
+            {
+                new: true,
+                runValidators: true,
+                useFindAndModify: false,
+                session
+            }
+        );
+
+        await session.commitTransaction();
+        
+        // Fetch the updated product with populated reviews
+        const updatedProduct = await Product.findById(productId)
+            .populate('reviews.user', 'name')
+            .lean();
+            
+        session.endSession();
+
+        res.status(200).json({
+            success: true,
+            message: 'Review submitted successfully',
+            product: updatedProduct
         });
-    } else {
-        product.reviews.push(review);
-        product.numOfReviews = product.reviews.length;
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        console.error('Review submission error:', error);
+        return next(new ErrorHandler(error.message || 'Failed to submit review', 500));
     }
-
-    let avg = 0;
-
-    product.reviews.forEach((rev) => {
-        avg += rev.rating;
-    });
-
-    product.ratings = avg / product.reviews.length;
-
-    await product.save({ validateBeforeSave: false });
-
-    res.status(200).json({
-        success: true
-    });
 });
 
 // Get All Reviews of Product
 exports.getProductReviews = asyncErrorHandler(async (req, res, next) => {
 
-    const product = await Product.findById(req.query.id);
+// ... (rest of the code remains the same)
 
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));

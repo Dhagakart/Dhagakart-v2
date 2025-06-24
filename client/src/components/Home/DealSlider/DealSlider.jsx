@@ -55,6 +55,7 @@ const DealSlider = ({ title }) => {
                   currentPrice={currentPrice}
                   originalPrice={originalPrice}
                   discount={item.discount}
+                  link='https://dhagakart-jfag.vercel.app/product/684af95b81216125acc02fcf'
                 />
               </div>
             );

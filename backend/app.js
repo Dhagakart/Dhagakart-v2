@@ -94,10 +94,12 @@ const authRoutes = require('./routes/authRoute');
 const product = require('./routes/productRoute');
 const order = require('./routes/orderRoute');
 const payment = require('./routes/paymentRoute');
+const quote = require('./routes/quoteRoute');
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', user);
+app.use('/api/v1/quote', quote);
 app.use('/api/v1/', product);
 app.use('/api/v1/', order);
 app.use('/api/v1/', payment);

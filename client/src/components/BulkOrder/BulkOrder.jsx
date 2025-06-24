@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiUpload, FiMapPin, FiSearch, FiX, FiFile } from 'react-icons/fi';
+import { FiUpload, FiSearch, FiX, FiFile } from 'react-icons/fi';
 import api from '../../utils/api';
 import Loader from '../Layouts/Loader';
 
@@ -29,20 +29,14 @@ const professions = [
 
 const BulkOrder = () => {
   const [products, setProducts] = useState([{ product: '', qty: '', productId: '' }]);
-  const [profession, setProfession] = useState('Architect');
-  const [address, setAddress] = useState('');
+
   const [comments, setComments] = useState('');
   const [searchResults, setSearchResults] = useState({});
   const [loading, setLoading] = useState({});
   const [showDropdown, setShowDropdown] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
-  const [pincode, setPincode] = useState('');
-  const [pincodeDetails, setPincodeDetails] = useState(null);
-  const [isPincodeLoading, setIsPincodeLoading] = useState(false);
-  const [pincodeError, setPincodeError] = useState('');
-  const [userLocation, setUserLocation] = useState(null);
-  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Debounced product search
@@ -105,6 +99,13 @@ const BulkOrder = () => {
   const handleFileChange = e => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    // Check file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      alert('File size should be less than 50MB');
+      return;
+    }
+    
     setSelectedFile(file);
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -122,119 +123,96 @@ const BulkOrder = () => {
     if (inp) inp.value = '';
   };
 
-  const fetchPincodeDetails = async pin => {
-    if (pin.length !== 6 || !/^\d+$/.test(pin)) {
-      setPincodeError('Please enter a valid 6-digit pincode');
-      return;
-    }
-    setIsPincodeLoading(true);
-    setPincodeError('');
-    try {
-      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
-      const [result] = await res.json();
-      if (result.Status === 'Success' && result.PostOffice.length) {
-        const po = result.PostOffice[0];
-        setPincodeDetails({ city: po.District, state: po.State, country: po.Country });
-        setAddress(`${po.District}, ${po.State}`);
-      } else {
-        setPincodeError('No details found for this pincode');
-        setPincodeDetails(null);
-      }
-    } catch {
-      setPincodeError('Failed to fetch pincode details');
-      setPincodeDetails(null);
-    } finally {
-      setIsPincodeLoading(false);
-    }
-  };
 
-  const handlePincodeChange = e => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setPincode(val);
-    if (val.length === 6) fetchPincodeDetails(val);
-    else if (pincodeDetails) {
-      setPincodeDetails(null);
-      setPincodeError('');
-    }
-  };
-
-  const handleUseCurrentLocation = async () => {
-    setIsFetchingLocation(true);
-    setPincodeError('');
-    const saved = localStorage.getItem('locationData');
-    if (!saved) {
-      setPincodeError('Location data not found. Enable it in the header.');
-      setIsFetchingLocation(false);
-      return;
-    }
-    try {
-      const loc = JSON.parse(saved);
-      setUserLocation(loc);
-      if (loc.pincode !== 'NA') {
-        setPincode(loc.pincode);
-        await fetchPincodeDetails(loc.pincode);
-      }
-      if (!address.trim()) {
-        setAddress(`${loc.city}${loc.state ? ', ' + loc.state : ''}`);
-      }
-    } catch {
-      setPincodeError('Failed to parse location data.');
-    } finally {
-      setIsFetchingLocation(false);
-    }
-  };
-
-  // load saved location
-  useEffect(() => {
-    const saved = localStorage.getItem('locationData');
-    if (saved) {
-      try { setUserLocation(JSON.parse(saved)); }
-      catch {}
-    }
-  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
-    const formatted = products
-      .filter(p => p.productId && p.qty)
-      .map(({ productId, qty }) => ({
-        product: productId,
-        quantity: Number(qty)
+    
+    // Format products for the API
+    const formattedProducts = products
+      .filter(p => p.product && p.qty)
+      .map(({ product, qty }) => ({
+        name: product || 'Product',
+        quantity: Number(qty) || 1
       }));
 
-    if (!formatted.length) {
-      alert('Add at least one product with quantity');
+    if (!formattedProducts.length) {
+      alert('Please add at least one product with quantity');
       return;
     }
     
     setIsSubmitting(true);
-    const payload = { products: formatted, profession, address, comments };
     
     try {
-      console.log('Submitting:', payload);
-      // Uncomment and use your actual API call
-      // const response = await api.post('/bulk-order', payload);
-      // console.log('Response:', response.data);
+      const formData = new FormData();
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Add products as a JSON string
+      formData.append('products', JSON.stringify(formattedProducts));
       
-      // Show success message or redirect
-      alert('Bulk order submitted successfully!');
-      // Reset form or redirect as needed
+      // Add comments if provided
+      if (comments) {
+        formData.append('comments', comments);
+      }
+      
+      // Add file if selected
+      if (selectedFile) {
+        // Use the original file object directly
+        formData.append('file', selectedFile);
+      }
+      
+      // Log the form data for debugging
+      console.log('Form Data Entries:');
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value instanceof File ? `${value.name} (${value.size} bytes)` : value);
+      }
+      
+      // Submit the form data with proper headers
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        withCredentials: true,
+        timeout: 120000, // 120 second timeout for file uploads
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(`Upload Progress: ${percentCompleted}%`);
+        }
+      };
+      
+      console.log('Sending request to /quote/new...');
+      const { data } = await api.post('/quote/new', formData, config);
+      
+      // Show success message
+      alert('Your quote request has been submitted successfully!');
+      
+      // Reset form
       setProducts([{ product: '', qty: '', productId: '' }]);
-      setAddress('');
       setComments('');
+      setSelectedFile(null);
+      setFilePreview(null);
+      
     } catch (error) {
-      console.error('Error submitting bulk order:', error);
-      alert('Failed to submit bulk order. Please try again.');
+      console.error('Error submitting quote request:', error);
+      let errorMessage = 'Failed to submit quote request. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (isSubmitting) {
-    return <Loader />;
+    return (
+      <div className="min-h-[90vh] flex items-center justify-center">
+        <Loader />
+      </div>
+    );
   }
 
   return (
@@ -248,13 +226,13 @@ const BulkOrder = () => {
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-xl pb-8 px-8">
           
           {/* Product Details */}
-          <div className="py-6">
+          <div className="pt-6">
             <h2 className="text-xl font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">
               Product Details
             </h2>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="flex items-stretch">
               {/* Upload */}
-              <div className="col-span-2">
+              <div className="flex-1 pr-8">
                 {!selectedFile ? (
                   <label className="block w-full h-80 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 flex items-center justify-center">
                     <input
@@ -315,8 +293,16 @@ const BulkOrder = () => {
                 </p>
               </div>
 
+              {/* Divider with OR */}
+              <div className="relative flex items-center justify-center px-4">
+                <div className="absolute inset-y-0 w-px bg-gray-300 left-1/2 -translate-x-1/2"></div>
+                <div className="relative z-10 bg-white px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded-full">
+                  OR
+                </div>
+              </div>
+
               {/* Products & Comments */}
-              <div className="col-span-1">
+              <div className="flex-1 pl-8">
                 <div>
                   <h3 className="text-gray-800 font-medium mb-3">Add Products</h3>
                   {products.map((item, idx) => (
@@ -395,145 +381,11 @@ const BulkOrder = () => {
               </div>
             </div>
           </div>
-
-          {/* Delivery Address */}
-          <div className="py-6">
-            <h2 className="text-xl font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">
-              Delivery Address
-            </h2>
-
-            {/* PIN Code */}
-            <div className="mb-4">
-              <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-1">
-                PIN Code <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="pincode"
-                  placeholder="Enter 6-digit PIN code"
-                  className={`w-full max-w-xs rounded-md px-4 py-2 text-sm focus:outline-none border border-gray-300 ${
-                    pincodeError ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  value={pincode}
-                  onChange={handlePincodeChange}
-                  maxLength={6}
-                  disabled={isPincodeLoading}
-                />
-                {isPincodeLoading && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent" />
-                  </div>
-                )}
-              </div>
-              {pincodeError && <p className="mt-1 text-sm text-red-600">{pincodeError}</p>}
-              {pincodeDetails && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
-                  Location: {pincodeDetails.city}, {pincodeDetails.state}, {pincodeDetails.country}
-                </div>
-              )}
-            </div>
-
-            {/* Full Address & Use Current Location */}
-            <div className="mb-4">
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                Full Address <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="address"
-                placeholder="House/Flat No., Building, Street, Area"
-                className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                required
-              />
-              <div className="mt-4 flex items-center">
-                <button
-                  type="button"
-                  onClick={handleUseCurrentLocation}
-                  disabled={isFetchingLocation || !userLocation}
-                  className={`inline-flex items-center text-sm font-medium transition-colors ${
-                    userLocation ? 'text-blue-600 hover:text-blue-800' : 'text-gray-400 cursor-not-allowed'
-                  }`}
-                  title={
-                    userLocation
-                      ? 'Use your current location'
-                      : 'Enable location access in the header'
-                  }
-                >
-                  {isFetchingLocation ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2" />
-                      Fetching location...
-                    </>
-                  ) : (
-                    <>
-                      <FiMapPin className="w-4 h-4 mr-1 hover:cursor-pointer" />
-                      Use my current location
-                    </>
-                  )}
-                </button>
-                {pincode === userLocation?.pincode && (
-                  <span className="ml-2 text-xs text-green-600">
-                    ✓ {userLocation.city}, {userLocation.state}
-                  </span>
-                )}
-              </div>
-              {!userLocation && (
-                <button
-                  type="button"
-                  onClick={handleUseCurrentLocation}
-                  className="mt-1 text-xs text-blue-600 hover:text-blue-800 hover:underline focus:outline-none text-left"
-                >
-                  Click to enable location access
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Profession */}
-          <div className="py-6">
-            <h2 className="text-xl font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">
-              Choose your Profession <span className="text-red-500">*</span>
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {professions.map((prof) => (
-                <div key={prof} className="relative">
-                  <input
-                    type="radio"
-                    id={`profession-${prof}`}
-                    name="profession"
-                    className="absolute opacity-0 w-0 h-0 peer"
-                    checked={profession === prof}
-                    onChange={() => setProfession(prof)}
-                  />
-                  <label
-                    htmlFor={`profession-${prof}`}
-                    className={`flex items-center justify-center w-full px-4 py-3 text-sm rounded-md border cursor-pointer transition-all duration-200 ${
-                      profession === prof
-                        ? 'bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm ring-1 ring-blue-200'
-                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-                    }`}
-                  >
-                    {prof === 'Fabricator' ? (
-                      <span className="whitespace-nowrap">{prof}</span>
-                    ) : (
-                      prof
-                    )}
-                  </label>
-                </div>
-              ))}
-            </div>
-            {!profession && (
-              <p className="mt-2 text-sm text-red-500">Please select your profession</p>
-            )}
-          </div>
-
           {/* Submit */}
-          <div className="pt-6 border-t border-gray-200">
+          <div className="mt-3 pt-3 w-full flex justify-center items-center border-t border-gray-200">
             <button
               type="submit"
-              className="w-full bg-[#003366] hover:cursor-pointer text-white py-3 px-6 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="w-1/3 bg-[#003366] hover:cursor-pointer text-white py-3 px-6 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
               Submit
             </button>

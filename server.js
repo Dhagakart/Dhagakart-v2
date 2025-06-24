@@ -26,6 +26,43 @@ cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+});
+
+// Configure temporary directory for file uploads
+const os = require('os');
+const fs = require('fs');
+
+const tempDir = path.join(os.tmpdir(), 'dhagakart-uploads');
+if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+}
+
+// Configure file upload
+const fileUpload = require('express-fileupload');
+app.use((req, res, next) => {
+    // Only apply file upload middleware to the quotes endpoint
+    if (req.originalUrl.includes('/api/v1/quote')) {
+        return fileUpload({
+            useTempFiles: true,
+            tempFileDir: tempDir,
+            limits: { 
+                fileSize: 50 * 1024 * 1024, // 50MB max file size
+                files: 1,
+                fields: 5 // Limit number of form fields
+            },
+            abortOnLimit: true,
+            responseOnLimit: 'File size is too large. Max 50MB allowed.',
+            createParentPath: true,
+            safeFileNames: true,
+            preserveExtension: 4, // Keep file extension (up to 4 chars)
+            parseNested: false,
+            debug: process.env.NODE_ENV !== 'production',
+            uploadTimeout: 300000 // 5 minutes timeout for large files
+        })(req, res, next);
+    } else {
+        next();
+    }
 });
 
 // Deployment configuration

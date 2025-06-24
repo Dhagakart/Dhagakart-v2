@@ -11,7 +11,8 @@ const Product = ({
   images = [defaultImage], 
   currentPrice,   
   originalPrice,  
-  discount        
+  discount ,
+  link       
 }) => {
   // Function to safely parse and format prices
   const formatPrice = (price) => {
@@ -28,7 +29,7 @@ const Product = ({
 
   return (
     <Link
-      to={`/product/${_id}`}
+      to={link || `/product/${_id}`}
       className="relative block bg-white rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 h-80 w-64 flex flex-col overflow-hidden group"
     >
       {/* Product Image */}
