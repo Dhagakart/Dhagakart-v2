@@ -40,6 +40,7 @@ if (!fs.existsSync(tempDir)) {
 
 // Configure file upload
 const fileUpload = require('express-fileupload');
+const axios = require('axios');
 app.use((req, res, next) => {
     // Only apply file upload middleware to the quotes endpoint
     if (req.originalUrl.includes('/api/v1/quote')) {
@@ -83,12 +84,49 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'success',
+        message: 'Server is running',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Start the server
 const server = app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);    
     console.log(`Frontend URL: http://localhost:${process.env.FRONTEND_PORT || 5173}`);
     console.log(`Backend API: http://localhost:${PORT}/api/v1`);
 });
+
+// Function to ping the health check endpoint
+const pingServer = async () => {
+    try {
+        // const response = await axios.get(`http://localhost:${PORT}/health`);
+        const response = await axios.get(`https://dhagakart.onrender.com/health`);
+        console.log(`Health check successful at ${new Date().toISOString()}`);
+    } catch (error) {
+        console.error('Health check failed:', error.message);
+    }
+};
+
+// Start pinging every minute (60000 ms)
+const healthCheckInterval = setInterval(pingServer, 60000);
+// Initial ping
+pingServer();
+
+// Clean up interval on process termination
+const shutdown = () => {
+    clearInterval(healthCheckInterval);
+    server.close(() => {
+        console.log('Process terminated');
+        process.exit(0);
+    });
+};
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
