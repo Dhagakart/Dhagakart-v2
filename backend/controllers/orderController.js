@@ -18,7 +18,7 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
       orderStatus,
       paidAt,
       createdAt
-    } = req.body;j
+    } = req.body;
   
     // Remove the duplicate check if you want to allow multiple mock orders
     const order = await Order.create({
