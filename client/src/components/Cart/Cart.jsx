@@ -88,9 +88,9 @@ const Cart = () => {
             <MetaData title="Shopping Cart | DhagaKart" />
             <main className="w-full min-h-[90vh] flex justify-center items-center px-12 mt-10">
                 <div className="container mx-auto py-8">
-                    <div className="flex flex-col lg:flex-row gap-8">
+                    <div className="flex flex-col md:flex-row gap-4">
                         {/* Left Column - Cart Items */}
-                        <div className="lg:w-2/3">
+                        <div className="md:w-2/3">
                             <div className="bg-white rounded-lg shadow-md border border-gray-200">
                                 <h2 className="text-xl font-semibold p-6">Shopping Cart</h2>
                                  
@@ -135,7 +135,7 @@ const Cart = () => {
                         </div>
 
                         {/* Right Column - Price Summary */}
-                        <div className="lg:w-1/3">
+                        <div className="md:w-1/3">
                             {renderPriceSidebar()}
                         </div>
                     </div>

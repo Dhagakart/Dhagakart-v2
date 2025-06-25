@@ -96,7 +96,7 @@ const order = require('./routes/orderRoute');
 const payment = require('./routes/paymentRoute');
 const quote = require('./routes/quoteRoute');
 
-// API Routes
+// API Route
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', user);
 app.use('/api/v1/quote', quote);

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearErrors } from '../../actions/orderAction';
+import { clearErrors, newOrder } from '../../actions/orderAction';
 import { useSnackbar } from 'notistack';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -9,6 +9,8 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import MetaData from '../Layouts/MetaData';
 import { formatPrice } from '../../utils/formatPrice';
+import { useNavigate } from 'react-router-dom';
+import { emptyCart } from '../../actions/cartAction';
 
 import Paytm from './paytm.png';
 import Gpay from './gpay.png';
@@ -21,6 +23,8 @@ import COD from './cod.png';
 const Payment = () => {
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const [error, setError] = useState('');
 
   const [payDisable, setPayDisable] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState('upi');
@@ -30,7 +34,7 @@ const Payment = () => {
 
   const { shippingInfo, cartItems } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.user);
-  const { error } = useSelector((state) => state.newOrder);
+  const { error: orderError } = useSelector((state) => state.newOrder);
 
   const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -58,53 +62,47 @@ const Payment = () => {
 
   const handleUpiPayment = async (appId) => {
     if (!validateUpiId(upiId)) return;
-
+  
     setPayDisable(true);
+    setError('');
+  
     try {
-      const config = {
-        headers: { 'Content-Type': 'application/json' },
+      // Calculate cart totals
+      const { total, tax, finalTotal } = calculateCartTotals();
+      
+      // Prepare order data
+      const orderData = {
+        itemsPrice: total,
+        taxPrice: tax,
+        shippingPrice: 0, // Assuming free shipping
+        totalPrice: finalTotal,
+        paymentInfo: {
+          id: `mock_pay_${Date.now()}`,
+          status: 'succeeded',
+          paymentMethod: `UPI (${appId})`
+        },
+        paidAt: new Date().toISOString(),
+        orderStatus: 'Processing',
+        createdAt: new Date().toISOString()
       };
 
-      const { data } = await axios.post(
-        `/api/v1/payment/process/${appId || 'generic'}`,
-        paymentData,
-        config
-      );
-
-      const { deepLink, transactionId } = data;
-
-      // For mobile devices, redirect to deep link
-      if (/Android|iPhone/i.test(navigator.userAgent)) {
-        window.location.href = deepLink;
+      // Submit the order
+      const result = await dispatch(newOrder(orderData));
+      
+      if (result?.success) {
+        // Clear cart after successful order
+        await dispatch(emptyCart());
+        // Redirect to order success page
+        navigate('/orders/success');
       } else {
-        // For desktop, show QR code or deep link
-        enqueueSnackbar(`Open ${appId || 'your UPI'} app and use this link: ${deepLink}`, { variant: 'info' });
+        throw new Error('Failed to place order');
       }
-
-      // Poll transaction status
-      const pollStatus = setInterval(async () => {
-        try {
-          const { data: statusData } = await axios.get(
-            `/api/v1/payment/status/${transactionId}/${appId || 'generic'}`
-          );
-          if (statusData.status === 'SUCCESS') {
-            clearInterval(pollStatus);
-            window.location.href = '/orders/success';
-            setPayDisable(false);
-          } else if (statusData.status === 'FAILED') {
-            clearInterval(pollStatus);
-            enqueueSnackbar('Payment failed. Please try again.', { variant: 'error' });
-            setPayDisable(false);
-          }
-        } catch (err) {
-          clearInterval(pollStatus);
-          enqueueSnackbar('Error checking payment status.', { variant: 'error' });
-          setPayDisable(false);
-        }
-      }, 3000);
+  
     } catch (error) {
+      console.error('Error processing payment:', error);
+      setError(error.message || 'Failed to process payment. Please try again.');
+    } finally {
       setPayDisable(false);
-      enqueueSnackbar(error.response?.data?.message || 'Payment initiation failed.', { variant: 'error' });
     }
   };
 
@@ -148,7 +146,7 @@ const Payment = () => {
   );
 
   const renderPriceSidebar = () => (
-    <div className="bg-white rounded-lg shadow-sm min-w-[500px] p-6 border border-gray-100">
+    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h2 className="text-xl font-semibold mb-5 text-gray-800">Order Summary</h2>
       <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
         {cartItems.map((item) => (
@@ -276,12 +274,21 @@ const Payment = () => {
                         </div>
                       ))}
                     </div>
-                    <button
-                      className={`w-full bg-[#003366] text-white py-2 px-4 rounded-md font-medium transition-colors text-sm h-10 flex items-center justify-center ${payDisable || upiIdError || !upiId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#00264d]'}`}
-                      disabled={payDisable || upiIdError || !upiId}
+                    {/* <button
+                      type="button"
+                      className={`w-full bg-[#003366] text-white py-2 px-4 rounded-md font-medium transition-colors text-sm h-10 flex items-center justify-center ${payDisable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#00264d]'}`}
+                      disabled={payDisable}
                       onClick={() => handleUpiPayment(selectedUpiApp)}
                     >
-                      {payDisable ? 'Processing...' : 'Pay Now'}
+                      {payDisable ? 'Placing Order...' : 'Place Order'}
+                    </button> */}
+                    <button
+                      type="button"
+                      className={`w-full bg-[#003366] text-white py-2 px-4 rounded-md font-medium transition-colors text-sm h-10 flex items-center justify-center ${payDisable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#00264d]'}`}
+                      disabled={payDisable}
+                      onClick={() => handleUpiPayment(selectedUpiApp)}
+                    >
+                      {payDisable ? 'Placing Order...' : 'Place Order'}
                     </button>
                   </div>
                 )}
@@ -293,7 +300,9 @@ const Payment = () => {
               </div>
             </div>
           </div>
-          {renderPriceSidebar()}
+          <div className="md:w-1/3">
+            {renderPriceSidebar()}
+          </div>
         </div>
       </main>
     </>

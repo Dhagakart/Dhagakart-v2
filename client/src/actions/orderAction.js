@@ -1,30 +1,64 @@
 import axios from "axios";
 import { ALL_ORDERS_FAIL, ALL_ORDERS_REQUEST, ALL_ORDERS_SUCCESS, CLEAR_ERRORS, DELETE_ORDER_FAIL, DELETE_ORDER_REQUEST, DELETE_ORDER_SUCCESS, MY_ORDERS_FAIL, MY_ORDERS_REQUEST, MY_ORDERS_SUCCESS, NEW_ORDER_FAIL, NEW_ORDER_REQUEST, NEW_ORDER_SUCCESS, ORDER_DETAILS_FAIL, ORDER_DETAILS_REQUEST, ORDER_DETAILS_SUCCESS, PAYMENT_STATUS_FAIL, PAYMENT_STATUS_REQUEST, PAYMENT_STATUS_SUCCESS, UPDATE_ORDER_FAIL, UPDATE_ORDER_REQUEST, UPDATE_ORDER_SUCCESS } from "../constants/orderConstants";
+import api from "../utils/api";
+import { emptyCart } from './cartAction';
+import { useNavigate } from 'react-router-dom';
 
 // New Order
-export const newOrder = (order) => async (dispatch) => {
+export const newOrder = (orderData) => async (dispatch, getState) => {
     try {
         dispatch({ type: NEW_ORDER_REQUEST });
 
-        const config = {
-            headers: {
-                "Content-Type": "application/json",
+        const { user } = getState().user;
+        const { cartItems, shippingInfo } = getState().cart;
+
+        // Prepare order items with required fields
+        const orderItems = cartItems.map(item => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            product: item.product,
+            seller: item.seller
+        }));
+
+        // Prepare complete order data
+        const order = {
+            shippingInfo: {
+                ...shippingInfo,
+                businessType: user.businessType || 'individual',
+                businessName: user.businessName || `${user.firstName} ${user.lastName}`.trim() || 'Customer'
             },
+            orderItems,
+            paymentInfo: orderData.paymentInfo || {
+                id: `mock_pay_${Date.now()}`,
+                status: "succeeded"
+            },
+            itemsPrice: orderData.itemsPrice,
+            taxPrice: orderData.taxPrice || 0,
+            shippingPrice: orderData.shippingPrice || 0,
+            totalPrice: orderData.totalPrice
         };
 
-        const { data } = await axios.post('https://dhagakart.onrender.com/api/v1/order/new', order, config);
-        // const { data } = await axios.post('http://localhost:4000/api/v1/order/new', order, config);
+        const { data } = await api.post('/order/new', order);
+
+        // Clear cart after successful order
+        await dispatch(emptyCart());
 
         dispatch({
             type: NEW_ORDER_SUCCESS,
             payload: data,
-        })
+        });
+
+        // Return success status and order data
+        return { success: true, data };
 
     } catch (error) {
         dispatch({
             type: NEW_ORDER_FAIL,
-            payload: error.response.data.message,
+            payload: error.response?.data?.message || 'Error creating order',
         });
+        throw error;
     }
 };
 
@@ -33,19 +67,20 @@ export const myOrders = () => async (dispatch) => {
     try {
         dispatch({ type: MY_ORDERS_REQUEST });
 
-        const { data } = await axios.get('https://dhagakart.onrender.com/api/v1/orders/me');
-        // const { data } = await axios.get('http://localhost:4000/api/v1/orders/me');
+        const { data } = await api.get('/orders/me');
 
         dispatch({
             type: MY_ORDERS_SUCCESS,
             payload: data.orders,
-        })
+        });
 
+        return data.orders;
     } catch (error) {
         dispatch({
             type: MY_ORDERS_FAIL,
-            payload: error.response.data.message,
+            payload: error.response?.data?.message || 'Failed to fetch orders',
         });
+        throw error;
     }
 };
 
@@ -54,19 +89,20 @@ export const getOrderDetails = (id) => async (dispatch) => {
     try {
         dispatch({ type: ORDER_DETAILS_REQUEST });
 
-        const { data } = await axios.get(`https://dhagakart.onrender.com/api/v1/order/${id}`);
-        // const { data } = await axios.get(`http://localhost:4000/api/v1/order/${id}`);
+        const { data } = await api.get(`/order/${id}`);
 
         dispatch({
             type: ORDER_DETAILS_SUCCESS,
             payload: data.order,
-        })
+        });
 
+        return data.order;
     } catch (error) {
         dispatch({
             type: ORDER_DETAILS_FAIL,
-            payload: error.response.data.message,
+            payload: error.response?.data?.message || 'Failed to fetch order details',
         });
+        throw error;
     }
 };
 
@@ -96,8 +132,8 @@ export const getAllOrders = () => async (dispatch) => {
     try {
         dispatch({ type: ALL_ORDERS_REQUEST });
 
-        const { data } = await axios.get('https://dhagakart.onrender.com/api/v1/admin/orders');
-        // const { data } = await axios.get('http://localhost:4000/api/v1/admin/orders');
+        // const { data } = await axios.get('https://dhagakart.onrender.com/api/v1/admin/orders');
+        const { data } = await axios.get('http://localhost:4000/api/v1/admin/orders');
 
         dispatch({
             type: ALL_ORDERS_SUCCESS,
@@ -123,8 +159,8 @@ export const updateOrder = (id, order) => async (dispatch) => {
             },
         };
 
-        const { data } = await axios.put(`https://dhagakart.onrender.com/api/v1/admin/order/${id}`, order, config);
-        // const { data } = await axios.put(`http://localhost:4000/api/v1/admin/order/${id}`, order, config);
+        // const { data } = await axios.put(`https://dhagakart.onrender.com/api/v1/admin/order/${id}`, order, config);
+        const { data } = await axios.put(`http://localhost:4000/api/v1/admin/order/${id}`, order, config);
 
         dispatch({
             type: UPDATE_ORDER_SUCCESS,
@@ -144,8 +180,8 @@ export const deleteOrder = (id) => async (dispatch) => {
     try {
         dispatch({ type: DELETE_ORDER_REQUEST });
 
-        const { data } = await axios.delete(`https://dhagakart.onrender.com/api/v1/admin/order/${id}`);
-        // const { data } = await axios.delete(`http://localhost:4000/api/v1/admin/order/${id}`);
+        // const { data } = await axios.delete(`https://dhagakart.onrender.com/api/v1/admin/order/${id}`);
+        const { data } = await axios.delete(`http://localhost:4000/api/v1/admin/order/${id}`);
 
         dispatch({
             type: DELETE_ORDER_SUCCESS,

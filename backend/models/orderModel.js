@@ -28,7 +28,7 @@ const orderSchema = new mongoose.Schema({
         },
         email: {
             type: String,
-            required: true
+            required: false
         },
         businessName: {
             type: String,

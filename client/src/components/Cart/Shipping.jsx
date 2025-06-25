@@ -232,7 +232,7 @@ const Shipping = () => {
     );
 
     const renderPriceSidebar = () => (
-        <div className="bg-white rounded-lg shadow-sm min-w-[500px] p-6 border border-gray-100">
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
             <h2 className="text-xl font-semibold mb-5 text-gray-800">Order Summary</h2>
 
             {/* Cart Items List */}

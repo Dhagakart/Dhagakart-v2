@@ -5,47 +5,54 @@ const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
 
 // Create New Order
+// In orderController.js
 exports.newOrder = asyncErrorHandler(async (req, res, next) => {
-
     const {
-        shippingInfo,
-        orderItems,
-        paymentInfo,
-        totalPrice,
-    } = req.body;
-
-    const orderExist = await Order.findOne({ paymentInfo });
-
-    if (orderExist) {
-        return next(new ErrorHandler("Order Already Placed", 400));
-    }
-
+      shippingInfo,
+      orderItems,
+      paymentInfo,
+      itemsPrice,
+      taxPrice,
+      shippingPrice,
+      totalPrice,
+      orderStatus,
+      paidAt,
+      createdAt
+    } = req.body;j
+  
+    // Remove the duplicate check if you want to allow multiple mock orders
     const order = await Order.create({
+      shippingInfo,
+      orderItems,
+      paymentInfo,
+      itemsPrice,
+      taxPrice,
+      shippingPrice,
+      totalPrice,
+      paidAt: paidAt || Date.now(),
+      orderStatus: orderStatus || 'Processing',
+      createdAt: createdAt || Date.now(),
+      user: req.user._id,
+    });
+  
+    // Optional: Keep or remove the email sending logic
+    await sendEmail({
+      email: req.user.email,
+      templateId: process.env.SENDGRID_ORDER_TEMPLATEID,
+      data: {
+        name: req.user.name,
         shippingInfo,
         orderItems,
-        paymentInfo,
         totalPrice,
-        paidAt: Date.now(),
-        user: req.user._id,
+        oid: order._id,
+      }
     });
-
-    await sendEmail({
-        email: req.user.email,
-        templateId: process.env.SENDGRID_ORDER_TEMPLATEID,
-        data: {
-            name: req.user.name,
-            shippingInfo,
-            orderItems,
-            totalPrice,
-            oid: order._id,
-        }
-    });
-
+  
     res.status(201).json({
-        success: true,
-        order,
+      success: true,
+      order,
     });
-});
+  });
 
 // Get Single Order Details
 exports.getSingleOrderDetails = asyncErrorHandler(async (req, res, next) => {
