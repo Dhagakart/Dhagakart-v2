@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams, Outlet } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
@@ -13,13 +13,33 @@ import LogoutConfirmationModal from './LogoutConfirmationModal';
 // Icons
 import { User, ShoppingBag, Truck, FileText, LogOut, FileSearch } from 'lucide-react';
 
-const AccountDG = () => {
+const AccountDG = ({ defaultTab = 'profile' }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const { enqueueSnackbar } = useSnackbar();
     const { user, loading, isAuthenticated } = useSelector(state => state.user);
-    const [activeTab, setActiveTab] = useState('profile');
+    const [activeTab, setActiveTab] = useState(defaultTab);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    
+    // Update active tab based on URL
+    useEffect(() => {
+        const path = location.pathname.split('/').pop();
+        switch(path) {
+            case 'orders':
+                setActiveTab('orders');
+                break;
+            case 'track-order':
+                setActiveTab('track-order');
+                break;
+            case 'rfqs':
+                setActiveTab('rfqs');
+                break;
+            case 'profile':
+            default:
+                setActiveTab('profile');
+        }
+    }, [location]);
 
     const handleLogout = () => {
         dispatch(logoutUser());
@@ -46,28 +66,28 @@ const AccountDG = () => {
                             <nav className="space-y-1">
                                 <div className="flex flex-col gap-2">
                                     <button
-                                        onClick={() => setActiveTab('profile')}
+                                        onClick={() => navigate('/account/profile')}
                                         className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'profile' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
                                     >
                                         <User className="h-5 w-5" />
                                         <span>Profile</span>
                                     </button>
                                     <button
-                                        onClick={() => setActiveTab('orders')}
+                                        onClick={() => navigate('/account/orders')}
                                         className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'orders' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
                                     >
                                         <ShoppingBag className="h-5 w-5" />
                                         <span>Order History</span>
                                     </button>
                                     <button
-                                        onClick={() => setActiveTab('track-order')}
+                                        onClick={() => navigate('/account/track-order')}
                                         className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'track-order' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
                                     >
                                         <Truck className="h-5 w-5" />
                                         <span>Track Order</span>
                                     </button>
                                     <button
-                                        onClick={() => setActiveTab('rfqs')}
+                                        onClick={() => navigate('/account/rfqs')}
                                         className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'rfqs' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
                                     >
                                         <FileSearch className="h-5 w-5" />

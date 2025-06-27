@@ -111,11 +111,10 @@ const UserTable = () => {
     users && users.forEach((item) => {
         rows.unshift({
             id: item._id,
-            name: item.name,
-            avatar: item.avatar.url,
-            email: item.email,
-            gender: item.gender ? item.gender.toUpperCase() : "Unknown",
-            role: item.role,
+            name: item.name || "Unknown",
+            // avatar: item.avatar.url || "",
+            email: item.email || "Unknown",
+            role: item.role || "Unknown",
             registeredOn: new Date(item.createdAt).toISOString().substring(0, 10),
         });
     });

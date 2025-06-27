@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FiUpload, FiSearch, FiX, FiFile } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Loader from '../Layouts/Loader';
 
@@ -38,6 +39,7 @@ const BulkOrder = () => {
   const [filePreview, setFilePreview] = useState(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   // Debounced product search
   const searchProducts = useCallback(
@@ -184,14 +186,14 @@ const BulkOrder = () => {
       console.log('Sending request to /quote/new...');
       const { data } = await api.post('/quote/new', formData, config);
       
-      // Show success message
-      alert('Your quote request has been submitted successfully!');
-      
-      // Reset form
-      setProducts([{ product: '', qty: '', productId: '' }]);
-      setComments('');
-      setSelectedFile(null);
-      setFilePreview(null);
+      // Navigate to success page
+      navigate('/quote/success', { 
+        state: { 
+          message: 'Your quote request has been submitted successfully!',
+          // You can pass additional data here if needed
+        },
+        replace: true 
+      });
       
     } catch (error) {
       console.error('Error submitting quote request:', error);

@@ -331,7 +331,7 @@ const HeaderDG = () => {
                     <img src={ProfileIcon} alt="Profile" className="w-8 h-8 rounded-full" />
                     <span className="text-sm font-medium whitespace-nowrap overflow-hidden" style={{ maxWidth: '120px' }}>
                       {user?.name ? `Hey, ${user.name.split(' ')[0]}` : 'Account'}
-                      <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform inline ${isDropdownOpen('profile') ? 'transform rotate-180' : ''}`} />
+                      {/* <FaChevronDown className={`ml-1 text-xs text-gray-100 transition-transform inline ${isDropdownOpen('profile') ? 'transform rotate-180' : ''}`} /> */}
                     </span>
                   </button>
                   {isDropdownOpen('profile') && (

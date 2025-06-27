@@ -39,6 +39,7 @@ import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
 import ReqCredits from './components/ReqCredits/ReqCredits';
 import BulkOrder from './components/BulkOrder/BulkOrder';
+import QuoteSuccess from './components/BulkOrder/QuoteSuccess';
 // import oAuthSuccess from './components/oAuthSuccess';
 
 // DG ROUTES
@@ -154,6 +155,7 @@ function App() {
         <Route path="/reqcredits" element={<ProtectedRoute><ReqCredits /></ProtectedRoute>} />
 
         <Route path="/bulkorder" element={<BulkOrder />} />
+        <Route path="/quote/success" element={<QuoteSuccess />} />
 
         <Route path="/process/payment" element={
           <ProtectedRoute>
@@ -189,10 +191,15 @@ function App() {
 
         <Route path="/account" element={
           <ProtectedRoute>
-            {/* <Account /> */}
             <AccountDG />
           </ProtectedRoute>
-        } ></Route>
+        }>
+          <Route index element={<AccountDG defaultTab="profile" />} />
+          <Route path="profile" element={<AccountDG defaultTab="profile" />} />
+          <Route path="orders" element={<AccountDG defaultTab="orders" />} />
+          <Route path="track-order" element={<AccountDG defaultTab="track-order" />} />
+          <Route path="rfqs" element={<AccountDG defaultTab="rfqs" />} />
+        </Route>
 
         <Route path="/account/update" element={
           <ProtectedRoute>

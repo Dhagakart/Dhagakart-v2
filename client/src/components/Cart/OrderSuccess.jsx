@@ -47,7 +47,7 @@ const OrderSuccess = () => {
                             Go to Home
                         </Link>
                         <Link 
-                            to="/account" 
+                            to="/account/orders" 
                             className="px-6 py-3 text-white rounded-md bg-[#003366] hover:text-white transition-colors text-sm font-medium flex items-center justify-center gap-1"
                         >
                             View Order <span>→</span>
