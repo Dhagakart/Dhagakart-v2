@@ -183,6 +183,9 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
         highlights: highlights,
         specifications: specifications,
         user: req.user.id,
+        // Ensure category and subcategory are properly set
+        category: req.body.category,
+        subCategory: req.body.subCategory,
         // Convert string numbers to numbers
         price: parseFloat(req.body.price) || 0,
         cuttedPrice: parseFloat(req.body.cuttedPrice) || 0,
