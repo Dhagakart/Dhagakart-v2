@@ -48,6 +48,7 @@ const Products = () => {
     const clearFilters = () => {
         setSelectedCategory("");
         setSelectedSubcategory("");
+        setCurrentPage(1); // Reset to first page when clearing filters
     }
 
     useEffect(() => {
@@ -55,9 +56,20 @@ const Products = () => {
             enqueueSnackbar(error, { variant: "error" });
             dispatch(clearErrors());
         }
-        // Pass default values for price and ratings
-        dispatch(getProducts(keyword, selectedCategory || "", [0, 200000], 0, currentPage));
-    }, [dispatch, keyword, selectedCategory, currentPage, error, enqueueSnackbar]);
+        // Pass selected category and subcategory to filter products
+        dispatch(getProducts(keyword, selectedCategory || "", [0, 200000], 0, currentPage, selectedSubcategory || ""));
+    }, [dispatch, keyword, selectedCategory, selectedSubcategory, currentPage, error, enqueueSnackbar]);
+    
+    // Reset subcategory and page when category changes
+    useEffect(() => {
+        setSelectedSubcategory("");
+        setCurrentPage(1);
+    }, [selectedCategory]);
+    
+    // Reset page when subcategory changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedSubcategory]);
 
     return (
         <>
@@ -187,15 +199,18 @@ const Products = () => {
                                                                     <Radio
                                                                         size="small"
                                                                         className="text-blue-600"
-                                                                        disabled
+                                                                        checked={selectedSubcategory === subcategory}
+                                                                        onChange={() => {
+                                                                            setSelectedSubcategory(selectedSubcategory === subcategory ? "" : subcategory);
+                                                                        }}
                                                                     />
                                                                 }
                                                                 label={
-                                                                    <span className="text-sm text-gray-500">
+                                                                    <span className={`text-sm ${selectedSubcategory === subcategory ? 'text-blue-600 font-medium' : 'text-gray-700'}`}>
                                                                         {subcategory}
                                                                     </span>
                                                                 }
-                                                                className="py-1"
+                                                                className={`py-1 hover:bg-blue-50 rounded-md transition-colors duration-150 ${selectedSubcategory === subcategory ? 'bg-blue-50' : ''}`}
                                                             />
                                                         ))
                                                     }

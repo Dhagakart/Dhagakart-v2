@@ -33,6 +33,27 @@ const NewProduct = () => {
     const [price, setPrice] = useState(0);
     const [cuttedPrice, setCuttedPrice] = useState(0);
     const [category, setCategory] = useState("");
+    const [subCategory, setSubCategory] = useState("");
+    const [availableSubcategories, setAvailableSubcategories] = useState([]);
+    
+    // Update available subcategories when category changes
+    useEffect(() => {
+        if (category) {
+            const selectedCategory = categories.find(cat => cat.name === category);
+            if (selectedCategory && selectedCategory.subcategories) {
+                setAvailableSubcategories(selectedCategory.subcategories);
+                // Reset subcategory when category changes
+                setSubCategory("");
+            } else {
+                setAvailableSubcategories([]);
+                setSubCategory("");
+            }
+        } else {
+            setAvailableSubcategories([]);
+            setSubCategory("");
+        }
+    }, [category]);
+    
     const [stock, setStock] = useState(0);
     const [warranty, setWarranty] = useState(0);
     const [brand, setBrand] = useState("");
@@ -126,6 +147,7 @@ const NewProduct = () => {
         formData.set("price", price);
         formData.set("cuttedPrice", cuttedPrice);
         formData.set("category", category);
+        formData.set("subCategory", subCategory);
         formData.set("stock", stock);
         formData.set("warranty", warranty);
         formData.set("brandname", brand);
@@ -225,9 +247,28 @@ const NewProduct = () => {
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
                         >
-                            {categories.map((el, i) => (
-                                <MenuItem value={el} key={i}>
-                                    {el}
+                            <MenuItem value="">Select Category</MenuItem>
+                            {categories.map((category, i) => (
+                                <MenuItem value={category.name} key={i}>
+                                    {category.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                        <TextField
+                            label="Sub Category"
+                            select
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                            required
+                            disabled={!category}
+                            value={subCategory}
+                            onChange={(e) => setSubCategory(e.target.value)}
+                        >
+                            <MenuItem value="">Select Subcategory</MenuItem>
+                            {availableSubcategories.map((subCat, i) => (
+                                <MenuItem value={subCat} key={i}>
+                                    {subCat}
                                 </MenuItem>
                             ))}
                         </TextField>

@@ -35,13 +35,16 @@ import {
 
 // Get All Products --- Filter/Search/Sort
 export const getProducts =
-    (keyword = "", category, price = [0, 200000], ratings = 0, currentPage = 1) => async (dispatch) => {
+    (keyword = "", category, price = [0, 200000], ratings = 0, currentPage = 1, subcategory = "") => async (dispatch) => {
         try {
             dispatch({ type: ALL_PRODUCTS_REQUEST });
 
             let url = `/products?keyword=${keyword}&price[gte]=${price[0]}&price[lte]=${price[1]}&ratings[gte]=${ratings}&page=${currentPage}`;
             if (category) {
-                url = `/products?keyword=${keyword}&category=${category}&price[gte]=${price[0]}&price[lte]=${price[1]}&ratings[gte]=${ratings}&page=${currentPage}`;
+                url += `&category=${category}`;
+            }
+            if (subcategory) {
+                url += `&subCategory=${encodeURIComponent(subcategory)}`;
             }
             const { data } = await api.get(url);
 

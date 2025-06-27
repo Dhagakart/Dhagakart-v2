@@ -11,7 +11,15 @@ exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
     const productsCount = await Product.countDocuments();
     // console.log(req.query);
 
-    const searchFeature = new SearchFeatures(Product.find(), req.query)
+    // Create base query
+    const query = Product.find();
+    
+    // If subcategory is provided, filter by it
+    if (req.query.subCategory) {
+        query.where('subCategory').equals(req.query.subCategory);
+    }
+    
+    const searchFeature = new SearchFeatures(query, req.query)
         .search()
         .filter();
 
