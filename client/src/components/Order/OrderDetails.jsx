@@ -39,6 +39,25 @@ const OrderDetails = () => {
 
     if (loading) return <Loader />;
 
+    // Calculate subtotal from order items if itemsPrice is not available
+    const calculateSubtotal = () => {
+        if (order?.itemsPrice !== undefined && order.itemsPrice !== null) {
+            return order.itemsPrice;
+        }
+        
+        if (order?.orderItems?.length) {
+            return order.orderItems.reduce((sum, item) => {
+                const price = Number(item.price) || 0;
+                const qty = Number(item.quantity) || 0;
+                return sum + (price * qty);
+            }, 0);
+        }
+        
+        return 0;
+    };
+    
+    const subtotal = calculateSubtotal();
+
     return (
         <>
             <MetaData title={`Order #${order?._id?.substring(order._id.length - 6).toUpperCase() || 'Details'}`} />
@@ -175,7 +194,7 @@ const OrderDetails = () => {
                                                     Subtotal
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatPrice(order.itemsPrice)}
+                                                    {formatPrice(subtotal)}
                                                 </td>
                                             </tr>
                                             <tr>
