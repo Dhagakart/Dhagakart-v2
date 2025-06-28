@@ -7,6 +7,9 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const passport = require('passport');
 const errorMiddleware = require('./middlewares/error');
+const swaggerOptions = require('./config/swagger');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 require('./config/passport'); // Import passport config
 
 const app = express();
@@ -130,7 +133,22 @@ function printRoutes(stack, parentPath = '') {
 console.log('\n⚙️  Mounted routes:\n' + printRoutes(app._router.stack).join('\n') + '\n');
 
 
+// Initialize Swagger
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// Serve Swagger UI
+app.use('/api-docs', 
+  swaggerUi.serve, 
+  swaggerUi.setup(swaggerSpec, { 
+    explorer: true,
+    customSiteTitle: 'Flipkart MERN API Documentation'
+  })
+);
+
 // error middleware
 app.use(errorMiddleware);
+
+// Log available routes
+console.log('\n📚 API Documentation available at http://localhost:4000/api-docs');
 
 module.exports = app;

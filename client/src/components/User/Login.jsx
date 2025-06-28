@@ -85,6 +85,12 @@ const Login = () => {
                                         placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                document.getElementById('password').focus();
+                                            }
+                                        }}
                                         variant="outlined"
                                         size="small"
                                         sx={{
@@ -109,6 +115,12 @@ const Login = () => {
                                         placeholder="Enter your password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleLogin(e);
+                                            }
+                                        }}
                                         variant="outlined"
                                         size="small"
                                         sx={{

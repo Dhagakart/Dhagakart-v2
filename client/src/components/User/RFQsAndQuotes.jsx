@@ -13,16 +13,44 @@ const RFQsAndQuotes = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(10);
+    const [itemsPerPage] = useState(10); // Fixed at 10 items per page
     const [selectedRFQ, setSelectedRFQ] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
-    const { loading, error, quotes, quotesCount } = useSelector((state) => state.quoteList);
-    const { user } = useSelector((state) => state.user);
+    const { 
+        loading, 
+        error, 
+        quotes = [], 
+        quotesCount = 0, 
+        totalPages = 1,
+        currentPage: currentPageFromState = 1,
+        hasNextPage = false,
+        hasPreviousPage = false
+    } = useSelector((state) => state.quoteList || {});
 
+    // Log state for debugging
+    useEffect(() => {
+        console.log('Pagination State:', {
+            quotesCount,
+            totalPages,
+            currentPage,
+            hasNextPage,
+            hasPreviousPage,
+            quotesLength: quotes.length
+        });
+    }, [quotesCount, totalPages, currentPage, hasNextPage, hasPreviousPage, quotes]);
+
+    // Sync local state with Redux state
+    useEffect(() => {
+        if (currentPageFromState !== currentPage) {
+            setCurrentPage(currentPageFromState);
+        }
+    }, [currentPageFromState]);
+
+    // Fetch quotes on mount and when page changes
     useEffect(() => {
         if (error) {
-            console.error(error);
+            console.error('Error:', error);
         }
         dispatch(getMyQuotes(currentPage, itemsPerPage));
     }, [dispatch, currentPage, itemsPerPage]);
@@ -34,7 +62,10 @@ const RFQsAndQuotes = () => {
     };
 
     const handlePageChange = (newPage) => {
-        setCurrentPage(newPage);
+        if (newPage >= 1 && newPage <= totalPages && !loading) {
+            setCurrentPage(newPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     const handleNewRFQ = () => {
@@ -69,11 +100,10 @@ const RFQsAndQuotes = () => {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(quotesCount / itemsPerPage) || 1;
     const startItem = quotesCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
     const endItem = Math.min(currentPage * itemsPerPage, quotesCount || 0);
 
-    if (loading && !quotes) {
+    if (loading && quotes.length === 0) {
         return <Loader />;
     }
 
@@ -103,7 +133,7 @@ const RFQsAndQuotes = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {quotes && quotes.length > 0 ? (
-                            quotes.map((quote) => (
+                            quotes.slice(0, itemsPerPage).map((quote) => (
                                 <tr key={quote._id}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:underline hover:cursor-pointer"
                                         onClick={() => handleViewRFQ(quote)}>
@@ -154,84 +184,92 @@ const RFQsAndQuotes = () => {
                 </table>
             </div>
             
-            {quotesCount > 0 && (
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+                    {loading && <div className="w-full text-center py-2">Loading...</div>}
+                    
+                    {/* Mobile Pagination */}
                     <div className="flex-1 flex justify-between sm:hidden">
                         <button 
                             onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'
+                            disabled={!hasPreviousPage || loading}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
+                                !hasPreviousPage || loading
+                                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                             }`}
                         >
                             Previous
                         </button>
+                        <div className="text-sm text-gray-700 px-4 py-2">
+                            Page {currentPage} of {totalPages}
+                        </div>
                         <button 
                             onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'
+                            disabled={!hasNextPage || loading}
+                            className={`ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
+                                !hasNextPage || loading
+                                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                             }`}
                         >
                             Next
                         </button>
                     </div>
-                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    
+                    {/* Desktop Pagination */}
+                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
                             <p className="text-sm text-gray-700">
-                                Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
-                                <span className="font-medium">{quotesCount}</span> results
+                                Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of <span className="font-medium">{quotesCount}</span> results
                             </p>
                         </div>
                         <div>
                             <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                                 <button
                                     onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1}
+                                    disabled={!hasPreviousPage || loading}
                                     className={`relative inline-flex items-center px-2 py-2 rounded-l-md border ${
-                                        currentPage === 1 ? 'border-gray-200 bg-gray-50 text-gray-300' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+                                        !hasPreviousPage || loading
+                                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                                     }`}
                                 >
                                     <span className="sr-only">Previous</span>
-                                    &larr;
+                                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
                                 </button>
                                 
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    let pageNum;
-                                    if (totalPages <= 5) {
-                                        pageNum = i + 1;
-                                    } else if (currentPage <= 3) {
-                                        pageNum = i + 1;
-                                    } else if (currentPage >= totalPages - 2) {
-                                        pageNum = totalPages - 4 + i;
-                                    } else {
-                                        pageNum = currentPage - 2 + i;
-                                    }
-                                    
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => handlePageChange(pageNum)}
-                                            className={`relative inline-flex items-center px-4 py-2 border ${
-                                                currentPage === pageNum 
-                                                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' 
-                                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                            }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
-                                })}
+                                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                                    <button
+                                        key={page}
+                                        onClick={() => handlePageChange(page)}
+                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                            currentPage === page
+                                                ? 'bg-blue-50 text-blue-600 border-blue-300'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                        } ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
+                                        disabled={loading}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
                                 
                                 <button
                                     onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
+                                    disabled={!hasNextPage || loading}
                                     className={`relative inline-flex items-center px-2 py-2 rounded-r-md border ${
-                                        currentPage === totalPages ? 'border-gray-200 bg-gray-50 text-gray-300' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+                                        !hasNextPage || loading
+                                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                                     }`}
                                 >
                                     <span className="sr-only">Next</span>
-                                    &rarr;
+                                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" supportRole="img" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                    </svg>
                                 </button>
                             </nav>
                         </div>

@@ -24,11 +24,15 @@ export const quoteListReducer = (state = { quotes: [] }, { type, payload }) => {
             };
         case GET_MY_QUOTES_SUCCESS:
             return {
+                ...state,
                 loading: false,
                 quotes: payload.quotes,
-                quotesCount: payload.count,
-                resPerPage: payload.resPerPage,
-                filteredQuotesCount: payload.filteredQuotesCount
+                quotesCount: payload.total,
+                totalPages: payload.totalPages,
+                currentPage: payload.currentPage,
+                hasNextPage: payload.hasNextPage,
+                hasPreviousPage: payload.hasPreviousPage,
+                error: null
             };
         case GET_MY_QUOTES_FAIL:
             return {

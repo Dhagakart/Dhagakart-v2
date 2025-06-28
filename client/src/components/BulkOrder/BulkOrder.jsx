@@ -63,9 +63,16 @@ const BulkOrder = () => {
     []
   );
 
-  const handleAddProduct = e => {
-    e.preventDefault();
+  const handleAddProduct = (e = null) => {
+    if (e) e.preventDefault();
     setProducts(prev => [...prev, { product: '', qty: '', productId: '' }]);
+    // Focus the new product input after a small delay to ensure it's rendered
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('.product-search-input');
+      if (inputs.length > 0) {
+        inputs[inputs.length - 1].focus();
+      }
+    }, 0);
   };
 
   const handleProductChange = (idx, field, val) => {
@@ -74,8 +81,12 @@ const BulkOrder = () => {
       nxt[idx][field] = val;
       return nxt;
     });
-    if (field === 'product') searchProducts(val, idx);
-    else setShowDropdown(prev => ({ ...prev, [idx]: false }));
+    
+    if (field === 'product') {
+      searchProducts(val, idx);
+    } else {
+      setShowDropdown(prev => ({ ...prev, [idx]: false }));
+    }
   };
 
   const selectProduct = (idx, prod) => {
@@ -129,6 +140,11 @@ const BulkOrder = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    
+    // Only proceed if form was submitted via the submit button
+    if (e.nativeEvent && e.nativeEvent.submitter && e.nativeEvent.submitter.type !== 'submit') {
+      return;
+    }
     
     // Format products for the API
     const formattedProducts = products
@@ -317,19 +333,19 @@ const BulkOrder = () => {
                           <input
                             type="text"
                             placeholder="Search Product or Category"
-                            className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="product-search-input block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={item.product}
                             onChange={e => handleProductChange(idx, 'product', e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && e.preventDefault()}
+                            onFocus={() => setShowDropdown(prev => ({ ...prev, [idx]: true }))}
                           />
-                          {item.product && (
-                            <button
-                              type="button"
-                              onClick={() => clearSearch(idx)}
-                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500 hover:cursor-pointer"
-                            >
-                              <FiX className="h-4 w-4" />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            className="absolute right-3 top-3 text-gray-400 hover:text-gray-500 hover:cursor-pointer"
+                            onClick={() => clearSearch(idx)}
+                          >
+                            <FiX className="h-4 w-4" />
+                          </button>
                         </div>
                         {showDropdown[idx] && (
                           <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto sm:text-sm">

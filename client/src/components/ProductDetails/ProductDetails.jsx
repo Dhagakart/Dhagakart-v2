@@ -41,9 +41,6 @@ const ProductDetailsDG = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteData, setQuoteData] = useState({
-    name: '',
-    email: '',
-    phone: '',
     quantity: 1,
     message: '',
   });
@@ -123,13 +120,29 @@ const ProductDetailsDG = () => {
 
   const handleQuoteChange = (e) => {
     const { name, value } = e.target;
-    setQuoteData((prev) => ({ ...prev, [name]: value }));
+    setQuoteData((prev) => ({
+      ...prev,
+      [name]: name === 'quantity' ? Math.max(1, parseInt(value) || 1) : value,
+    }));
   };
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
-    console.log('Quote request:', { ...quoteData, productId: id });
-    enqueueSnackbar('Quote request sent successfully!', { variant: 'success' });
+    if (!isAuthenticated) {
+      enqueueSnackbar('Please login to request a quote', { variant: 'warning' });
+      return;
+    }
+    
+    const quoteRequest = {
+      product: product._id,
+      productName: product.name,
+      quantity: quoteData.quantity,
+      message: quoteData.message,
+    };
+    
+    // Here you would typically dispatch an action to submit the quote
+    console.log('Quote submitted:', quoteRequest);
+    enqueueSnackbar('Your quote request has been submitted successfully!', { variant: 'success' });
     handleQuoteClose();
   };
 
@@ -167,71 +180,78 @@ const ProductDetailsDG = () => {
       <Drawer anchor="right" open={quoteOpen} onClose={handleQuoteClose}>
         <Box sx={{ width: 400, p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">Request a Quote</Typography>
+            <Typography variant="h6">Request Bulk Quote</Typography>
             <IconButton onClick={handleQuoteClose}>
               <CloseIcon />
             </IconButton>
           </Box>
-          <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            Product: {product.name}
+          <Typography variant="subtitle1" sx={{ mb: 2, color: 'text.secondary' }}>
+            {product.name}
           </Typography>
-          <Divider sx={{ mb: 2 }} />
+          <Divider sx={{ mb: 3 }} />
+          
           <form onSubmit={handleQuoteSubmit}>
-            <TextField
-              fullWidth
-              label="Name"
-              name="name"
-              value={quoteData.name}
-              onChange={handleQuoteChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              value={quoteData.email}
-              onChange={handleQuoteChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Phone"
-              name="phone"
-              value={quoteData.phone}
-              onChange={handleQuoteChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Quantity"
-              name="quantity"
-              type="number"
-              value={quoteData.quantity}
-              onChange={handleQuoteChange}
-              margin="normal"
-              inputProps={{ min: 1 }}
-              required
-            />
-            <TextField
-              fullWidth
-              label="Message"
-              name="message"
-              multiline
-              rows={4}
-              value={quoteData.message}
-              onChange={handleQuoteChange}
-              margin="normal"
-            />
-            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-              <Button type="submit" variant="contained" color="primary">
-                Submit
-              </Button>
-              <Button variant="outlined" onClick={handleQuoteClose}>
-                Cancel
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Quantity
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => setQuoteData(prev => ({
+                    ...prev,
+                    quantity: Math.max(1, prev.quantity - 1)
+                  }))}
+                  disabled={quoteData.quantity <= 1}
+                >
+                  -
+                </Button>
+                <TextField
+                  name="quantity"
+                  type="number"
+                  value={quoteData.quantity}
+                  onChange={handleQuoteChange}
+                  inputProps={{ min: 1, style: { textAlign: 'center' } }}
+                  sx={{ width: '80px' }}
+                />
+                <Button 
+                  variant="outlined"
+                  onClick={() => setQuoteData(prev => ({
+                    ...prev,
+                    quantity: prev.quantity + 1
+                  }))}
+                >
+                  +
+                </Button>
+              </Box>
+            </Box>
+            
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Additional Message (Optional)
+              </Typography>
+              <TextField
+                fullWidth
+                name="message"
+                multiline
+                rows={4}
+                placeholder="Any special requirements or notes..."
+                value={quoteData.message}
+                onChange={handleQuoteChange}
+                variant="outlined"
+              />
+            </Box>
+            
+            <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary"
+                fullWidth
+                size="large"
+                sx={{ py: 1.5 }}
+              >
+                Request Quote
               </Button>
             </Box>
           </form>

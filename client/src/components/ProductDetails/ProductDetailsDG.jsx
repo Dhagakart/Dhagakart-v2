@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductDetails, newReview } from '../../actions/productAction';
+import { createQuote } from '../../actions/quoteActions';
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
 import { useSnackbar } from 'notistack';
@@ -23,8 +24,18 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 
 const getDiscount = (price, cuttedPrice) => {
-  if (!price || !cuttedPrice || cuttedPrice <= price) return 0;
-  return Math.round(((cuttedPrice - price) / cuttedPrice) * 100);
+  // Convert to numbers in case they're strings
+  const numPrice = Number(price);
+  const numCuttedPrice = Number(cuttedPrice);
+  
+  // If either price is invalid or cuttedPrice is not greater than price, return 0
+  if (isNaN(numPrice) || isNaN(numCuttedPrice) || numPrice <= 0 || numPrice <= numCuttedPrice) {
+    return 0;
+  }
+  
+  // Calculate discount percentage: ((price - cutted) / price) * 100
+  const discount = Math.round(((numPrice - numCuttedPrice) / numPrice) * 100);
+  return Math.max(0, Math.min(100, discount)); // Ensure discount is between 0-100
 };
 
 const ProductDetailsDG = () => {
@@ -41,10 +52,7 @@ const ProductDetailsDG = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteData, setQuoteData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    quantity: 1,
+    quantity: '1',
     message: '',
   });
 
@@ -84,8 +92,10 @@ const ProductDetailsDG = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [open, setOpen] = useState(false);
   const mainSlider = useRef(null);
+  const { isAuthenticated, user } = useSelector((state) => state.user);
 
   // Set initial quantity from cart if item exists
   useEffect(() => {
@@ -136,14 +146,79 @@ const ProductDetailsDG = () => {
 
   const handleQuoteChange = (e) => {
     const { name, value } = e.target;
-    setQuoteData((prev) => ({ ...prev, [name]: value }));
+    console.log('Form field changed:', { name, value });
+    setQuoteData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleQuoteSubmit = (e) => {
+  const handleQuoteSubmit = async (e) => {
     e.preventDefault();
-    console.log('Quote request:', { ...quoteData, productId: id });
-    enqueueSnackbar('Quote request sent successfully!', { variant: 'success' });
-    handleQuoteClose();
+    console.log('Form submitted');
+    
+    console.log('Auth state:', { isAuthenticated, user });
+    
+    if (!isAuthenticated) {
+      console.log('User not authenticated, redirecting to login');
+      enqueueSnackbar('Please login to request a quote', { variant: 'warning' });
+      navigate('/login', { state: { from: `/product/${id}` } });
+      return;
+    }
+
+    try {
+      setIsSubmittingQuote(true);
+      
+      const products = [{
+        name: product.name,
+        quantity: quoteData.quantity
+      }];
+      
+      const comments = `Product: ${product.name}\n` +
+                     `Quantity: ${quoteData.quantity}\n` +
+                     `Message: ${quoteData.message || 'No additional message'}`;
+      
+      const formData = new FormData();
+      formData.append('products', JSON.stringify(products));
+      formData.append('comments', comments);
+      formData.append('file', '');
+      formData.append('fileType', '');
+      formData.append('fileName', '');
+      
+      // Create config with proper headers
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json'
+        }
+      };
+      
+      const success = await dispatch(createQuote(formData, config));
+      
+      if (success) {
+        enqueueSnackbar('Your quote request has been submitted successfully!', { 
+          variant: 'success',
+          autoHideDuration: 3000
+        });
+        navigate('/quote/success', {
+          state: {
+            message: 'Your quote request has been submitted successfully!',
+            productName: product.name,
+            quantity: quoteData.quantity,
+            messageText: quoteData.message
+          },
+          replace: true
+        });
+      }
+    } catch (error) {
+      console.error('Quote submission error:', error);
+      enqueueSnackbar(error.response?.data?.message || 'Failed to submit quote. Please try again.', { 
+        variant: 'error',
+        autoHideDuration: 5000
+      });
+    } finally {
+      setIsSubmittingQuote(false);
+    }
   };
 
   const reviewSubmitHandler = async () => {
@@ -189,6 +264,17 @@ const ProductDetailsDG = () => {
     }
   };
 
+  // Log product details when component mounts or updates
+  useEffect(() => {
+    if (product) {
+      console.log('Product Details:', {
+        price: product.price,
+        cuttedPrice: product.cuttedPrice,
+        calculatedDiscount: getDiscount(product.price, product.cuttedPrice)
+      });
+    }
+  }, [product]);
+
   useEffect(() => {
     if (success) {
       enqueueSnackbar("Review submitted successfully", { variant: "success" });
@@ -205,6 +291,13 @@ const ProductDetailsDG = () => {
     }
   }, [dispatch, success, reviewError, enqueueSnackbar]);
 
+  useEffect(() => {
+    if (product) {
+      console.log('Product Object:', product);
+      console.log('Price:', product.price, 'Cutted Price:', product.cuttedPrice);
+    }
+  }, [product]);
+
   if (loading) return <Loader />;
 
   return (
@@ -213,71 +306,62 @@ const ProductDetailsDG = () => {
       <Drawer anchor="right" open={quoteOpen} onClose={handleQuoteClose}>
         <Box sx={{ width: 400, p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">Request a Quote</Typography>
+            <Typography variant="h6">Request Bulk Quote</Typography>
             <IconButton onClick={handleQuoteClose}>
               <CloseIcon />
             </IconButton>
           </Box>
-          <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            Product: {product.name}
+          <Typography variant="subtitle1" sx={{ mb: 2, color: 'text.secondary' }}>
+            {product.name}
           </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <form onSubmit={handleQuoteSubmit}>
-            <TextField
-              fullWidth
-              label="Name"
-              name="name"
-              value={quoteData.name}
-              onChange={handleQuoteChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              value={quoteData.email}
-              onChange={handleQuoteChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Phone"
-              name="phone"
-              value={quoteData.phone}
-              onChange={handleQuoteChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Quantity"
-              name="quantity"
-              type="number"
-              value={quoteData.quantity}
-              onChange={handleQuoteChange}
-              margin="normal"
-              inputProps={{ min: 1 }}
-              required
-            />
-            <TextField
-              fullWidth
-              label="Message"
-              name="message"
-              multiline
-              rows={4}
-              value={quoteData.message}
-              onChange={handleQuoteChange}
-              margin="normal"
-            />
+          <Divider sx={{ mb: 3 }} />
+          
+          <form onSubmit={(e) => {
+            console.log('Form submit event triggered');
+            handleQuoteSubmit(e);
+          }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Quantity (e.g., 10 kg, 5 pieces, 1 box)
+              </Typography>
+              <TextField
+                fullWidth
+                name="quantity"
+                value={quoteData.quantity}
+                onChange={handleQuoteChange}
+                placeholder="Enter quantity with unit"
+                variant="outlined"
+                required
+              />
+            </Box>
+            
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Additional Message (Optional)
+              </Typography>
+              <TextField
+                fullWidth
+                name="message"
+                value={quoteData.message}
+                onChange={handleQuoteChange}
+                placeholder="Any special requirements or details"
+                multiline
+                rows={4}
+                variant="outlined"
+              />
+            </Box>
+            
             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-              <Button type="submit" variant="contained" color="primary">
-                Submit
-              </Button>
-              <Button variant="outlined" onClick={handleQuoteClose}>
-                Cancel
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary"
+                fullWidth
+                size="large"
+                disabled={isSubmittingQuote}
+                sx={{ py: 1.5 }}
+              >
+                {isSubmittingQuote ? 'Submitting...' : 'Request Quote'}
               </Button>
             </Box>
           </form>
@@ -345,7 +429,7 @@ const ProductDetailsDG = () => {
             </span>
           </div>
           <div className="mb-1 max-w-lg mb-6">
-            <h1 className="text-2xl font-medium text-gray-900 mb-2">MacBook Pro 13-inch Retina Display 2024 M2 Chip 8GB 256GB 128GB</h1>
+            <h1 className="text-2xl font-medium text-gray-900 mb-2">{product.name}</h1>
           </div>
           <div className="mb-3">
             <div className="flex items-baseline gap-3 mb-10">
@@ -355,7 +439,9 @@ const ProductDetailsDG = () => {
                   ₹{product.cuttedPrice?.toLocaleString()}
                 </span>
               </span>
-              <span className="text-green-700 text-lg">{getDiscount(product.price, product.cuttedPrice)}% off</span>
+              <span className="text-green-700 text-lg">
+                {getDiscount(product.price, product.cuttedPrice)}% off
+              </span>
             </div>
           </div>
           <div className="mb-6">
@@ -412,14 +498,24 @@ const ProductDetailsDG = () => {
             {/* Highlights */}
             <div className="pt-4">
               <h3 className="text-base font-large mb-2">Features</h3>
-              <ol className="text-sm space-y-1 list-disc ml-4">
+              {/* <ol className="text-sm space-y-1 list-disc ml-4">
                 <li className="text-sm text-gray-800 mb-2">Processor: Apple M1 Chip</li>
                 <li className="text-sm text-gray-800 mb-2">RAM: 8 GB</li>
                 <li className="text-sm text-gray-800 mb-2">Storage: 256 GB</li>
                 <li className="text-sm text-gray-800 mb-2">Display: 13-inch Retina Display</li>
                 <li className="text-sm text-gray-800 mb-2">Camera: 12 MP</li>
                 <li className="text-sm text-gray-800 mb-2">Weight: 1.3 lbs</li>
-              </ol>
+              </ol> */}
+              {product?.highlights?.map((feature, index) => (
+                <ol key={index} className="text-sm space-y-1 list-disc ml-4">
+                  <li className="text-sm text-gray-800 mb-2">{feature}</li>
+                </ol>
+              ))}
+              {product?.specifications?.map((specification, index) => (
+                <ol key={index} className="text-sm space-y-1 list-disc ml-4">
+                  <li className="text-sm text-gray-800 mb-2">{specification.title}: {specification.description}</li>
+                </ol>
+              ))}
             </div>
           </div>
         </div>

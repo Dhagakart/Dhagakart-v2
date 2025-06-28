@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Slider from "react-slick"
 import "slick-carousel/slick/slick.css"
 import "slick-carousel/slick/slick-theme.css"
@@ -90,6 +91,8 @@ export const NextBtn = ({ className, onClick }) => (
 )
 
 const Banner = () => {
+  const navigate = useNavigate();
+
   // Inject Slick overrides on mount
   useEffect(() => {
     const dotStyleEl = document.createElement('style')
@@ -153,7 +156,7 @@ const Banner = () => {
             <div className="flex-1 px-6 py-4 flex flex-col justify-center">
               <p className="text-sm text-yellow-500 font-medium">SUMMER SALES</p>
               <h3 className="mt-1 text-2xl font-bold text-white">New Google Pixel 6 Pro</h3>
-              <button className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded">
+              <button onClick={() => navigate('/product/684af95b81216125acc02fcf')} className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>
@@ -182,7 +185,7 @@ const Banner = () => {
             <div className="flex-1 px-6 py-4 flex flex-col justify-center">
               <h3 className="text-xl font-semibold text-gray-800">Xiaomi FlipBuds Pro</h3>
               <p className="mt-2 text-2xl font-bold text-blue-500">$299 USD</p>
-              <button className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded">
+              <button onClick={() => navigate('/product/684af95b81216125acc02fcf')} className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>

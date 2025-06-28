@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: 'backend/.env' });
 }
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // UncaughtException Error - Handle any uncaught exceptions
 process.on('uncaughtException', (err) => {
@@ -78,9 +78,14 @@ if (process.env.NODE_ENV === 'production') {
         res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
     });
 } else {
-    // Simple route for testing in development
+    // In development, provide API status and documentation link
     app.get('/', (req, res) => {
-        res.send('Server is Running! 🚀');
+        res.json({
+            message: 'API is running in development mode',
+            documentation: 'http://localhost:4000/api-docs',
+            status: 'active',
+            apiBaseUrl: 'http://localhost:4000/api/v1'
+        });
     });
 }
 
@@ -98,6 +103,8 @@ const server = app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);    
     console.log(`Frontend URL: http://localhost:${process.env.FRONTEND_PORT || 5173}`);
     console.log(`Backend API: http://localhost:${PORT}/api/v1`);
+    console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+    console.log(`API Documentation (JSON): http://localhost:${PORT}/api-docs.json`);
 });
 
 // Function to ping the health check endpoint

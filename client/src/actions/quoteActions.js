@@ -31,7 +31,14 @@ export const getMyQuotes = (page = 1, limit = 10) => async (dispatch) => {
 
         dispatch({
             type: GET_MY_QUOTES_SUCCESS,
-            payload: data
+            payload: {
+                quotes: data.quotes,
+                total: data.total,
+                totalPages: data.totalPages,
+                currentPage: data.currentPage,
+                hasNextPage: data.hasNextPage,
+                hasPreviousPage: data.hasPreviousPage
+            }
         });
     } catch (error) {
         dispatch({

@@ -145,15 +145,32 @@ const getSingleQuote = asyncErrorHandler(async (req, res, next) => {
 });
 
 // Get current user's quotes
-// GET /api/me/quotes
+// GET /api/quote/me?page=1&limit=10
 // Authenticated user
 const getMyQuotes = asyncErrorHandler(async (req, res, next) => {
-    const quotes = await Quote.find({ user: req.user._id });
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const quotesQuery = Quote.find({ user: req.user._id })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const countQuery = Quote.countDocuments({ user: req.user._id });
+
+    const [quotes, total] = await Promise.all([quotesQuery, countQuery]);
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
         success: true,
         quotes,
-        count: quotes.length
+        count: quotes.length,
+        total,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
     });
 });
 
