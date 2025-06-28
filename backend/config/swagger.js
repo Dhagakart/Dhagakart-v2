@@ -10,17 +10,15 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Flipkart MERN E-commerce API',
+      title: 'DhagaKart E-commerce API',
       version: '1.0.0',
-      description: 'API documentation for Flipkart MERN E-commerce application',
+      description: 'API documentation for DhagaKart E-commerce application',
       contact: {
         name: 'API Support',
-        email: 'support@example.com',
-        url: 'https://example.com/support',
+        email: 'dsharpsglobal@gmail.com',
       },
       license: {
         name: 'MIT',
-        url: 'https://opensource.org/licenses/MIT',
       },
     },
     servers: [
@@ -29,7 +27,7 @@ const swaggerOptions = {
         description: 'Development server',
       },
       {
-        url: 'https://your-production-url.com',
+        url: 'https://dhagakart.onrender.com',
         description: 'Production server',
       },
     ],
