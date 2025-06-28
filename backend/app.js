@@ -141,7 +141,7 @@ app.use('/api-docs',
   swaggerUi.serve, 
   swaggerUi.setup(swaggerSpec, { 
     explorer: true,
-    customSiteTitle: 'Flipkart MERN API Documentation'
+    customSiteTitle: 'DhagaKart ECommerce API Documentation'
   })
 );
 
