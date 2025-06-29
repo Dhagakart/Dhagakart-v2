@@ -30,14 +30,12 @@ const professions = [
 
 const BulkOrder = () => {
   const [products, setProducts] = useState([{ product: '', qty: '', productId: '' }]);
-
   const [comments, setComments] = useState('');
   const [searchResults, setSearchResults] = useState({});
   const [loading, setLoading] = useState({});
   const [showDropdown, setShowDropdown] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -136,14 +134,12 @@ const BulkOrder = () => {
     if (inp) inp.value = '';
   };
 
-
-
   const handleSubmit = async e => {
     e.preventDefault();
     
     // Only proceed if form was submitted via the submit button
     if (e.nativeEvent && e.nativeEvent.submitter && e.nativeEvent.submitter.type !== 'submit') {
-      return;
+      return; 
     }
     
     // Format products for the API
@@ -225,6 +221,13 @@ const BulkOrder = () => {
     }
   };
 
+  // Prevent Enter key form submission except for textarea or submit button
+  const handleFormKeyDown = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
+      e.preventDefault();
+    }
+  };
+
   if (isSubmitting) {
     return (
       <div className="min-h-[90vh] flex items-center justify-center">
@@ -241,7 +244,7 @@ const BulkOrder = () => {
           <p className="text-gray-600 mt-1 text-center">Share your BBQ/Product Requirement to Dhagakart</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="border border-gray-200 rounded-xl pb-8 px-8">
+        <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} className="border border-gray-200 rounded-xl pb-8 px-8">
           
           {/* Product Details */}
           <div className="pt-6">
@@ -376,6 +379,7 @@ const BulkOrder = () => {
                         className="w-20 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={item.qty}
                         onChange={e => handleProductChange(idx, 'qty', e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && e.preventDefault()}
                       />
                     </div>
                   ))}
