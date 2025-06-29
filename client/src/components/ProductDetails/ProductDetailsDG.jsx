@@ -6,6 +6,7 @@ import { createQuote } from '../../actions/quoteActions';
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
 import { useSnackbar } from 'notistack';
+import toast from 'react-hot-toast';
 import { addItemsToCart } from '../../actions/cartAction';
 import Slider from 'react-slick';
 import StarRating from '../Common/StarRating';
@@ -129,11 +130,16 @@ const ProductDetailsDG = () => {
     className: 'center',
   };
 
+  // style the toast like a normal react hot toast for success
   const handleAddToCart = () => {
     dispatch(addItemsToCart(id, quantity));
-    enqueueSnackbar(quantity > 1 ? `${quantity} items added to cart` : 'Item added to cart', {
-      variant: 'success',
-    });
+    toast.success(
+      quantity > 1 ? `${quantity} items added to cart!` : 'Item added to cart!',
+      {
+        position: 'top-right',
+        duration: 3000, // optional
+      }
+    );
   };
 
   const handleBuyNow = () => {

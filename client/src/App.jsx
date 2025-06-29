@@ -1,4 +1,5 @@
 import WebFont from 'webfontloader';
+import { Toaster } from 'react-hot-toast';
 import Footer from './components/Layouts/Footer/Footer';
 import Header from './components/Layouts/Header/Header';
 import Login from './components/User/Login';
@@ -299,6 +300,7 @@ function App() {
         {/* <Route path="/oauth-success" element={<oAuthSuccess />} /> */}
       </Routes>
       <FooterDG />
+      <Toaster position="bottom-right" />
     </>
   );
 }
