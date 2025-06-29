@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Slider from "react-slick"
 import "slick-carousel/slick/slick.css"
 import "slick-carousel/slick/slick-theme.css"
@@ -73,7 +74,7 @@ const fullSizeCarouselStyles = `
   /* ───────────── REMOVE ALL FOCUS STYLES INSIDE SLICK ───────────── */
   .slick-slider *:focus {
     outline: none !important;
-    box-shadow: none !important;
+    box-shadow: none !important;  
   }
 `
 
@@ -128,7 +129,7 @@ const Banner = () => {
   const banners = [Banner1, Banner1, Banner1]
 
   return (
-    <div className="w-full h-[200px] sm:h-[600px] bg-white py-8 flex gap-4">
+    <div className="w-full h-[200px] sm:h-[600px] bg-white py-8 flex gap-4 hover:cursor-pointer" onClick={() => navigate('/product/684af95b81216125acc02fcf')}>
       {/* LEFT COLUMN: Carousel */}
       <div className="w-3/5 h-full rounded-sm shadow relative overflow-hidden">
         <Slider {...settings} className="h-full">
@@ -148,7 +149,7 @@ const Banner = () => {
       {/* RIGHT COLUMN: Two “Cards” Stacked */}
       <div className="w-2/5 h-full flex flex-col gap-4">
         {/* TOP CARD */}
-        <div className="h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative">
+        <div className="h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/684af95b81216125acc02fcf')}>
           <div className="absolute top-4 right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded">
             29% OFF
           </div>
@@ -156,7 +157,7 @@ const Banner = () => {
             <div className="flex-1 px-6 py-4 flex flex-col justify-center">
               <p className="text-sm text-yellow-500 font-medium">SUMMER SALES</p>
               <h3 className="mt-1 text-2xl font-bold text-white">New Google Pixel 6 Pro</h3>
-              <button onClick={() => navigate('/product/684af95b81216125acc02fcf')} className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
+              <button className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>
@@ -172,7 +173,7 @@ const Banner = () => {
         </div>
 
         {/* BOTTOM CARD */}
-        <div className="h-1/2 bg-white rounded-sm shadow overflow-hidden relative">
+        <div className="h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/684af95b81216125acc02fcf')}>
           <div className="flex h-full w-full">
             <div className="flex-1 flex items-center justify-center pl-4">
               <img
@@ -185,7 +186,7 @@ const Banner = () => {
             <div className="flex-1 px-6 py-4 flex flex-col justify-center">
               <h3 className="text-xl font-semibold text-gray-800">Xiaomi FlipBuds Pro</h3>
               <p className="mt-2 text-2xl font-bold text-blue-500">$299 USD</p>
-              <button onClick={() => navigate('/product/684af95b81216125acc02fcf')} className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
+              <button className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>

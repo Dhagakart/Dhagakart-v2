@@ -86,7 +86,7 @@ const Cart = () => {
     return (
         <>
             <MetaData title="Shopping Cart | DhagaKart" />
-            <main className="w-full min-h-[90vh] flex justify-center items-center px-12 mt-10">
+            <main className="w-full min-h-[91vh] px-12 mt-10">
                 <div className="container mx-auto py-8">
                     <div className="flex flex-col md:flex-row gap-4">
                         {/* Left Column - Cart Items */}

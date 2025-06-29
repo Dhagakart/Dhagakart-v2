@@ -27,26 +27,38 @@ export const newOrderReducer = (state = {}, { type, payload }) => {
     }
 };
 
-export const myOrdersReducer = (state = { orders: [] }, { type, payload }) => {
+export const myOrdersReducer = (state = { orders: [], pagination: {} }, { type, payload }) => {
     switch (type) {
         case MY_ORDERS_REQUEST:
             return {
+                ...state,
                 loading: true,
+                error: null
             };
         case MY_ORDERS_SUCCESS:
             return {
+                ...state,
                 loading: false,
-                orders: payload,
+                orders: payload.orders || [],
+                pagination: {
+                    currentPage: parseInt(payload.currentPage) || 1,
+                    totalPages: parseInt(payload.totalPages) || 1,
+                    totalOrders: parseInt(payload.totalOrders) || 0
+                },
+                error: null
             };
         case MY_ORDERS_FAIL:
             return {
+                ...state,
                 loading: false,
                 error: payload,
+                orders: [],
+                pagination: {}
             };
         case CLEAR_ERRORS:
             return {
                 ...state,
-                error: null,
+                error: null
             };
         default:
             return state;

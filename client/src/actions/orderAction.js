@@ -63,24 +63,31 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
 };
 
 // Get User Orders
-export const myOrders = () => async (dispatch) => {
+export const myOrders = (page = 1) => async (dispatch) => {
     try {
         dispatch({ type: MY_ORDERS_REQUEST });
 
-        const { data } = await api.get('/orders/me');
-
+        const { data } = await api.get(`/orders/me?page=${page}`);
+        console.log('Orders API Response:', data);
+        
+        // Use the orders array from the response
+        const orders = data.orders || [];
+        
         dispatch({
             type: MY_ORDERS_SUCCESS,
-            payload: data.orders,
+            payload: {
+                orders,
+                currentPage: data.currentPage || page,
+                totalPages: data.totalPages || 1,
+                totalOrders: data.totalOrders || orders.length
+            }
         });
 
-        return data.orders;
     } catch (error) {
         dispatch({
             type: MY_ORDERS_FAIL,
-            payload: error.response?.data?.message || 'Failed to fetch orders',
+            payload: error.response?.data?.message || 'Error fetching orders'
         });
-        throw error;
     }
 };
 

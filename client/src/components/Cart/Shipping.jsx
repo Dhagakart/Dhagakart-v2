@@ -236,11 +236,11 @@ const Shipping = () => {
             <h2 className="text-xl font-semibold mb-5 text-gray-800">Order Summary</h2>
 
             {/* Cart Items List */}
-            <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
+            {/* <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
                 {cartItems.map((item) => (
                     <CartItemCard key={item.product} item={item} />
                 ))}
-            </div>
+            </div> */}
 
             {/* Price Breakdown */}
             <div className="space-y-4 pt-4">
@@ -266,7 +266,7 @@ const Shipping = () => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-64">
+            <div className="flex justify-center items-center min-h-[99vh]">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
         );

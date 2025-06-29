@@ -72,8 +72,17 @@ exports.getSingleOrderDetails = asyncErrorHandler(async (req, res, next) => {
 
 // Get Logged In User Orders
 exports.myOrders = asyncErrorHandler(async (req, res, next) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // 10 orders per page
+    const skip = (page - 1) * limit;
 
-    const orders = await Order.find({ user: req.user._id });
+    const orders = await Order.find({ user: req.user._id })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const totalOrders = await Order.countDocuments({ user: req.user._id });
+    const totalPages = Math.ceil(totalOrders / limit);
 
     if (!orders) {
         return next(new ErrorHandler("Order Not Found", 404));
@@ -82,6 +91,9 @@ exports.myOrders = asyncErrorHandler(async (req, res, next) => {
     res.status(200).json({
         success: true,
         orders,
+        currentPage: page,
+        totalPages,
+        totalOrders,
     });
 });
 

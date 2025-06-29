@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToWishlist, removeFromWishlist } from '../../actions/wishlistAction';
 import { useSnackbar } from 'notistack';
 import StarRating from '../Common/StarRating';
+import { useNavigate } from 'react-router-dom';
 
 // const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice }) => {
 const Product = ({ _id, images, ratings, numOfReviews, price, cuttedPrice }) => {
@@ -29,14 +30,16 @@ const Product = ({ _id, images, ratings, numOfReviews, price, cuttedPrice }) => 
         }
     }
 
+    const navigate = useNavigate();
+
     return (
-        <div className="flex flex-col items-center justify-center gap-2 mx-2 py-2 px-4 relative border border-gray-200 rounded-lg">
+        <div className="flex flex-col items-center justify-center gap-2 mx-2 py-2 px-4 relative border border-gray-200 rounded-lg hover:cursor-pointer" onClick={() => navigate(`/product/${_id}`)}>
             {/* <!-- image & product title --> */}
-            <Link to={`/product/${_id}`} className="flex flex-col justify-center items-center text-center">
-                <div className="w-48 h-48">
-                    <img draggable="false" className="w-full h-full object-contain" src={images && images[0].url} alt="" />
-                </div>
-            </Link>
+            {/* <Link to={`/product/${_id}`} className="flex flex-col justify-center items-center text-center"> */}
+            <div className="w-48 h-48">
+                <img draggable="false" className="w-full h-full object-contain" src={images && images[0].url} alt="" />
+            </div>
+            {/* </Link> */}
             {/* <!-- image & product title --> */}
 
             {/* <!-- product description --> */}

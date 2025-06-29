@@ -148,11 +148,11 @@ const Payment = () => {
   const renderPriceSidebar = () => (
     <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h2 className="text-xl font-semibold mb-5 text-gray-800">Order Summary</h2>
-      <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
+      {/* <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
         {cartItems.map((item) => (
           <CartItemCard key={item.product} item={item} />
         ))}
-      </div>
+      </div> */}
       <div className="space-y-4 pt-4">
         <PriceRow label="Sub-total" value={formatPrice(subtotal)} />
         <PriceRow label="Shipping" value="Free" isDiscount />
@@ -173,135 +173,118 @@ const Payment = () => {
   return (
     <>
       <MetaData title="DhagaKart: Secure Payment" />
-      <main className="w-full mt-20">
-        <div className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-11/12 mt-10 sm:mt-4 m-auto sm:mb-7">
-          <div className="md:w-2/3 border border-gray-200 p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-5 text-gray-800">Select Payment Method</h2>
-            <div className="w-full flex flex-col md:flex-row gap-4">
-              <div className="w-full md:w-1/3 space-y-[1px] h-auto bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-                {/* <div
-                  className={`p-3 cursor-pointer ${selectedPayment === 'netBanking' ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}`}
-                  onClick={() => setSelectedPayment('netBanking')}
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 flex items-center justify-center mr-3">
-                      <img src={Netbanking} alt="Net Banking" className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Net Banking</p>
-                      <p className="text-xs text-gray-500">Select from a list of banks</p>
-                    </div>
-                  </div>
-                </div> */}
-                <div
-                  className={`p-3 cursor-pointer ${selectedPayment === 'upi' ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}`}
-                  onClick={() => setSelectedPayment('upi')}
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 flex items-center justify-center mr-3">
-                      <img src={UPI} alt="UPI" className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">UPI</p>
-                      <p className="text-xs text-gray-500">Pay using UPI</p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`p-3 cursor-pointer ${selectedPayment === 'card' ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}`}
-                  onClick={() => setSelectedPayment('card')}
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 flex items-center justify-center mr-3">
-                      <img src={CreditCard} alt="Cards" className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Net Banking </p>
-                      <p className="text-xs text-gray-500">Pay via Cards</p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`p-3 cursor-pointer ${selectedPayment === 'cod' ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}`}
-                  onClick={() => setSelectedPayment('cod')}
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 flex items-center justify-center mr-3">
-                      <img src={COD} alt="Cash on Delivery" className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Get in Touch</p>
-                      <p className="text-xs text-gray-500">Contact us for a more personalized experience</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full md:w-2/3 bg-white p-6 rounded-lg border border-gray-200">
-                {selectedPayment === 'upi' && (
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Pay via UPI</h3>
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Enter UPI ID</label>
-                      <input
-                        type="text"
-                        value={upiId}
-                        onChange={(e) => {
-                          setUpiId(e.target.value);
-                          validateUpiId(e.target.value);
-                        }}
-                        placeholder="yourname@upi"
-                        className={`w-full p-2 border ${upiIdError ? 'border-red-500' : 'border-gray-300'} rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm`}
-                      />
-                      {upiIdError && <p className="text-xs text-red-500 mt-1">{upiIdError}</p>}
-                      <p className="text-xs text-gray-500 mt-1">A payment request will be sent to this UPI ID</p>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">Optionally, choose a UPI app to pay</p>
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                      {[
-                        { id: 'paytm', name: 'Paytm UPI', icon: Paytm },
-                        { id: 'gpay', name: 'Google Pay', icon: Gpay },
-                        { id: 'phonepe', name: 'PhonePe UPI', icon: Phonepe },
-                      ].map((app) => (
-                        <div
-                          key={app.id}
-                          className={`border rounded-md p-3 text-center cursor-pointer ${selectedUpiApp === app.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                          onClick={() => setSelectedUpiApp(app.id)}
-                        >
-                          <div className="flex flex-col items-center">
-                            <img src={app.icon} alt={app.name} className="h-10 w-10 object-contain mb-2" />
-                            <span className="text-xs">{app.name}</span>
-                          </div>
+      <main className="w-full min-h-[91vh] px-4 sm:px-6 mt-10 lg:px-16 py-8">
+        <div className="container mx-auto">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-2/3">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 min-h-[500px] flex flex-col">
+                <h2 className="text-xl font-semibold mb-6 text-gray-800">Select Payment Method</h2>
+                <div className="w-full flex flex-col md:flex-row gap-4">
+                  <div className="w-full md:w-1/3 space-y-2 bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+                    <div
+                      className={`p-3 cursor-pointer ${selectedPayment === 'upi' ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => setSelectedPayment('upi')}
+                    >
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 flex items-center justify-center mr-3">
+                          <img src={UPI} alt="UPI" className="h-6 w-6" />
                         </div>
-                      ))}
+                        <div>
+                          <p className="text-sm font-medium">UPI</p>
+                          <p className="text-xs text-gray-500">Pay using UPI</p>
+                        </div>
+                      </div>
                     </div>
-                    {/* <button
-                      type="button"
-                      className={`w-full bg-[#003366] text-white py-2 px-4 rounded-md font-medium transition-colors text-sm h-10 flex items-center justify-center ${payDisable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#00264d]'}`}
-                      disabled={payDisable}
-                      onClick={() => handleUpiPayment(selectedUpiApp)}
+                    <div
+                      className={`p-3 cursor-pointer ${selectedPayment === 'card' ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => setSelectedPayment('card')}
                     >
-                      {payDisable ? 'Placing Order...' : 'Place Order'}
-                    </button> */}
-                    <button
-                      type="button"
-                      className={`w-full bg-[#003366] text-white py-2 px-4 rounded-md font-medium transition-colors text-sm h-10 flex items-center justify-center ${payDisable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#00264d]'}`}
-                      disabled={payDisable}
-                      onClick={() => handleUpiPayment(selectedUpiApp)}
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 flex items-center justify-center mr-3">
+                          <img src={CreditCard} alt="Cards" className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Credit/Debit Card</p>
+                          <p className="text-xs text-gray-500">Pay via Cards</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className={`p-3 cursor-pointer ${selectedPayment === 'cod' ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => setSelectedPayment('cod')}
                     >
-                      {payDisable ? 'Placing Order...' : 'Place Order'}
-                    </button>
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 flex items-center justify-center mr-3">
+                          <img src={COD} alt="Cash on Delivery" className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Cash on Delivery</p>
+                          <p className="text-xs text-gray-500">Pay when you receive</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-                {selectedPayment !== 'upi' && (
-                  <div className="flex items-center justify-center h-64 text-gray-500">
-                    Select a payment method to continue
+                  
+                  <div className="w-full md:w-2/3 bg-white p-6 rounded-lg border border-gray-200">
+                    {selectedPayment === 'upi' ? (
+                      <div>
+                        <h3 className="text-lg font-medium mb-4">Pay via UPI</h3>
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Enter UPI ID</label>
+                          <input
+                            type="text"
+                            value={upiId}
+                            onChange={(e) => {
+                              setUpiId(e.target.value);
+                              validateUpiId(e.target.value);
+                            }}
+                            placeholder="yourname@upi"
+                            className={`w-full p-2 border ${upiIdError ? 'border-red-500' : 'border-gray-300'} rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm`}
+                          />
+                          {upiIdError && <p className="text-xs text-red-500 mt-1">{upiIdError}</p>}
+                          <p className="text-xs text-gray-500 mt-1">A payment request will be sent to this UPI ID</p>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-4">Optionally, choose a UPI app to pay</p>
+                        <div className="grid grid-cols-3 gap-3 mb-6">
+                          {[
+                            { id: 'paytm', name: 'Paytm UPI', icon: Paytm },
+                            { id: 'gpay', name: 'Google Pay', icon: Gpay },
+                            { id: 'phonepe', name: 'PhonePe UPI', icon: Phonepe },
+                          ].map((app) => (
+                            <div
+                              key={app.id}
+                              className={`border rounded-md p-3 text-center cursor-pointer ${selectedUpiApp === app.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                              onClick={() => setSelectedUpiApp(app.id)}
+                            >
+                              <div className="flex flex-col items-center">
+                                <img src={app.icon} alt={app.name} className="h-10 w-10 object-contain mb-2" />
+                                <span className="text-xs">{app.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          className={`w-full bg-[#003366] text-white py-2 px-4 rounded-md font-medium transition-colors text-sm h-10 flex items-center justify-center hover:cursor-pointer ${payDisable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#00264d]'}`}
+                          disabled={payDisable}
+                          onClick={() => handleUpiPayment(selectedUpiApp)}
+                        >
+                          {payDisable ? 'Placing Order...' : 'Place Order'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-64 text-gray-500">
+                        Select a payment method to continue
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="md:w-1/3">
-            {renderPriceSidebar()}
+            
+            <div className="md:w-1/3">
+              {renderPriceSidebar()}
+            </div>
           </div>
         </div>
       </main>

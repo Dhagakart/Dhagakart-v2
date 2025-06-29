@@ -316,10 +316,17 @@ const ProductDetailsDG = () => {
           </Typography>
           <Divider sx={{ mb: 3 }} />
           
-          <form onSubmit={(e) => {
-            console.log('Form submit event triggered');
-            handleQuoteSubmit(e);
-          }}>
+          <form 
+            onSubmit={(e) => {
+              console.log('Form submit event triggered');
+              handleQuoteSubmit(e);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+              }
+            }}
+          >
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" gutterBottom>
                 Quantity (e.g., 10 kg, 5 pieces, 1 box)
@@ -355,11 +362,10 @@ const ProductDetailsDG = () => {
               <Button 
                 type="submit" 
                 variant="contained" 
-                color="primary"
                 fullWidth
                 size="large"
                 disabled={isSubmittingQuote}
-                sx={{ py: 1.5 }}
+                sx={{ py: 1.5, color: 'white', backgroundColor: '#003366', hover: { backgroundColor: '#003366' } }}
               >
                 {isSubmittingQuote ? 'Submitting...' : 'Request Quote'}
               </Button>
@@ -380,7 +386,7 @@ const ProductDetailsDG = () => {
                         <img
                           src={img?.url || 'https://via.placeholder.com/500'}
                           alt={`${product?.name} - ${index + 1}`}
-                          className="max-h-full max-w-full object-contain rounded-lg"
+ Williamsburg className="max-h-full max-w-full object-contain rounded-lg"
                           onError={(e) => {
                             e.target.src = 'https://via.placeholder.com/500';
                           }}
@@ -429,7 +435,7 @@ const ProductDetailsDG = () => {
             </span>
           </div>
           <div className="mb-1 max-w-lg mb-6">
-            <h1 className="text-2xl font-medium text-gray-900 mb-2">{product.name}</h1>
+            <h1 className="text-2xl font-medium text-gray-900 mb-2">2020 Apple Macbook Pro with Apple M1 Chip (13 inch, 8 gb RAM, 256 gb SSD) - Space Gray</h1>
           </div>
           <div className="mb-3">
             <div className="flex items-baseline gap-3 mb-10">
@@ -498,14 +504,6 @@ const ProductDetailsDG = () => {
             {/* Highlights */}
             <div className="pt-4">
               <h3 className="text-base font-large mb-2">Features</h3>
-              {/* <ol className="text-sm space-y-1 list-disc ml-4">
-                <li className="text-sm text-gray-800 mb-2">Processor: Apple M1 Chip</li>
-                <li className="text-sm text-gray-800 mb-2">RAM: 8 GB</li>
-                <li className="text-sm text-gray-800 mb-2">Storage: 256 GB</li>
-                <li className="text-sm text-gray-800 mb-2">Display: 13-inch Retina Display</li>
-                <li className="text-sm text-gray-800 mb-2">Camera: 12 MP</li>
-                <li className="text-sm text-gray-800 mb-2">Weight: 1.3 lbs</li>
-              </ol> */}
               {product?.highlights?.map((feature, index) => (
                 <ol key={index} className="text-sm space-y-1 list-disc ml-4">
                   <li className="text-sm text-gray-800 mb-2">{feature}</li>
@@ -641,7 +639,7 @@ const ProductDetailsDG = () => {
                           viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                       </button>
                     ))}
@@ -727,10 +725,6 @@ const ProductDetailsDG = () => {
                             <p className="text-gray-700 text-sm mb-2">
                               {review.comment || 'No review content available.'}
                             </p>
-                            {/* <div className="flex gap-4">
-                              <button className="text-blue-600 text-sm underline">Like</button>
-                              <button className="text-blue-600 text-sm underline">Reply</button>
-                            </div> */}
                           </div>
                         </div>
                       </div>
