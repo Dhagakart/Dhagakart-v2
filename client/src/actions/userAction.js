@@ -74,11 +74,14 @@ export const registerUser = (userData) => async (dispatch) => {
             payload: data.user,
         });
 
+        return { user: data.user }; // Return the user data
+
     } catch (error) {
         dispatch({
             type: REGISTER_USER_FAIL,
             payload: error.response?.data?.message || 'Registration failed',
         });
+        throw error; // Re-throw the error to handle it in the component
     }
 };
 

@@ -48,6 +48,7 @@ import LoginDG from './components/User/LoginDG';
 import OtpDG from './components/User/OtpDG.jsx';
 import LoginDG2 from './components/User/LoginDG2';
 import HeaderDG from './components/Layouts/Header/HeaderDG';
+import RegisterSuccess from './components/User/RegisterSuccess';
 import ForgotPasswordDG from './components/User/ForgotPasswordDG';
 import FooterDG from './components/Layouts/Footer/FooterDG';
 import ProductDetailsDG from './components/ProductDetails/ProductDetailsDG';
@@ -125,6 +126,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/register/success" element={<RegisterSuccess />} />
         <Route path="/oauth-complete-registration" element={<Register />} />
 
         {/* DG ROUTES */}

@@ -15,7 +15,9 @@ import {
   MenuItem,
   InputAdornment,
   Fade,
-  CircularProgress
+  CircularProgress,
+  Autocomplete,
+  Paper
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -25,6 +27,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearErrors, registerUser } from '../../actions/userAction';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import MetaData from '../Layouts/MetaData';
+import { indianCities } from '../../utils/indianCities';
 
 const Register = () => {
   const theme = useTheme();
@@ -32,18 +35,14 @@ const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
-  const { loading, isAuthenticated, error } = useSelector(state => state.user);
+  const { loading, isAuthenticated, error, success } = useSelector(state => state.user);
 
   // Stepper state
   const [activeStep, setActiveStep] = useState(0);
 
-  // City autocomplete
-  const [debounceTimer, setDebounceTimer] = useState(null);
-  const [citySuggestions, setCitySuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const cityInputRef = useRef(null);
-  const suggestionListRef = useRef(null);
+  // City selection state
+  const [cityInput, setCityInput] = useState('');
+  const [filteredCities, setFilteredCities] = useState(indianCities);
 
   // OAuth detection
   const [isOAuth, setIsOAuth] = useState(false);
@@ -109,51 +108,31 @@ const Register = () => {
     setUser(u => ({ ...u, [name]: value }));
   };
 
-  const fetchCitySuggestions = async query => {
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`
-      );
-      const data = await res.json();
-      setCitySuggestions(
-        data.map(item => ({
-          cityName: item.display_name.split(',')[0].trim(),
-          fullAddress: item.display_name,
-        }))
-      );
-      setShowSuggestions(true);
-    } catch {
-      setCitySuggestions([]);
-      setShowSuggestions(false);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCityChange = (event, newValue) => {
+    setUser({ ...user, city: newValue || '' });
+    setCityInput(newValue || '');
+    setFilteredCities(
+      newValue 
+        ? indianCities.filter(city => 
+            city.toLowerCase().includes(newValue.toLowerCase())
+          )
+        : indianCities
+    );
   };
 
-  const handleCityChange = e => {
-    const { value } = e.target;
-    setUser(u => ({ ...u, city: value }));
-    if (debounceTimer) clearTimeout(debounceTimer);
-    if (value.length > 2) {
-      setIsLoading(true);
-      setDebounceTimer(setTimeout(() => fetchCitySuggestions(value), 300));
-    } else {
-      setShowSuggestions(false);
-      setIsLoading(false);
-    }
-  };
-
-  const selectCity = suggestion => {
-    setUser(u => ({ ...u, city: suggestion.cityName }));
-    setShowSuggestions(false);
+  const handleCityInputChange = (event, newInputValue) => {
+    setCityInput(newInputValue);
+    setFilteredCities(
+      indianCities.filter(city => 
+        city.toLowerCase().includes(newInputValue.toLowerCase())
+      )
+    );
   };
 
   const handleCityKeyDown = e => {
     if (!showSuggestions) return;
-    // Note: The original code has a bug here with setHighlightedIndex not defined.
-    // For simplicity, we'll omit arrow key navigation.
-    if (e.key === 'Enter' && citySuggestions.length > 0) {
-      selectCity(citySuggestions[0]);
+    if (e.key === 'Enter' && filteredCities.length > 0) {
+      setUser({ ...user, city: filteredCities[0] });
     } else if (e.key === 'Escape') {
       setShowSuggestions(false);
     }
@@ -192,6 +171,14 @@ const Register = () => {
 
   const handleBack = () => setActiveStep(s => s - 1);
 
+  // Redirect to success page after successful registration
+  useEffect(() => {
+    if (success) {
+      // Navigate to success page
+      navigate('/register/success');
+    }
+  }, [success, navigate]);
+
   const handleRegister = async e => {
     e.preventDefault();
     const { businessName, businessType } = user;
@@ -208,14 +195,13 @@ const Register = () => {
       businessType,
       password: user.password
     };
+    
     try {
-      const result = await dispatch(registerUser(payload));
-      if (result?.user) {
-        enqueueSnackbar('Registration successful! Redirecting...', { variant: 'success' });
-        setTimeout(() => navigate('/'), 1500);
-      }
-    } catch (err) {
-      enqueueSnackbar(err.message || 'Registration failed. Please try again.', { variant: 'error' });
+      await dispatch(registerUser(payload));
+      // The success effect will handle the navigation
+    } catch (error) {
+      // Error is already handled by Redux
+      console.error('Registration error:', error);
     }
   };
 
@@ -279,67 +265,62 @@ const Register = () => {
                   ))}
 
                   <Grid item xs={12} sm={6}>
-                    <Box sx={{ position: 'relative' }} ref={cityInputRef}>
-                      <TextField
-                        fullWidth
-                        label="City"
-                        name="city"
-                        value={user.city}
-                        onChange={handleCityChange}
-                        onKeyDown={handleCityKeyDown}
-                        required
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <SearchIcon />
-                            </InputAdornment>
-                          ),
-                          endAdornment: isLoading && (
-                            <InputAdornment position="end">
-                              <CircularProgress size={20} />
-                            </InputAdornment>
-                          )
-                        }}
-                        autoComplete="off"
-                      />
-                      <Fade in={showSuggestions}>
-                        <Box
-                          ref={suggestionListRef}
+                    <Autocomplete
+                      options={filteredCities}
+                      value={user.city}
+                      inputValue={cityInput}
+                      onInputChange={handleCityInputChange}
+                      onChange={handleCityChange}
+                      freeSolo
+                      disableClearable
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="City"
+                          required
+                          InputProps={{
+                            ...params.InputProps,
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <SearchIcon />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      )}
+                      PaperComponent={({ children }) => (
+                        <Paper 
+                          elevation={3}
                           sx={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            bgcolor: 'background.paper',
-                            boxShadow: 1,
-                            maxHeight: 240,
-                            overflowY: 'auto',
-                            zIndex: 10
+                            mt: 1,
+                            borderRadius: 1,
+                            '& .MuiAutocomplete-listbox': {
+                              maxHeight: '200px',
+                              '&::-webkit-scrollbar': {
+                                width: '6px',
+                              },
+                              '&::-webkit-scrollbar-track': {
+                                background: '#f1f1f1',
+                              },
+                              '&::-webkit-scrollbar-thumb': {
+                                background: '#888',
+                                borderRadius: '3px',
+                              },
+                              '&::-webkit-scrollbar-thumb:hover': {
+                                background: '#555',
+                              },
+                            },
                           }}
                         >
-                          {citySuggestions.length
-                            ? citySuggestions.map((sug, i) => (
-                                <Box
-                                  key={i}
-                                  onClick={() => selectCity(sug)}
-                                  sx={{ p: 1, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
-                                >
-                                  <Typography>
-                                    {highlightMatch(sug.cityName, user.city)}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    {sug.fullAddress}
-                                  </Typography>
-                                </Box>
-                              ))
-                            : (
-                              <Box sx={{ p: 1 }}>
-                                <Typography>No results found</Typography>
-                              </Box>
-                            )}
-                        </Box>
-                      </Fade>
-                    </Box>
+                          {children}
+                        </Paper>
+                      )}
+                      ListboxProps={{
+                        style: {
+                          maxHeight: '200px',
+                        },
+                      }}
+                    />
                   </Grid>
 
                   <Grid item xs={12} sm={6}>

@@ -42,7 +42,7 @@ import {
     REMOVE_USER_DETAILS,
 } from '../constants/userConstants';
 
-export const userReducer = (state = { user: {} }, { type, payload }) => {
+export const userReducer = (state = { user: {}, success: false }, { type, payload }) => {
     switch (type) {
         case LOGIN_USER_REQUEST:
         case REGISTER_USER_REQUEST:
@@ -58,6 +58,7 @@ export const userReducer = (state = { user: {} }, { type, payload }) => {
                 ...state,
                 loading: false,
                 isAuthenticated: true,
+                success: type === REGISTER_USER_SUCCESS,
                 user: payload,
             };
         case LOGOUT_USER_SUCCESS:
