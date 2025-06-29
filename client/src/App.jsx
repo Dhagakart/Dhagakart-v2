@@ -153,7 +153,7 @@ function App() {
           </ProtectedRoute>
         } ></Route>
 
-        <Route path="/reqcredits" element={<ProtectedRoute><ReqCredits /></ProtectedRoute>} />
+        <Route path="/reqcredits" element={<ReqCredits />} />
 
         <Route path="/bulkorder" element={<BulkOrder />} />
         <Route path="/quote/success" element={<QuoteSuccess />} />

@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import Poster from './Poster.png';
 import Poster1 from './Poster1.png';
+import LoginModal from '../User/LoginModal';
+import CreditApplicationModal from './CreditApplicationModal';
 import {
   FiBriefcase,
   FiTrendingUp,
@@ -77,6 +82,25 @@ const steps = [
 
 const ReqCredits = () => {
   const [openIndex, setOpenIndex] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const { isAuthenticated } = useSelector((state) => state.user);
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+
+  const handleApplyClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    setShowCreditModal(true);
+  };
+
+  const handleContinueToApplication = () => {
+    setShowCreditModal(false);
+    // Navigate to the actual credit application form
+    navigate('/credit-application');
+  };
 
   return (
     <div className="bg-white w-full pl-24 mt-10 space-y-20 overflow-hidden">
@@ -89,7 +113,10 @@ const ReqCredits = () => {
           <p className="text-2xl text-gray-600">
             Grow your business with our interest‑free credit program to procure construction materials.
           </p>
-          <button className="bg-[#003366] text-white px-8 py-3 rounded-md font-medium hover:bg-[#003366]/80 transition">
+          <button 
+            onClick={handleApplyClick}
+            className="bg-[#003366] text-white px-8 py-3 rounded-md font-medium hover:bg-[#003366]/80 transition hover:cursor-pointer"
+          >
             Apply for Credit
           </button>
           <div className="grid grid-cols-3 gap-4 pt-4">
@@ -161,7 +188,10 @@ const ReqCredits = () => {
           ))}
         </div>
         <div className="flex justify-center mt-8">
-          <button className="bg-[#003366] text-white px-6 py-2 rounded hover:bg-[#003366]/80 transition">
+          <button 
+            onClick={handleApplyClick}
+            className="bg-[#003366] text-white px-6 py-2 rounded hover:bg-[#003366]/80 transition hover:cursor-pointer"
+          >
             Apply Now
           </button>
         </div>
@@ -243,6 +273,18 @@ const ReqCredits = () => {
           </form>
         </div>
       </section>
+      
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+      />
+      
+      {/* Credit Application Modal */}
+      <CreditApplicationModal 
+        open={showCreditModal}
+        onClose={() => setShowCreditModal(false)}
+      />
     </div>
   );
 };

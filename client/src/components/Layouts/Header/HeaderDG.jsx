@@ -105,10 +105,18 @@ const HeaderDG = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products/${searchQuery.trim()}`);
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      navigate(`/products/${trimmedQuery}`);
     } else {
-      navigate('/products');
+      enqueueSnackbar('Please enter a search term', { 
+        variant: 'warning',
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'right',
+        }
+      });
     }
   };
 
@@ -290,32 +298,34 @@ const HeaderDG = () => {
             </div>
 
             {/** RIGHT: Cart Icon + Login Button */}
-            <div className="flex items-center space-x-4 w-48 shrink-0">
-              <Link
-                to="/cart"
-                className="relative text-white hover:text-gray-200 transition-colors"
-              >
-                <ShoppingCartOutlinedIcon style={{ fontSize: 24 }} />
-                <span
-                  className="
-                    absolute 
-                    -top-1 
-                    -right-2 
-                    bg-white 
-                    text-[#003366] 
-                    text-xs 
-                    font-bold 
-                    rounded-full 
-                    h-4 
-                    w-4 
-                    flex 
-                    items-center 
-                    justify-center
-                  "
+            <div className="flex items-center justify-end space-x-4 w-48">
+              <div className="flex items-center">
+                <Link
+                  to="/cart"
+                  className="relative text-white hover:text-gray-200 transition-colors"
                 >
-                  {cartItems.length || 0}
-                </span>
-              </Link>
+                  <ShoppingCartOutlinedIcon style={{ fontSize: 24 }} />
+                  <span
+                    className="
+                      absolute 
+                      -top-1 
+                      -right-2 
+                      bg-white 
+                      text-[#003366] 
+                      text-xs 
+                      font-bold 
+                      rounded-full 
+                      h-4 
+                      w-4 
+                      flex 
+                      items-center 
+                      justify-center
+                    "
+                  >
+                    {cartItems.length || 0}
+                  </span>
+                </Link>
+              </div>
 
               { isAuthenticated ? (
                 <div 
@@ -354,25 +364,31 @@ const HeaderDG = () => {
                   )}
                 </div>
               ) : (
+                <div className="flex items-center h-full">
                 <Link
                   to="/login"
                   className="
-                    h-8 
-                    px-4 
-                    flex 
-                    items-center 
-                    justify-center 
-                    bg-white 
-                    text-[#003366] 
-                    rounded-md 
-                    text-sm 
-                    font-medium 
-                    hover:bg-gray-100 
-                    transition-colors
+                    h-9
+                    px-5
+                    flex
+                    items-center
+                    justify-center
+                    bg-white
+                    text-[#003366]
+                    rounded-md
+                    text-sm
+                    font-medium
+                    hover:bg-gray-50
+                    transition-all
+                    border border-transparent
+                    hover:border-gray-200
+                    shadow-sm
+                    whitespace-nowrap
                   "
                 >
-                  Login
+                  Login / Signup
                 </Link>
+              </div>
               )}
             </div>
           </div>
