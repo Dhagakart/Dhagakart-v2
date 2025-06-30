@@ -56,7 +56,7 @@ const faqItems = [
   {
     question: 'Suspendisse ultrices pharetra libero sed interdum.',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis.'
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis.'
   },
   {
     question: 'Quisque quis nunc quis urna tempor lobortis vel non orci.',
@@ -178,8 +178,8 @@ const ReqCredits = () => {
         </p>
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {eligibility.map((item, idx) => (
-            <div key={idx} className="bg-gray-50 p-6 rounded-lg text-center shadow-sm">
-              <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center">
+            <div key={idx} className="bg-gray-50 p-6 rounded-lg text-start shadow-sm">
+              <div className="w-12 h-12 bg-[#003366] text-white rounded-xl flex items-center justify-center">
                 {item.icon}
               </div>
               <h3 className="mt-4 font-medium text-gray-900">{item.title}</h3>
@@ -190,7 +190,7 @@ const ReqCredits = () => {
         <div className="flex justify-center mt-8">
           <button 
             onClick={handleApplyClick}
-            className="bg-[#003366] text-white px-6 py-2 rounded hover:bg-[#003366]/80 transition hover:cursor-pointer"
+            className="bg-[#003366] text-white px-6 py-2 rounded-lg hover:bg-[#003366]/80 transition hover:cursor-pointer"
           >
             Apply Now
           </button>
@@ -207,7 +207,7 @@ const ReqCredits = () => {
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-gray-200 rounded-lg overflow-hidden">
           {docs.map((doc, idx) => (
             <div key={idx} className="flex items-center p-4">
-              <div className="p-3 bg-gray-50 rounded mr-3">{doc.icon}</div>
+              <div className="p-3 bg-[#003366] text-white rounded mr-3">{doc.icon}</div>
               <div>
                 <h4 className="font-medium text-gray-900">{doc.title}</h4>
                 <p className="text-sm text-gray-500 mt-1">{doc.note}</p>
@@ -218,33 +218,37 @@ const ReqCredits = () => {
       </section>
 
       {/* — FAQ & Support — */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pr-24">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pr-24 mb-8">
         <div className="lg:col-span-2">
           <h2 className="text-3xl font-semibold mb-6">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {faqItems.map((item, idx) => (
-              <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div key={idx} className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-300 ease-in-out">
                 <button
                   onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-                  className="w-full flex justify-between items-center p-4"
+                  className={`w-full flex justify-between items-center p-4 transition-colors duration-200 hover:cursor-pointer ${openIndex === idx ? 'bg-[#003366] text-white' : 'bg-white text-gray-800'}`}
                 >
-                  <span className="text-gray-800">{item.question}</span>
-                  <span className="text-gray-500">{openIndex === idx ? '−' : '+'}</span>
+                  <span className={openIndex === idx ? 'text-white' : 'text-gray-800'}>{item.question}</span>
+                  <span className={`transition-transform duration-200 ${openIndex === idx ? 'text-white rotate-180' : 'text-gray-500'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </span>
                 </button>
-                {openIndex === idx && (
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === idx ? 'max-h-96' : 'max-h-0'}`}>
                   <div className="p-4 border-t border-gray-200 text-gray-600">
                     {item.answer}
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+        <div className="bg-gray-100 p-6 rounded-xl shadow-sm">
           <h3 className="font-semibold text-gray-900">
             Don’t find your answer, ask for support.
           </h3>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-gray-800 text-sm mt-2">
             Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed
             molestie accumsan dui, non iaculis primis in faucibus eget sem purus.
           </p>

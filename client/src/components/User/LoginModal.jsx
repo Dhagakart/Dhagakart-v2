@@ -158,6 +158,12 @@ const LoginModal = ({ isOpen, onClose }) => {
                 <img src={GoogleIcon} alt="Google" className="w-5 h-5" />
                 Continue with Google
               </button>
+              <p className="text-center mt-2 text-sm text-gray-600">
+                Don't have an account?{' '}
+                <a href="/register" className="text-[#003366] font-medium hover:underline">
+                  Register here
+                </a>
+              </p>
             </form>
           </div>
         </div>
