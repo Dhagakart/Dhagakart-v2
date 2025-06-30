@@ -129,7 +129,7 @@ const Banner = () => {
   const banners = [Banner1, Banner1, Banner1]
 
   return (
-    <div className="w-full h-[200px] sm:h-[600px] bg-white py-8 flex gap-4 hover:cursor-pointer" onClick={() => navigate('/product/684af95b81216125acc02fcf')}>
+    <div className="w-full h-[200px] sm:h-[600px] bg-white py-8 flex gap-4 hover:cursor-pointer" onClick={() => navigate('/product/6862c4bb5235d86a799dc67d')}>
       {/* LEFT COLUMN: Carousel */}
       <div className="w-3/5 h-full rounded-sm shadow relative overflow-hidden">
         <Slider {...settings} className="h-full">
@@ -149,7 +149,7 @@ const Banner = () => {
       {/* RIGHT COLUMN: Two “Cards” Stacked */}
       <div className="w-2/5 h-full flex flex-col gap-4">
         {/* TOP CARD */}
-        <div className="h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/684af95b81216125acc02fcf')}>
+        <div className="h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6862c4bb5235d86a799dc67d')}>
           <div className="absolute top-4 right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded">
             29% OFF
           </div>
@@ -173,7 +173,7 @@ const Banner = () => {
         </div>
 
         {/* BOTTOM CARD */}
-        <div className="h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/684af95b81216125acc02fcf')}>
+        <div className="h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6862c4bb5235d86a799dc67d')}>
           <div className="flex h-full w-full">
             <div className="flex-1 flex items-center justify-center pl-4">
               <img

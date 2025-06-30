@@ -55,7 +55,7 @@ const DealSlider = ({ title }) => {
                   currentPrice={currentPrice}
                   originalPrice={originalPrice}
                   discount={item.discount}
-                  link='/product/684af95b81216125acc02fcf'
+                  link='/product/6862c4bb5235d86a799dc67d'
                 />
               </div>
             );

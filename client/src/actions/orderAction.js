@@ -118,8 +118,7 @@ export const getPaymentStatus = (id) => async (dispatch) => {
     try {
         dispatch({ type: PAYMENT_STATUS_REQUEST });
 
-        const { data } = await axios.get(`https://dhagakart.onrender.com/api/v1/payment/status/${id}`);
-        // const { data } = await axios.get(`http://localhost:4000/api/v1/payment/status/${id}`);
+        const { data } = await api.get(`/payment/status/${id}`);
 
         dispatch({
             type: PAYMENT_STATUS_SUCCESS,
@@ -139,8 +138,7 @@ export const getAllOrders = () => async (dispatch) => {
     try {
         dispatch({ type: ALL_ORDERS_REQUEST });
 
-        // const { data } = await axios.get('https://dhagakart.onrender.com/api/v1/admin/orders');
-        const { data } = await axios.get('http://localhost:4000/api/v1/admin/orders');
+        const { data } = await api.get('/admin/orders');
 
         dispatch({
             type: ALL_ORDERS_SUCCESS,
@@ -166,8 +164,7 @@ export const updateOrder = (id, order) => async (dispatch) => {
             },
         };
 
-        // const { data } = await axios.put(`https://dhagakart.onrender.com/api/v1/admin/order/${id}`, order, config);
-        const { data } = await axios.put(`http://localhost:4000/api/v1/admin/order/${id}`, order, config);
+        const { data } = await api.put(`/admin/order/${id}`, order, config);
 
         dispatch({
             type: UPDATE_ORDER_SUCCESS,
@@ -187,8 +184,7 @@ export const deleteOrder = (id) => async (dispatch) => {
     try {
         dispatch({ type: DELETE_ORDER_REQUEST });
 
-        // const { data } = await axios.delete(`https://dhagakart.onrender.com/api/v1/admin/order/${id}`);
-        const { data } = await axios.delete(`http://localhost:4000/api/v1/admin/order/${id}`);
+        const { data } = await api.delete(`/admin/order/${id}`);
 
         dispatch({
             type: DELETE_ORDER_SUCCESS,

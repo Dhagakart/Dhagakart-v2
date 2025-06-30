@@ -1,146 +1,197 @@
 import { useEffect } from 'react';
-import Chart from 'chart.js/auto'
+import Chart from 'chart.js/auto';
 import { Doughnut, Line, Pie, Bar } from 'react-chartjs-2';
-import { getAdminProducts } from '../../actions/productAction';
 import { useSelector, useDispatch } from 'react-redux';
+import { getAdminProducts } from '../../actions/productAction';
 import { getAllOrders } from '../../actions/orderAction';
 import { getAllUsers } from '../../actions/userAction';
 import { categories } from '../../utils/constants';
 import MetaData from '../Layouts/MetaData';
 
+const StatCard = ({ title, value, icon }) => (
+  <div className="flex items-center gap-4 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 bg-[#F5F6F5] text-[#003366]">
+    <div className="text-2xl text-[#004080]">{icon}</div>
+    <div>
+      <h4 className="text-sm font-medium text-[#0059B3]">{title}</h4>
+      <h2 className="text-xl font-semibold">{value}</h2>
+    </div>
+  </div>
+);
+
+const ChartContainer = ({ title, children }) => (
+  <div className="bg-white rounded-xl shadow-md p-6">
+    <h3 className="text-lg font-semibold text-[#003366] mb-4 text-center">{title}</h3>
+    {children}
+  </div>
+);
+
 const MainData = () => {
+  const dispatch = useDispatch();
+  const { products } = useSelector((state) => state.products);
+  const { orders } = useSelector((state) => state.allOrders);
+  const { users } = useSelector((state) => state.users);
 
-    const dispatch = useDispatch();
+  const outOfStock = products?.reduce((count, item) => count + (item.stock === 0 ? 1 : 0), 0);
+  const totalAmount = orders?.reduce((total, order) => total + order.totalPrice, 0) || 0;
 
-    const { products } = useSelector((state) => state.products);
-    const { orders } = useSelector((state) => state.allOrders);
-    const { users } = useSelector((state) => state.users);
+  useEffect(() => {
+    dispatch(getAdminProducts());
+    dispatch(getAllOrders());
+    dispatch(getAllUsers());
+  }, [dispatch]);
 
-    let outOfStock = 0;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentYear = new Date().getFullYear();
 
-    products?.forEach((item) => {
-        if (item.stock === 0) {
-            outOfStock += 1;
-        }
-    });
+  const lineState = {
+    labels: months,
+    datasets: [
+      {
+        label: `Sales ${currentYear - 2}`,
+        borderColor: '#0059B3',
+        backgroundColor: '#0059B3',
+        data: months.map((_, i) =>
+          orders?.filter(
+            (od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === currentYear - 2
+          ).reduce((total, od) => total + od.totalPrice, 0)
+        ),
+        tension: 0.4,
+        pointRadius: 4,
+      },
+      {
+        label: `Sales ${currentYear - 1}`,
+        borderColor: '#003366',
+        backgroundColor: '#003366',
+        data: months.map((_, i) =>
+          orders?.filter(
+            (od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === currentYear - 1
+          ).reduce((total, od) => total + od.totalPrice, 0)
+        ),
+        tension: 0.4,
+        pointRadius: 4,
+      },
+      {
+        label: `Sales ${currentYear}`,
+        borderColor: '#004080',
+        backgroundColor: '#004080',
+        data: months.map((_, i) =>
+          orders?.filter(
+            (od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === currentYear
+          ).reduce((total, od) => total + od.totalPrice, 0)
+        ),
+        tension: 0.4,
+        pointRadius: 4,
+      },
+    ],
+  };
 
-    useEffect(() => {
-        dispatch(getAdminProducts());
-        dispatch(getAllOrders());
-        dispatch(getAllUsers());
-    }, [dispatch]);
+  const statuses = ['Processing', 'Shipped', 'Delivered'];
+  const pieState = {
+    labels: statuses,
+    datasets: [
+      {
+        backgroundColor: ['#0059B3', '#003366', '#004080'],
+        hoverBackgroundColor: ['#003087', '#002244', '#002E5C'],
+        data: statuses.map((status) => orders?.filter((item) => item.orderStatus === status).length),
+      },
+    ],
+  };
 
-    let totalAmount = orders?.reduce((total, order) => total + order.totalPrice, 0);
+  const doughnutState = {
+    labels: ['Out of Stock', 'In Stock'],
+    datasets: [
+      {
+        backgroundColor: ['#0059B3', '#003366'],
+        hoverBackgroundColor: ['#003087', '#002244'],
+        data: [outOfStock, products?.length - outOfStock],
+      },
+    ],
+  };
 
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    const date = new Date();
-    const lineState = {
-        labels: months,
-        datasets: [
-            {
-                label: `Sales in ${date.getFullYear() - 2}`,
-                borderColor: '#8A39E1',
-                backgroundColor: '#8A39E1',
-                data: months.map((m, i) => orders?.filter((od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === date.getFullYear() - 2).reduce((total, od) => total + od.totalPrice, 0)),
-            },
-            {
-                label: `Sales in ${date.getFullYear() - 1}`,
-                borderColor: 'orange',
-                backgroundColor: 'orange',
-                data: months.map((m, i) => orders?.filter((od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === date.getFullYear() - 1).reduce((total, od) => total + od.totalPrice, 0)),
-            },
-            {
-                label: `Sales in ${date.getFullYear()}`,
-                borderColor: '#4ade80',
-                backgroundColor: '#4ade80',
-                data: months.map((m, i) => orders?.filter((od) => new Date(od.createdAt).getMonth() === i && new Date(od.createdAt).getFullYear() === date.getFullYear()).reduce((total, od) => total + od.totalPrice, 0)),
-            },
-        ],
-    };
+  const barState = {
+    labels: categories,
+    datasets: [
+      {
+        label: 'Products',
+        borderColor: '#003366',
+        backgroundColor: '#003366',
+        hoverBackgroundColor: '#002244',
+        data: categories.map((cat) => products?.filter((item) => item.category === cat).length),
+      },
+    ],
+  };
 
-    const statuses = ['Processing', 'Shipped', 'Delivered'];
+  const chartOptions = {
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { boxWidth: 20, padding: 15, color: '#003366' },
+      },
+    },
+    scales: {
+      x: { ticks: { color: '#003366' } },
+      y: { ticks: { color: '#003366' }, beginAtZero: true },
+    },
+  };
 
-    const pieState = {
-        labels: statuses,
-        datasets: [
-            {
-                backgroundColor: ['#9333ea', '#facc15', '#4ade80'],
-                hoverBackgroundColor: ['#a855f7', '#fde047', '#86efac'],
-                data: statuses.map((status) => orders?.filter((item) => item.orderStatus === status).length),
-            },
-        ],
-    };
+  return (
+    <>
+      <MetaData title="Admin Dashboard | DhagaKart" />
+      <div className="w-full mx-auto space-y-8">
+        <h1 className="text-2xl font-semibold text-[#003366]">Admin Dashboard</h1>
 
-    const doughnutState = {
-        labels: ['Out of Stock', 'In Stock'],
-        datasets: [
-            {
-                backgroundColor: ['#ef4444', '#22c55e'],
-                hoverBackgroundColor: ['#dc2626', '#16a34a'],
-                data: [outOfStock, products.length - outOfStock],
-            },
-        ],
-    };
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Sales Amount"
+            value={`₹${totalAmount.toLocaleString()}`}
+            icon={<i className="fas fa-rupee-sign" />}
+          />
+          <StatCard
+            title="Total Orders"
+            value={orders?.length || 0}
+            icon={<i className="fas fa-shopping-cart" />}
+          />
+          <StatCard
+            title="Total Products"
+            value={products?.length || 0}
+            icon={<i className="fas fa-box" />}
+          />
+          <StatCard
+            title="Total Users"
+            value={users?.length || 0}
+            icon={<i className="fas fa-users" />}
+          />
+        </div>
 
-    const barState = {
-        labels: categories,
-        datasets: [
-            {
-                label: "Products",
-                borderColor: '#9333ea',
-                backgroundColor: '#9333ea',
-                hoverBackgroundColor: '#6b21a8',
-                data: categories.map((cat) => products?.filter((item) => item.category === cat).length),
-            },
-        ],
-    };
-
-    return (
-        <>
-            <MetaData title="Admin Dashboard | DhagaKart" />
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-6">
-                <div className="flex flex-col bg-purple-600 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Sales Amount</h4>
-                    <h2 className="text-2xl font-bold">₹{totalAmount?.toLocaleString()}</h2>
-                </div>
-                <div className="flex flex-col bg-red-500 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Orders</h4>
-                    <h2 className="text-2xl font-bold">{orders?.length}</h2>
-                </div>
-                <div className="flex flex-col bg-yellow-500 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Products</h4>
-                    <h2 className="text-2xl font-bold">{products?.length}</h2>
-                </div>
-                <div className="flex flex-col bg-green-500 text-white gap-2 rounded-xl shadow-lg hover:shadow-xl p-6">
-                    <h4 className="text-gray-100 font-medium">Total Users</h4>
-                    <h2 className="text-2xl font-bold">{users?.length}</h2>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartContainer title="Sales Performance">
+            <div className="h-80">
+              <Line data={lineState} options={chartOptions} />
             </div>
-
-            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-8 min-w-full">
-                <div className="bg-white rounded-xl h-auto w-full shadow-lg p-2">
-                    <Line data={lineState} />
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg p-4 text-center">
-                    <span className="font-medium uppercase text-gray-800">Order Status</span>
-                    <Pie data={pieState} />
-                </div>
+          </ChartContainer>
+          <ChartContainer title="Order Status Distribution">
+            <div className="h-80">
+              <Pie data={pieState} options={chartOptions} />
             </div>
+          </ChartContainer>
+        </div>
 
-            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-8 min-w-full mb-6">
-                <div className="bg-white rounded-xl h-auto w-full shadow-lg p-2">
-                    <Bar data={barState} />
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg p-4 text-center">
-                    <span className="font-medium uppercase text-gray-800">Stock Status</span>
-                    <Doughnut data={doughnutState} />
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartContainer title="Product Categories">
+            <div className="h-80">
+              <Bar data={barState} options={chartOptions} />
             </div>
-        </>
-    );
+          </ChartContainer>
+          <ChartContainer title="Stock Status">
+            <div className="h-80">
+              <Doughnut data={doughnutState} options={chartOptions} />
+            </div>
+          </ChartContainer>
+        </div>
+      </div>
+    </>
+  );
 };
 
 export default MainData;

@@ -166,7 +166,7 @@ const HeaderDG = () => {
     <>
       <header
         style={{ backgroundColor: '#003366' }}
-        className="w-full px-16 -mb-10"
+        className="fixed top-0 left-0 right-0 w-full px-16 z-50"
       >
         <div className="w-full mx-auto">
           <div className="h-16 flex items-center justify-between gap-4">

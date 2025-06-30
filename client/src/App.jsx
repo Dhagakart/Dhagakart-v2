@@ -122,7 +122,8 @@ function App() {
   return (
     <>
       <HeaderDG />
-      <Routes>
+      <main className="pt-8">
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -296,11 +297,12 @@ function App() {
               <ReviewsTable />
             </Dashboard>
           </ProtectedRoute>
-        } ></Route>
+        } />
 
-        <Route path="*" element={<NotFound />}></Route>
+        <Route path="*" element={<NotFound />} />
         {/* <Route path="/oauth-success" element={<oAuthSuccess />} /> */}
       </Routes>
+      </main>
       <FooterDG />
       <Toaster position="bottom-right" />
     </>
