@@ -211,7 +211,7 @@ const HeaderDG = () => {
             </div>
 
             {/** RIGHT: Navigation Links */}
-            <div className="hidden md:flex items-center space-x-6 w-80 shrink-0">
+            <div className="hidden md:flex items-center space-x-6 ml-auto">
               <div 
                 className="relative py-2"
                 ref={dropdownRefs.category}
@@ -298,7 +298,7 @@ const HeaderDG = () => {
             </div>
 
             {/** RIGHT: Cart Icon + Login Button */}
-            <div className="flex items-center justify-end space-x-4 w-48">
+            <div className="flex items-center space-x-4 ml-4">
               <div className="flex items-center">
                 <Link
                   to="/cart"
@@ -386,7 +386,7 @@ const HeaderDG = () => {
                     whitespace-nowrap
                   "
                 >
-                  Login / Signup
+                  Login
                 </Link>
               </div>
               )}
