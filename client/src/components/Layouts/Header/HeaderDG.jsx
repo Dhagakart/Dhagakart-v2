@@ -352,7 +352,7 @@ const HeaderDG = () => {
                     >
                       <div className="p-2">
                         <Link to="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Account</Link>
-                        <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Orders</Link>
+                        <Link to="/account/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">My Orders</Link>
                         <button
                           onClick={() => setShowLogoutConfirm(true)}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
