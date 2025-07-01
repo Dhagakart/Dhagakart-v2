@@ -139,7 +139,7 @@ const MainData = () => {
     <>
       <MetaData title="Admin Dashboard | DhagaKart" />
       <div className="w-full mx-auto space-y-8">
-        <h1 className="text-2xl font-semibold text-[#003366]">Admin Dashboard</h1>
+        {/* <h1 className="text-2xl font-semibold text-[#003366]">Admin Dashboard</h1> */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard

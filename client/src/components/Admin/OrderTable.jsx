@@ -142,8 +142,8 @@ const OrderTable = () => {
                         <button onClick={() => setToggleSidebar(true)} className="sm:hidden bg-gray-700 w-10 h-10 rounded-full shadow text-white flex items-center justify-center">
                             <MenuIcon />
                         </button>
-                        <h1 className="text-lg font-medium uppercase">orders</h1>
-                        <div className="bg-white rounded-lg shadow w-full p-4">
+                        {/* <h1 className="text-lg font-medium uppercase">orders</h1> */}
+                        <div className="bg-white rounded-lg shadow w-full">
                             <DataGrid
                                 rows={rows}
                                 columns={columns}

@@ -27,7 +27,7 @@ const navMenu = [
 ];
 
 const NavItem = ({ icon, label, isActive, to, onClick }) => {
-  const className = `flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-all duration-200 ${
+  const className = `flex items-center gap-3 px-4 py-3 mb-2 rounded-lg mx-2 transition-all duration-200 ${
     isActive 
       ? 'bg-blue-600 text-white shadow-lg' 
       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
