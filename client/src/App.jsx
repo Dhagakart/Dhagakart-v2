@@ -119,6 +119,9 @@ function App() {
     });
   }, [pathname])
 
+  // Check if current route is an admin route
+  const isAdminRoute = pathname.startsWith('/admin/');
+
   return (
     <>
       <HeaderDG />
@@ -300,11 +303,10 @@ function App() {
         } />
 
         <Route path="*" element={<NotFound />} />
-        {/* <Route path="/oauth-success" element={<oAuthSuccess />} /> */}
-      </Routes>
+        </Routes>
       </main>
-      <FooterDG />
       <Toaster position="bottom-right" />
+      {!isAdminRoute && <FooterDG />}
     </>
   );
 }
