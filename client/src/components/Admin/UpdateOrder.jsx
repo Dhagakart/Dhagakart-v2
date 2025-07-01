@@ -124,11 +124,11 @@ const UpdateOrder = () => {
                                         <div>
                                             <h3 className="text-lg font-medium text-gray-900 mb-2">Order Timeline</h3>
                                             <TrackStepper
-                                                orderOn={order.createdAt}
-                                                shippedAt={order.shippedAt}
-                                                deliveredAt={order.deliveredAt}
+                                                orderOn={order?.createdAt || ''}
+                                                shippedAt={order?.shippedAt || ''}
+                                                deliveredAt={order?.deliveredAt || ''}
                                                 activeStep={
-                                                    order.orderStatus === "Delivered" ? 2 : order.orderStatus === "Shipped" ? 1 : 0
+                                                    order?.orderStatus === "Delivered" ? 2 : order?.orderStatus === "Shipped" ? 1 : 0
                                                 }
                                             />
                                         </div>
@@ -139,9 +139,9 @@ const UpdateOrder = () => {
                                             <div className="p-4 bg-gray-50 rounded-lg">
                                                 <p className="text-sm text-gray-500 mb-1">Current Status</p>
                                                 <p className="font-medium text-gray-900">
-                                                    {order.orderStatus === "Shipped" && (`Shipped on ${formatDate(order.shippedAt)}`)}
-                                                    {order.orderStatus === "Processing" && (`Ordered on ${formatDate(order.createdAt)}`)}
-                                                    {order.orderStatus === "Delivered" && (`Delivered on ${formatDate(order.deliveredAt)}`)}
+                                                    {order?.orderStatus === "Shipped" && `Shipped on ${formatDate(order?.shippedAt)}`}
+                                                    {order?.orderStatus === "Processing" && `Ordered on ${formatDate(order?.createdAt)}`}
+                                                    {order?.orderStatus === "Delivered" && `Delivered on ${formatDate(order?.deliveredAt)}`}
                                                 </p>
                                             </div>
 
@@ -158,14 +158,17 @@ const UpdateOrder = () => {
                                                         required
                                                     >
                                                         <option value="">Select Status</option>
-                                                        {order.orderStatus === "Processing" && (
+                                                        {order?.orderStatus === "Processing" && (
                                                             <option value="Shipped" className="text-blue-600">Mark as Shipped</option>
                                                         )}
-                                                        {order.orderStatus === "Shipped" && (
+                                                        {order?.orderStatus === "Shipped" && (
                                                             <option value="Delivered" className="text-green-600">Mark as Delivered</option>
                                                         )}
-                                                        {order.orderStatus === "Delivered" && (
+                                                        {order?.orderStatus === "Delivered" && (
                                                             <option value="Delivered" disabled className="text-gray-400">Order Already Delivered</option>
+                                                        )}
+                                                        {!order?.orderStatus && (
+                                                            <option value="" disabled>Loading status...</option>
                                                         )}
                                                     </select>
                                                     <div className="absolute inset-y-0 right-0 top-6 flex items-center pr-3 pointer-events-none">
