@@ -36,6 +36,7 @@ import UpdateProduct from './components/Admin/UpdateProduct';
 import UserTable from './components/Admin/UserTable';
 import UpdateUser from './components/Admin/UpdateUser';
 import ReviewsTable from './components/Admin/ReviewsTable';
+import Quotes from './components/Admin/Quotes';
 import Wishlist from './components/Wishlist/Wishlist';
 import NotFound from './components/NotFound';
 import ReqCredits from './components/ReqCredits/ReqCredits';
@@ -298,6 +299,14 @@ function App() {
           <ProtectedRoute isAdmin={true}>
             <Dashboard activeTab={5}>
               <ReviewsTable />
+            </Dashboard>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/quotes" element={
+          <ProtectedRoute isAdmin={true}>
+            <Dashboard activeTab={6}>
+              <Quotes />
             </Dashboard>
           </ProtectedRoute>
         } />

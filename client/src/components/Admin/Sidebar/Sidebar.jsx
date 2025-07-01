@@ -9,6 +9,7 @@ import {
   AddBox as AddBoxIcon,
   Logout as LogoutIcon,
   AccountBox as AccountBoxIcon,
+  RequestQuote as QuotesIcon,
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
@@ -20,6 +21,7 @@ const navMenu = [
   { icon: <ShoppingBagIcon />, label: 'Orders', to: '/admin/orders' },
   { icon: <InventoryIcon />, label: 'Products', to: '/admin/products' },
   { icon: <AddBoxIcon />, label: 'Add Product', to: '/admin/new_product' },
+  { icon: <QuotesIcon />, label: 'Quotes', to: '/admin/quotes' },
   { icon: <GroupIcon />, label: 'Users', to: '/admin/users' },
   { icon: <ReviewsIcon />, label: 'Reviews', to: '/admin/reviews' },
   { icon: <AccountBoxIcon />, label: 'My Profile', to: '/account' },

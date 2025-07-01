@@ -12,7 +12,10 @@ import {
     UPDATE_QUOTE_STATUS_REQUEST,
     UPDATE_QUOTE_STATUS_SUCCESS,
     UPDATE_QUOTE_STATUS_FAIL,
-    CLEAR_QUOTE_ERRORS
+    CLEAR_QUOTE_ERRORS,
+    GET_ALL_QUOTES_REQUEST,
+    GET_ALL_QUOTES_SUCCESS,
+    GET_ALL_QUOTES_FAIL
 } from '../constants/quoteConstants';
 
 // Get user's quotes
@@ -124,6 +127,40 @@ export const updateQuoteStatus = (id, status) => async (dispatch) => {
             payload: error.response?.data?.message || error.message
         });
         return false;
+    }
+};
+
+// Get all quotes (Admin)
+export const getAllQuotes = (page = 1, limit = 10, status = '') => async (dispatch) => {
+    try {
+        dispatch({ type: GET_ALL_QUOTES_REQUEST });
+
+        const config = {
+            params: {
+                page,
+                limit,
+                ...(status && { status })
+            }
+        };
+
+        const { data } = await api.get('/quote/admin/all', config);
+
+        dispatch({
+            type: GET_ALL_QUOTES_SUCCESS,
+            payload: {
+                quotes: data.quotes,
+                total: data.total,
+                totalPages: data.totalPages,
+                currentPage: data.currentPage,
+                hasNextPage: data.hasNextPage,
+                hasPreviousPage: data.hasPreviousPage
+            }
+        });
+    } catch (error) {
+        dispatch({
+            type: GET_ALL_QUOTES_FAIL,
+            payload: error.response?.data?.message || error.message
+        });
     }
 };
 

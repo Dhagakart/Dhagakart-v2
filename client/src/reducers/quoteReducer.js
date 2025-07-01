@@ -11,18 +11,23 @@ import {
     UPDATE_QUOTE_STATUS_REQUEST,
     UPDATE_QUOTE_STATUS_SUCCESS,
     UPDATE_QUOTE_STATUS_FAIL,
-    CLEAR_QUOTE_ERRORS
+    CLEAR_QUOTE_ERRORS,
+    GET_ALL_QUOTES_REQUEST,
+    GET_ALL_QUOTES_SUCCESS,
+    GET_ALL_QUOTES_FAIL
 } from '../constants/quoteConstants';
 
 export const quoteListReducer = (state = { quotes: [] }, { type, payload }) => {
     switch (type) {
         case GET_MY_QUOTES_REQUEST:
+        case GET_ALL_QUOTES_REQUEST:
             return {
                 ...state,
                 loading: true,
                 quotes: []
             };
         case GET_MY_QUOTES_SUCCESS:
+        case GET_ALL_QUOTES_SUCCESS:
             return {
                 ...state,
                 loading: false,
@@ -35,6 +40,7 @@ export const quoteListReducer = (state = { quotes: [] }, { type, payload }) => {
                 error: null
             };
         case GET_MY_QUOTES_FAIL:
+        case GET_ALL_QUOTES_FAIL:
             return {
                 ...state,
                 loading: false,
