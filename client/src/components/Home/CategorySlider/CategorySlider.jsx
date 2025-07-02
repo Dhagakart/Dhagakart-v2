@@ -1,20 +1,62 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import Tex from './2_ply_purani_tex.jpg';
+import Flora from './flora_zari_thread.jpg';
+import Jack from './jack_a2b.jpg';
+import Mulberry from './mulberry_raw_silk_yarn.jpg';
+import Golden from './pure_golden_zari_thread.jpg';
+import Tussar from './tussar_raw_silk_yarn.jpg';
 
 const CategorySlider = () => {
   const sliderRef = useRef(null);
 
   const categories = [
-    { img: 'https://rukminim2.flixcart.com/flap/128/128/image/69c6589653afdb9a.png?q=100', label: 'Top Offers' },
-    { img: 'https://rukminim2.flixcart.com/flap/128/128/image/82b3ca5fb2301045.png?q=100', label: 'Grocery' },
-    { img: 'https://rukminim2.flixcart.com/flap/128/128/image/0ff199d1bd27eb98.png?q=100', label: 'Mobile' },
-    { img: 'https://rukminim2.flixcart.com/flap/128/128/image/71050627a56b4693.png?q=100', label: 'Fashion' },
-    { img: 'https://rukminim2.flixcart.com/flap/128/128/image/dff3f7adcf3a90c6.png?q=100', label: 'Electronics' },
-    { img: 'https://rukminim2.flixcart.com/fk-p-flap/128/128/image/05d708653beff580.png?q=100', label: 'Home' },
-    { img: 'https://rukminim2.flixcart.com/flap/128/128/image/ab7e2b022a4587dd.jpg?q=100', label: 'Appliances' },
-    { img: 'https://rukminim2.flixcart.com/flap/128/128/image/0d75b34f7d8fbcb3.png?q=100', label: 'Travel' },
-    { img: 'https://rukminim2.flixcart.com/fk-p-flap/128/128/image/28833c53894e3b32.png?q=100', label: 'Beauty, Toys & More' },
+    { 
+      img: Tex, 
+      label: '2 Ply Purani Tex',
+      link: '/category/2-ply-purani-tex' // Update this with your actual route
+    },
+    { 
+      img: Flora, 
+      label: 'Flora Zari Thread',
+      link: '/category/flora-zari-thread' // Update this with your actual route
+    },
+    { 
+      img: Jack, 
+      label: 'Jack A2B',
+      link: '/category/jack-a2b' // Update this with your actual route
+    },
+    { 
+      img: Mulberry, 
+      label: 'Mulberry Raw Silk',
+      link: '/category/mulberry-raw-silk' // Update this with your actual route
+    },
+    { 
+      img: Golden, 
+      label: 'Pure Golden Zari',
+      link: '/category/pure-golden-zari' // Update this with your actual route
+    },
+    { 
+      img: Tussar, 
+      label: 'Tussar Raw Silk',
+      link: '/category/tussar-raw-silk' // Update this with your actual route
+    },
+    { 
+      img: Tex, 
+      label: '2 Ply Purani Tex',
+      link: '/category/2-ply-purani-tex-2' // Update this with your actual route
+    },
+    { 
+      img: Flora, 
+      label: 'Flora Zari Thread',
+      link: '/category/flora-zari-thread-2' // Update this with your actual route
+    },
+    { 
+      img: Jack, 
+      label: 'Jack A2B',
+      link: '/category/jack-a2b-2' // Update this with your actual route
+    }
   ];
 
   const scrollAmount = 300; // Pixels to scroll on button click
@@ -58,17 +100,19 @@ const CategorySlider = () => {
           >
             {categories.map((category, index) => (
               <div key={index} className="flex-shrink-0 w-[16.1%] text-center">
-                <div className="w-full h-60 mx-auto rounded-xl border border-gray-200 flex flex-col justify-center items-center">
-                <img
-                    src={category.img}
-                    alt={category.label}
-                    className="w-36 h-36 object-contain"
-                    onError={(e) => {
-                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTktOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4eiIvPjwvc3ZnPg==';
-                    }}
-                  />
-                  <p className="text-xs my-2 text-gray-700 line-clamp-2">{category.label}</p>
-                </div>
+                <Link to={category.link} className="block h-full">
+                  <div className="w-full h-60 mx-auto rounded-xl border border-gray-200 flex flex-col justify-center items-center hover:shadow-md transition-shadow">
+                    <img
+                      src={category.img}
+                      alt={category.label}
+                      className="w-36 h-36 object-contain"
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMGMtNC40MSAwLTggMy41OS04IDhzMy41OSA4IDggOCA4LTMuNTkgOC04LTMuNTktOC04LTh6Ii8+PC9zdmc+';
+                      }}
+                    />
+                    <p className="text-xs my-2 text-gray-700 line-clamp-2 px-2">{category.label}</p>
+                  </div>
+                </Link>
               </div>
             ))}
           </div>

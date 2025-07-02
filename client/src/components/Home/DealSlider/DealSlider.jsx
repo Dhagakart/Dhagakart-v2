@@ -23,7 +23,7 @@ export const settings = {
 };
 
 const DealSlider = ({ title }) => {
-  const itemsToShow = getRandomProducts(offerProducts, 12);
+  const itemsToShow = offerProducts.slice(0, 6); // Get first 6 products
 
   return (
     <section className="bg-white w-full overflow-hidden pb-4">
@@ -51,7 +51,7 @@ const DealSlider = ({ title }) => {
                   _id={item._id}
                   name={item.name}
                   description={item.description}
-                  images={[{ url: item.image }]}
+                  image={item.image}  // Pass the image directly
                   currentPrice={currentPrice}
                   originalPrice={originalPrice}
                   discount={item.discount}

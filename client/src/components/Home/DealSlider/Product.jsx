@@ -8,10 +8,10 @@ const Product = ({
   _id, 
   name, 
   description,
-  images = [defaultImage], 
+  image, 
   currentPrice,   
   originalPrice,  
-  discount ,
+  discount,
   link       
 }) => {
   // Function to safely parse and format prices
@@ -37,7 +37,7 @@ const Product = ({
         <img
           draggable="false"
           className="h-full w-full object-contain"
-          src={defaultImage}
+          src={image || defaultImage}
           alt={name}
         />
       </div>
