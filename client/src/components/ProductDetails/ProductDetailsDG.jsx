@@ -446,9 +446,9 @@ const ProductDetailsDG = () => {
           <div className="mb-3">
             <div className="flex items-baseline gap-3 mb-10">
               <span className="text-2xl font-bold text-blue-800">
-                ₹{product.price?.toLocaleString()}{' '}
+                ₹{product.cuttedPrice?.toLocaleString()}{' '}
                 <span className="text-gray-500 font-normal line-through text-lg ml-2">
-                  ₹{product.cuttedPrice?.toLocaleString()}
+                  ₹{product.price?.toLocaleString()}
                 </span>
               </span>
               <span className="text-green-700 text-lg">
@@ -546,8 +546,7 @@ const ProductDetailsDG = () => {
           <h2 className="text-xl font-semibold mb-5 text-gray-800">Description</h2>
           <div className="bg-gray-100 rounded-lg shadow-sm p-6">
             <p className="text-gray-800 text-sm leading-relaxed">
-              {product.description +
-                ' The most powerful MacBook Pro ever is here. With the blazing-fast M1 Pro or M1 Max chip — the first Apple silicon designed for pros — you get groundbreaking performance and amazing battery life. Add to that a stunning Liquid Retina XDR display, the best camera and audio ever in a Mac notebook, and all the ports you need. The first notebook of its kind, this MacBook Pro is a beast. M1 Pro takes the exceptional performance of the M1 architecture to a whole new level for users. Even the most ambitious projects are easily handled with up to 10 CPU cores, up to 16 GPU cores, a 16-core Neural Engine, and dedicated encode and decode media engines that support H.264, HEVC, and ProRes codecs.'}
+              {product.description}
             </p>
           </div>
         </div>
@@ -632,7 +631,7 @@ const ProductDetailsDG = () => {
                         key={star}
                         type="button"
                         onClick={() => setRating(star)}
-                        className="focus:outline-none"
+                        className="focus:outline-none hover:cursor-pointer"
                       >
                         <svg
                           className={`w-8 h-8 ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
@@ -655,7 +654,7 @@ const ProductDetailsDG = () => {
                     rows="4"
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none h-48"
                     placeholder="Share your thoughts about this product..."
                   />
                 </div>
@@ -664,7 +663,7 @@ const ProductDetailsDG = () => {
                     type="button"
                     onClick={reviewSubmitHandler}
                     disabled={isSubmittingReview}
-                    className={`px-4 py-2 rounded-md text-white font-medium ${isSubmittingReview ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                    className={`px-4 py-2 rounded-md text-white font-medium ${isSubmittingReview ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none hover:cursor-pointer`}
                   >
                     {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                   </button>
