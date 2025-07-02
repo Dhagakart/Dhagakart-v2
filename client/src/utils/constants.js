@@ -38,7 +38,7 @@ export const offerProducts = [
     {
         image: Tex,
         name: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
-        description: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
+        // description: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
         currentPrice: "2,300",
         originalPrice: "4,000",
         discount: 43, // Calculated: Math.round((1 - 2300 / 4000) * 100)
@@ -47,7 +47,7 @@ export const offerProducts = [
       {
         image: Flora,
         name: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
-        description: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
+        // description: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
         currentPrice: "19,999",
         originalPrice: "24,900",
         discount: 20, // Matches original data, close to calculated 19.68%
@@ -56,7 +56,7 @@ export const offerProducts = [
       {
         image: Jack,
         name: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
-        description: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
+        // description: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
         currentPrice: "22,990",
         originalPrice: "29,990",
         discount: 23, // Matches original data, close to calculated 23.34%
@@ -65,7 +65,7 @@ export const offerProducts = [
       {
         image: Mulberry,
         name: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
-        description: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
+        // description: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
         currentPrice: "14,990",
         originalPrice: "19,990",
         discount: 25, // Matches original data, close to calculated 25.01%
@@ -74,7 +74,7 @@ export const offerProducts = [
       {
         image: Golden,
         name: "Samsung Galaxy Watch 5",
-        description: "Samsung Galaxy Watch 5",
+        // description: "Samsung Galaxy Watch 5",
         currentPrice: "17,999",
         originalPrice: "29,998",
         discount: 40, // Reflects original "Min 40% Off"
@@ -83,7 +83,7 @@ export const offerProducts = [
       {
         image: Tussar,
         name: "Manfrotto Compact Action Tripod",
-        description: "Manfrotto Compact Action Tripod",
+        // description: "Manfrotto Compact Action Tripod",
         currentPrice: "2,499",
         originalPrice: "4,998",
         discount: 50, // Reflects original "Min 50% Off"

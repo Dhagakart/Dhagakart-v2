@@ -37,7 +37,8 @@ const Home = () => {
         <Posters />
         <CategorySlider />
         <Poster />
-        <BrowsingHistory />
+        {/* <BrowsingHistory /> */}
+        <CategorySlider />
         {/* {!loading && <ProductSlider title={"Suggested for You"} tagline={"Based on Your Activity"} />}
         <DealSlider title={"Top Brands, Best Price"} />
         {!loading && <ProductSlider title={"You May Also Like..."} tagline={"Based on Your Interest"} />}

@@ -15,47 +15,47 @@ const CategorySlider = () => {
     { 
       img: Tex, 
       label: '2 Ply Purani Tex',
-      link: '/category/2-ply-purani-tex' // Update this with your actual route
+      link: '/products/2%20ply%20purani%20tex' // Update this with your actual route
     },
     { 
       img: Flora, 
       label: 'Flora Zari Thread',
-      link: '/category/flora-zari-thread' // Update this with your actual route
+      link: '/products/flora%20zari%20thread' // Update this with your actual route
     },
     { 
       img: Jack, 
       label: 'Jack A2B',
-      link: '/category/jack-a2b' // Update this with your actual route
+      link: '/products/jack%20a2b' // Update this with your actual route
     },
     { 
       img: Mulberry, 
       label: 'Mulberry Raw Silk',
-      link: '/category/mulberry-raw-silk' // Update this with your actual route
+      link: '/products/mulberry%20raw%20silk' // Update this with your actual route
     },
     { 
       img: Golden, 
       label: 'Pure Golden Zari',
-      link: '/category/pure-golden-zari' // Update this with your actual route
+      link: '/products/pure%20golden%20zari' // Update this with your actual route
     },
     { 
       img: Tussar, 
       label: 'Tussar Raw Silk',
-      link: '/category/tussar-raw-silk' // Update this with your actual route
+      link: '/products/tussar%20raw%20silk' // Update this with your actual route
     },
     { 
       img: Tex, 
       label: '2 Ply Purani Tex',
-      link: '/category/2-ply-purani-tex-2' // Update this with your actual route
+      link: '/products/2%20ply%20purani%20tex-2' // Update this with your actual route
     },
     { 
       img: Flora, 
       label: 'Flora Zari Thread',
-      link: '/category/flora-zari-thread-2' // Update this with your actual route
+      link: '/products/flora%20zari%20thread-2' // Update this with your actual route
     },
     { 
       img: Jack, 
       label: 'Jack A2B',
-      link: '/category/jack-a2b-2' // Update this with your actual route
+      link: '/products/jack%20a2b' // Update this with your actual route
     }
   ];
 

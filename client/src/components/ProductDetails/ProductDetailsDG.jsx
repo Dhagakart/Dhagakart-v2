@@ -441,7 +441,7 @@ const ProductDetailsDG = () => {
             </span>
           </div>
           <div className="mb-1 max-w-lg mb-6">
-            <h1 className="text-2xl font-medium text-gray-900 mb-2">2020 Apple Macbook Pro with Apple M1 Chip (13 inch, 8 gb RAM, 256 gb SSD) - Space Gray</h1>
+            <h1 className="text-2xl font-medium text-gray-900 mb-2">{product.name}</h1>
           </div>
           <div className="mb-3">
             <div className="flex items-baseline gap-3 mb-10">
