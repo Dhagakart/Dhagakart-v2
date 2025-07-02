@@ -244,6 +244,12 @@ const ProductDetailsDG = () => {
       const result = await dispatch(newReview(formData));
       
       if (result?.success) {
+        // Show success toast
+        toast.success('Review submitted successfully!', {
+          position: 'top-right',
+          duration: 3000,
+        });
+        
         // If we have the updated product in the response, update the local state
         if (result.product) {
           // This will trigger a re-render with the updated product data

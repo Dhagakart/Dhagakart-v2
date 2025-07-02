@@ -5,6 +5,7 @@ import { useSnackbar } from 'notistack';
 import { TextField, Button } from '@mui/material';
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
+import toast from 'react-hot-toast';
 import OrderHistory from './OrderHistory';
 import RFQsAndQuotes from './RFQsAndQuotes';
 import TrackOrder from './TrackOrder';
@@ -26,6 +27,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -78,10 +80,18 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     useEffect(() => {
         if (error) {
             enqueueSnackbar(error, { variant: 'error' });
+            toast.error(error, {
+                position: 'top-right',
+                duration: 3000,
+            });
             dispatch(clearErrors());
         }
         if (isUpdated) {
             enqueueSnackbar('Profile updated successfully', { variant: 'success' });
+            toast.success('Profile updated successfully!', {
+                position: 'top-right',
+                duration: 3000,
+            });
             dispatch(loadUser());
             dispatch({ type: UPDATE_PROFILE_RESET });
             setIsEditing(false);
@@ -104,7 +114,25 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
             myForm.set(key, value);
         });
         
-        dispatch(updateProfile(myForm));
+        setIsSubmitting(true);
+        
+        dispatch(updateProfile(myForm))
+            .unwrap()
+            .then(() => {
+                toast.success('Profile updated successfully!', {
+                    position: 'top-right',
+                    duration: 3000,
+                });
+            })
+            .catch((error) => {
+                toast.error(error?.message || 'Failed to update profile', {
+                    position: 'top-right',
+                    duration: 3000,
+                });
+            })
+            .finally(() => {
+                setIsSubmitting(false);
+            });
     };
 
     if (loading) return <Loader />;
@@ -207,15 +235,24 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                             });
                                                         }
                                                     }}
-                                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button 
                                                     onClick={handleSubmit}
-                                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                                    disabled={isSubmitting}
+                                                    className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer flex items-center justify-center gap-2 min-w-[120px] ${isSubmitting ? 'opacity-75' : ''}`}
                                                 >
-                                                    Save Changes
+                                                    {isSubmitting ? (
+                                                        <>
+                                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                            Saving...
+                                                        </>
+                                                    ) : 'Save Changes'}
                                                 </button>
                                             </div>
                                         )}
@@ -317,7 +354,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                     <div className="bg-white rounded-lg shadow-sm p-6 h-full flex flex-col">
                                         <div className="flex justify-between items-center pb-4">
                                             <h2 className="text-lg font-semibold text-gray-800 uppercase">Billing Address</h2>
-                                            <button className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md text-sm font-medium">
+                                            <button className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer">
                                                 Edit Address
                                             </button>
                                         </div>
@@ -335,7 +372,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                     <div className="bg-white rounded-lg shadow-sm p-6 h-full flex flex-col">
                                         <div className="flex justify-between items-center pb-4">
                                             <h2 className="text-lg font-semibold text-gray-800 uppercase">Shipping Address</h2>
-                                            <button className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md text-sm font-medium">
+                                            <button className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer">
                                                 Edit Address
                                             </button>
                                         </div>

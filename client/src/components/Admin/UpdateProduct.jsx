@@ -182,11 +182,11 @@ const UpdateProduct = () => {
         <>
             <MetaData title="Update Product | DhagaKart" />
             {loading || updateLoading ? <BackdropLoader /> : (
-                <main className="flex min-h-screen bg-gray-50">
+                <main className="flex h-auto bg-gray-50">
                     {!onMobile && <Sidebar activeTab="products" />}
                     {toggleSidebar && <Sidebar activeTab="products" setToggleSidebar={setToggleSidebar} />}
 
-                    <div className="w-full min-h-screen">
+                    <div className="w-full h-auto">
                         <div className="flex flex-col gap-6 sm:p-8 p-4">
                             <div className="flex items-center justify-between">
                                 <button
@@ -195,7 +195,7 @@ const UpdateProduct = () => {
                                 >
                                     <MenuIcon />
                                 </button>
-                                <h1 className="text-2xl font-bold text-gray-900">Update Product</h1>
+                                {/* <h1 className="text-2xl font-bold text-gray-900">Update Product</h1> */}
                             </div>
 
                             <div className="bg-white rounded-xl shadow-sm border border-gray-100">

@@ -192,11 +192,11 @@ const ProductTable = () => {
 
             {loading && <BackdropLoader />}
 
-            <main className="flex min-h-screen bg-gray-50">
+            <main className="flex h-auto bg-gray-50">
                 {!onMobile && <Sidebar activeTab="products" />}
                 {toggleSidebar && <Sidebar activeTab="products" setToggleSidebar={setToggleSidebar} />}
 
-                <div className="w-full min-h-screen">
+                <div className="w-full h-auto">
                     <div className="flex flex-col gap-6 sm:p-8 p-4">
                         <div className="flex items-center justify-between">
                             <button 
@@ -210,14 +210,14 @@ const ProductTable = () => {
 
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                                <h2 className="text-lg font-semibold text-gray-700">Products</h2>
-                                <span className="text-sm text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                                {/* <h2 className="text-lg font-semibold text-gray-700">Products</h2> */}
+                                <span className="text-sm text-gray-500 bg-gray-100 px-2.5 rounded-full">
                                     {rows.length} {rows.length === 1 ? 'item' : 'items'}
                                 </span>
                             </div>
                             <Link 
                                 to="/admin/new_product" 
-                                className="py-2.5 px-4 rounded-lg font-medium text-white bg-primary-blue hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                className="py-2.5 px-4 rounded-lg font-medium text-white bg-[#003366] hover:bg-[#003366]/90 transition-colors flex items-center gap-2"
                             >
                                 <span>+</span> Add New Product
                             </Link>
