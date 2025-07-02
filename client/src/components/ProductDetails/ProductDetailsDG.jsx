@@ -539,33 +539,23 @@ const ProductDetailsDG = () => {
         </div>
       </div>
 
-      {/* Tabbed Description Section */}
-      <div className="w-full bg-white rounded-xl mt-6 p-6 border border-gray-200 overflow-auto">
-        <div className="flex justify-center border-b border-gray-200 mb-4">
-          <div className="flex">
-            {['DESCRIPTION', 'ADDITIONAL INFORMATION', 'REVIEW'].map((tab) => (
-              <div
-                key={tab}
-                className={`uppercase px-6 py-2 cursor-pointer text-sm ${activeTab === tab.toLowerCase() ? 'text-[#003366] border-b-4 border-[#003366] font-medium' : 'text-gray-600'
-                  }`}
-                onClick={() => setActiveTab(tab.toLowerCase())}
-              >
-                {tab}
-              </div>
-            ))}
+      {/* Vertical Stacked Sections */}
+      <div className="w-full space-y-6 mt-6">
+        {/* Description Section */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <h2 className="text-xl font-semibold mb-5 text-gray-800">Description</h2>
+          <div className="bg-gray-100 rounded-lg shadow-sm p-6">
+            <p className="text-gray-800 text-sm leading-relaxed">
+              {product.description +
+                ' The most powerful MacBook Pro ever is here. With the blazing-fast M1 Pro or M1 Max chip — the first Apple silicon designed for pros — you get groundbreaking performance and amazing battery life. Add to that a stunning Liquid Retina XDR display, the best camera and audio ever in a Mac notebook, and all the ports you need. The first notebook of its kind, this MacBook Pro is a beast. M1 Pro takes the exceptional performance of the M1 architecture to a whole new level for users. Even the most ambitious projects are easily handled with up to 10 CPU cores, up to 16 GPU cores, a 16-core Neural Engine, and dedicated encode and decode media engines that support H.264, HEVC, and ProRes codecs.'}
+            </p>
           </div>
         </div>
-        <div className="bg-gray-100 rounded-lg shadow-sm p-6">
-          {activeTab === 'description' && (
-            <div>
-              <h2 className="text-xl font-semibold mb-5 text-gray-800">Description</h2>
-              <p className="text-gray-800 text-sm leading-relaxed">
-                {product.description +
-                  ' The most powerful MacBook Pro ever is here. With the blazing-fast M1 Pro or M1 Max chip — the first Apple silicon designed for pros — you get groundbreaking performance and amazing battery life. Add to that a stunning Liquid Retina XDR display, the best camera and audio ever in a Mac notebook, and all the ports you need. The first notebook of its kind, this MacBook Pro is a beast. M1 Pro takes the exceptional performance of the M1 architecture to a whole new level for users. Even the most ambitious projects are easily handled with up to 10 CPU cores, up to 16 GPU cores, a 16-core Neural Engine, and dedicated encode and decode media engines that support H.264, HEVC, and ProRes codecs.'}
-              </p>
-            </div>
-          )}
-          {activeTab === 'additional information' && (
+
+        {/* Additional Information Section */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <h2 className="text-xl font-semibold mb-5 text-gray-800">Additional Information</h2>
+          <div className="bg-gray-100 rounded-lg shadow-sm p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Features Column */}
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
@@ -623,8 +613,13 @@ const ProductDetailsDG = () => {
                 </div>
               </div>
             </div>
-          )}
-          {activeTab === 'review' && (
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <h2 className="text-xl font-semibold mb-5 text-gray-800">Customer Reviews</h2>
+          <div className="bg-gray-100 rounded-lg shadow-sm p-6">
             <div className="space-y-8">
               {/* Add Review Form */}
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -741,7 +736,7 @@ const ProductDetailsDG = () => {
                 <p className="text-gray-800 text-sm">No reviews yet.</p>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
