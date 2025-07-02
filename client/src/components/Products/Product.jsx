@@ -9,9 +9,7 @@ import StarRating from '../Common/StarRating';
 import { useNavigate } from 'react-router-dom';
 
 // const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice }) => {
-const Product = ({ _id, images, ratings, numOfReviews, price, cuttedPrice }) => {
-
-    const name = '2020 Apple Macbook Pro with Apple M1 Chip (13 inch, 8 gb RAM, 256 gb SSD) - Space Gray';
+const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice }) => {
 
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
