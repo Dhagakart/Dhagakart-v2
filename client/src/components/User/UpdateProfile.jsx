@@ -51,10 +51,12 @@ const UpdateProfile = () => {
 
     useEffect(() => {
         if (user) {
-            setName(user.name);
-            setEmail(user.email);
-            setGender(user.gender);
-            setAvatarPreview(user.avatar.url);
+            setName(user.name || '');
+            setEmail(user.email || '');
+            setGender(user.gender || '');
+            // Safely handle avatar URL
+            const avatarUrl = user.avatar?.url || '/default-avatar.png';
+            setAvatarPreview(avatarUrl);
         }
         if (error) {
             enqueueSnackbar(error, { variant: "error" });
@@ -138,7 +140,7 @@ const UpdateProfile = () => {
                                 <div className="flex flex-col w-full justify-between sm:flex-row gap-3 items-center">
                                     <Avatar
                                         alt="Avatar Preview"
-                                        src={avatarPreview}
+                                        src={avatarPreview || '/default-avatar.png'}
                                         sx={{ width: 56, height: 56 }}
                                     />
                                     <label className="rounded font-medium bg-gray-400 text-center cursor-pointer text-white w-full py-2 px-2.5 shadow hover:shadow-lg">

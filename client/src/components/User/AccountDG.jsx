@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useLocation, useParams, Outlet } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
+import { TextField, Button } from '@mui/material';
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
 import OrderHistory from './OrderHistory';
 import RFQsAndQuotes from './RFQsAndQuotes';
 import TrackOrder from './TrackOrder';
-import { logoutUser } from '../../actions/userAction';
+import { logoutUser, updateProfile, clearErrors } from '../../actions/userAction';
 import LogoutConfirmationModal from './LogoutConfirmationModal';
+import { loadUser } from '../../actions/userAction';
+import { UPDATE_PROFILE_RESET } from '../../constants/userConstants';
 
 // Icons
 import { User, ShoppingBag, Truck, FileText, LogOut, FileSearch } from 'lucide-react';
@@ -19,8 +22,18 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     const location = useLocation();
     const { enqueueSnackbar } = useSnackbar();
     const { user, loading, isAuthenticated } = useSelector(state => state.user);
+    const { error, isUpdated } = useSelector(state => state.profile);
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        city: '',
+        businessName: '',
+        businessType: ''
+    });
     
     // Update active tab based on URL
     useEffect(() => {
@@ -50,8 +63,49 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     useEffect(() => {
         if (isAuthenticated === false) {
             navigate("/login");
+        } else if (user) {
+            setFormData({
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                city: user.city || '',
+                businessName: user.businessName || '',
+                businessType: user.businessType || ''
+            });
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, navigate, user]);
+
+    useEffect(() => {
+        if (error) {
+            enqueueSnackbar(error, { variant: 'error' });
+            dispatch(clearErrors());
+        }
+        if (isUpdated) {
+            enqueueSnackbar('Profile updated successfully', { variant: 'success' });
+            dispatch(loadUser());
+            dispatch({ type: UPDATE_PROFILE_RESET });
+            setIsEditing(false);
+        }
+    }, [dispatch, error, isUpdated, enqueueSnackbar]);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const myForm = new FormData();
+        
+        Object.entries(formData).forEach(([key, value]) => {
+            myForm.set(key, value);
+        });
+        
+        dispatch(updateProfile(myForm));
+    };
 
     if (loading) return <Loader />;
 
@@ -129,57 +183,132 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                 <div className="bg-white rounded-lg shadow-sm p-6">
                                     <div className="flex justify-between items-center pb-4">
                                         <h2 className="text-lg font-semibold text-gray-800">General Information</h2>
-                                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer">
-                                            Edit Details
-                                        </button>
+                                        {!isEditing ? (
+                                            <button 
+                                                onClick={() => setIsEditing(true)}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
+                                            >
+                                                Edit Details
+                                            </button>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => {
+                                                        setIsEditing(false);
+                                                        // Reset form data to original user data
+                                                        if (user) {
+                                                            setFormData({
+                                                                name: user.name || '',
+                                                                email: user.email || '',
+                                                                phone: user.phone || '',
+                                                                city: user.city || '',
+                                                                businessName: user.businessName || '',
+                                                                businessType: user.businessType || ''
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button 
+                                                    onClick={handleSubmit}
+                                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                                >
+                                                    Save Changes
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={user?.name || 'Badal Singh'}
-                                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
+                                    <form onSubmit={handleSubmit} className="w-full">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
+                                                <TextField
+                                                    fullWidth
+                                                    name="name"
+                                                    value={formData.name}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                                                <TextField
+                                                    fullWidth
+                                                    type="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
+                                                <TextField
+                                                    fullWidth
+                                                    name="phone"
+                                                    value={formData.phone}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    variant="outlined"
+                                                    size="small"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-500 mb-1">City</label>
+                                                <TextField
+                                                    fullWidth
+                                                    name="city"
+                                                    value={formData.city}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    variant="outlined"
+                                                    size="small"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-500 mb-1">Business Name</label>
+                                                <TextField
+                                                    fullWidth
+                                                    name="businessName"
+                                                    value={formData.businessName}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    variant="outlined"
+                                                    size="small"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-500 mb-1">Business Type</label>
+                                                <TextField
+                                                    fullWidth
+                                                    name="businessType"
+                                                    value={formData.businessType}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    select
+                                                    SelectProps={{ native: true }}
+                                                >
+                                                    <option value="">Select Business Type</option>
+                                                    <option value="Manufacturer">Manufacturer</option>
+                                                    <option value="Wholesaler">Wholesaler</option>
+                                                    <option value="Retailer">Retailer</option>
+                                                    <option value="Distributor">Distributor</option>
+                                                    <option value="Service Provider">Service Provider</option>
+                                                    <option value="Other">Other</option>
+                                                </TextField>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={user?.phone || '+91 50394 03932'}
-                                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Email ID</label>
-                                            <input
-                                                type="email"
-                                                readOnly
-                                                value={user?.email || 'Dhagakart@gmail.com'}
-                                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Business Name</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={user?.businessName || 'Dhagakart'}
-                                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Business Type</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={user?.businessType || 'Retailer'}
-                                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                    </div>
+                                    </form>
                                 </div>
 
                                 {/* Address Section */}
