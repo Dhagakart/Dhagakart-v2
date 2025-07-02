@@ -156,7 +156,7 @@ const Banner = () => {
           <div className="flex h-full w-full">
             <div className="flex-1 px-6 py-4 flex flex-col justify-center">
               <p className="text-sm text-yellow-500 font-medium">SUMMER SALES</p>
-              <h3 className="mt-1 text-2xl font-bold text-white">New Google Pixel 6 Pro</h3>
+              <h3 className="mt-1 text-2xl font-bold text-white">Flora Zari Thread</h3>
               <button className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
@@ -184,8 +184,8 @@ const Banner = () => {
               />
             </div>
             <div className="flex-1 px-6 py-4 flex flex-col justify-center">
-              <h3 className="text-xl font-semibold text-gray-800">Xiaomi FlipBuds Pro</h3>
-              <p className="mt-2 text-2xl font-bold text-blue-500">$299 USD</p>
+              <h3 className="text-xl font-semibold text-gray-800">Flora Zari Thread</h3>
+              <p className="mt-2 text-2xl font-bold text-blue-500">Rs 299</p>
               <button className="mt-4 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>

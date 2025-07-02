@@ -37,7 +37,7 @@ export const categories = [
 export const offerProducts = [
     {
         image: Tex,
-        name: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
+        name: "2 ply Purani Tex",
         // description: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
         currentPrice: "2,300",
         originalPrice: "4,000",
@@ -46,7 +46,7 @@ export const offerProducts = [
       },
       {
         image: Flora,
-        name: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
+        name: "Flora Zari Thread",
         // description: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
         currentPrice: "19,999",
         originalPrice: "24,900",
@@ -55,7 +55,7 @@ export const offerProducts = [
       },
       {
         image: Jack,
-        name: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
+        name: "Jack A2B",
         // description: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
         currentPrice: "22,990",
         originalPrice: "29,990",
@@ -64,7 +64,7 @@ export const offerProducts = [
       },
       {
         image: Mulberry,
-        name: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
+        name: "Mulberry Raw Silk Yarn",
         // description: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
         currentPrice: "14,990",
         originalPrice: "19,990",
@@ -73,7 +73,7 @@ export const offerProducts = [
       },
       {
         image: Golden,
-        name: "Samsung Galaxy Watch 5",
+        name: "Pure Golden Zari Thread",
         // description: "Samsung Galaxy Watch 5",
         currentPrice: "17,999",
         originalPrice: "29,998",
@@ -82,7 +82,7 @@ export const offerProducts = [
       },
       {
         image: Tussar,
-        name: "Manfrotto Compact Action Tripod",
+        name: "Tussar Raw Silk Yarn",
         // description: "Manfrotto Compact Action Tripod",
         currentPrice: "2,499",
         originalPrice: "4,998",
