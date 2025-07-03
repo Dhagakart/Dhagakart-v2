@@ -1,5 +1,31 @@
 import axios from "axios";
-import { ALL_ORDERS_FAIL, ALL_ORDERS_REQUEST, ALL_ORDERS_SUCCESS, CLEAR_ERRORS, DELETE_ORDER_FAIL, DELETE_ORDER_REQUEST, DELETE_ORDER_SUCCESS, MY_ORDERS_FAIL, MY_ORDERS_REQUEST, MY_ORDERS_SUCCESS, NEW_ORDER_FAIL, NEW_ORDER_REQUEST, NEW_ORDER_SUCCESS, ORDER_DETAILS_FAIL, ORDER_DETAILS_REQUEST, ORDER_DETAILS_SUCCESS, PAYMENT_STATUS_FAIL, PAYMENT_STATUS_REQUEST, PAYMENT_STATUS_SUCCESS, UPDATE_ORDER_FAIL, UPDATE_ORDER_REQUEST, UPDATE_ORDER_SUCCESS } from "../constants/orderConstants";
+import { 
+    ALL_ORDERS_FAIL, 
+    ALL_ORDERS_REQUEST, 
+    ALL_ORDERS_SUCCESS, 
+    CLEAR_ERRORS, 
+    DELETE_ORDER_FAIL, 
+    DELETE_ORDER_REQUEST, 
+    DELETE_ORDER_SUCCESS, 
+    MY_ORDERS_FAIL, 
+    MY_ORDERS_REQUEST, 
+    MY_ORDERS_SUCCESS, 
+    NEW_ORDER_FAIL, 
+    NEW_ORDER_REQUEST, 
+    NEW_ORDER_SUCCESS, 
+    ORDER_DETAILS_FAIL, 
+    ORDER_DETAILS_REQUEST, 
+    ORDER_DETAILS_SUCCESS, 
+    PAYMENT_STATUS_FAIL, 
+    PAYMENT_STATUS_REQUEST, 
+    PAYMENT_STATUS_SUCCESS, 
+    UPDATE_ORDER_FAIL, 
+    UPDATE_ORDER_REQUEST, 
+    UPDATE_ORDER_SUCCESS,
+    SEARCH_ORDERS_REQUEST,
+    SEARCH_ORDERS_SUCCESS,
+    SEARCH_ORDERS_FAIL
+} from "../constants/orderConstants";
 import api from "../utils/api";
 import { emptyCart } from './cartAction';
 import { useNavigate } from 'react-router-dom';
@@ -199,7 +225,32 @@ export const deleteOrder = (id) => async (dispatch) => {
     }
 };
 
+// Search Orders with Filters
+export const searchOrders = (filters) => async (dispatch) => {
+    try {
+        dispatch({ type: SEARCH_ORDERS_REQUEST });
+
+        // Convert filters to query string
+        const queryString = Object.entries(filters)
+            .filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join('&');
+
+        const { data } = await api.get(`/api/v1/admin/orders/search?${queryString}`);
+
+        dispatch({
+            type: SEARCH_ORDERS_SUCCESS,
+            payload: data
+        });
+    } catch (error) {
+        dispatch({
+            type: SEARCH_ORDERS_FAIL,
+            payload: error.response?.data?.message || error.message
+        });
+    }
+};
+
 // Clear All Errors
-export const clearErrors = () => (dispatch) => {
+export const clearErrors = () => async (dispatch) => {
     dispatch({ type: CLEAR_ERRORS });
-}
+};

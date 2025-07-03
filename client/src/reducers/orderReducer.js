@@ -1,4 +1,16 @@
-import { NEW_ORDER_REQUEST, NEW_ORDER_SUCCESS, NEW_ORDER_FAIL, CLEAR_ERRORS, MY_ORDERS_FAIL, MY_ORDERS_SUCCESS, MY_ORDERS_REQUEST, PAYMENT_STATUS_REQUEST, PAYMENT_STATUS_SUCCESS, PAYMENT_STATUS_FAIL, ORDER_DETAILS_REQUEST, ORDER_DETAILS_SUCCESS, ORDER_DETAILS_FAIL, ALL_ORDERS_REQUEST, ALL_ORDERS_SUCCESS, ALL_ORDERS_FAIL, UPDATE_ORDER_REQUEST, DELETE_ORDER_REQUEST, UPDATE_ORDER_SUCCESS, DELETE_ORDER_SUCCESS, UPDATE_ORDER_FAIL, DELETE_ORDER_FAIL, UPDATE_ORDER_RESET, DELETE_ORDER_RESET } from "../constants/orderConstants";
+import { 
+    NEW_ORDER_REQUEST, NEW_ORDER_SUCCESS, NEW_ORDER_FAIL, 
+    CLEAR_ERRORS, 
+    MY_ORDERS_FAIL, MY_ORDERS_SUCCESS, MY_ORDERS_REQUEST, 
+    PAYMENT_STATUS_REQUEST, PAYMENT_STATUS_SUCCESS, PAYMENT_STATUS_FAIL, 
+    ORDER_DETAILS_REQUEST, ORDER_DETAILS_SUCCESS, ORDER_DETAILS_FAIL, 
+    ALL_ORDERS_REQUEST, ALL_ORDERS_SUCCESS, ALL_ORDERS_FAIL, 
+    UPDATE_ORDER_REQUEST, DELETE_ORDER_REQUEST, 
+    UPDATE_ORDER_SUCCESS, DELETE_ORDER_SUCCESS, 
+    UPDATE_ORDER_FAIL, DELETE_ORDER_FAIL, 
+    UPDATE_ORDER_RESET, DELETE_ORDER_RESET,
+    SEARCH_ORDERS_REQUEST, SEARCH_ORDERS_SUCCESS, SEARCH_ORDERS_FAIL
+} from "../constants/orderConstants";
 
 export const newOrderReducer = (state = {}, { type, payload }) => {
     switch (type) {
@@ -122,23 +134,73 @@ export const allOrdersReducer = (state = { orders: [] }, { type, payload }) => {
     switch (type) {
         case ALL_ORDERS_REQUEST:
             return {
+                ...state,
                 loading: true,
             };
+
         case ALL_ORDERS_SUCCESS:
             return {
+                ...state,
                 loading: false,
-                orders: payload,
+                orders: payload.orders,
+                totalAmount: payload.totalAmount,
             };
+
         case ALL_ORDERS_FAIL:
             return {
+                ...state,
                 loading: false,
                 error: payload,
             };
+
         case CLEAR_ERRORS:
             return {
                 ...state,
                 error: null,
             };
+
+        default:
+            return state;
+    }
+};
+
+export const searchOrdersReducer = (state = { orders: [], pagination: {} }, { type, payload }) => {
+    switch (type) {
+        case SEARCH_ORDERS_REQUEST:
+            return {
+                ...state,
+                loading: true,
+                error: null
+            };
+
+        case SEARCH_ORDERS_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                orders: payload.orders || [],
+                pagination: {
+                    currentPage: payload.currentPage || 1,
+                    totalPages: payload.totalPages || 1,
+                    totalOrders: payload.totalOrders || 0
+                },
+                error: null
+            };
+
+        case SEARCH_ORDERS_FAIL:
+            return {
+                ...state,
+                loading: false,
+                error: payload,
+                orders: [],
+                pagination: {}
+            };
+
+        case CLEAR_ERRORS:
+            return {
+                ...state,
+                error: null
+            };
+
         default:
             return state;
     }

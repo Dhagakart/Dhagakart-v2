@@ -1,5 +1,5 @@
 const express = require('express');
-const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder } = require('../controllers/orderController');
+const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders } = require('../controllers/orderController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -195,6 +195,150 @@ router.route('/order/:id').get(isAuthenticatedUser, getSingleOrderDetails);
  *                 $ref: '#/components/schemas/Order'
  */
 router.route('/orders/me').get(isAuthenticatedUser, myOrders);
+
+/**
+ * @swagger
+ * /api/v1/admin/orders:
+ *   get:
+ *     summary: Get all orders (Admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Orders per page
+ *     responses:
+ *       200:
+ *         description: List of all orders with pagination
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 pagination:
+ *                   type: object
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
+ */
+router.route('/admin/orders').get(isAuthenticatedUser, authorizeRoles("admin"), getAllOrders);
+
+/**
+ * @swagger
+ * /api/v1/admin/orders/search:
+ *   get:
+ *     summary: Search orders with filters (Admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: orderId
+ *         schema:
+ *           type: string
+ *         description: Filter by order ID
+ *       - in: query
+ *         name: customerName
+ *         schema:
+ *           type: string
+ *         description: Filter by customer name (case-insensitive)
+ *       - in: query
+ *         name: customerEmail
+ *         schema:
+ *           type: string
+ *         description: Filter by customer email (case-insensitive)
+ *       - in: query
+ *         name: productName
+ *         schema:
+ *           type: string
+ *         description: Filter by product name in order items (case-insensitive)
+ *       - in: query
+ *         name: minAmount
+ *         schema:
+ *           type: number
+ *         description: Filter by minimum order amount
+ *       - in: query
+ *         name: maxAmount
+ *         schema:
+ *           type: number
+ *         description: Filter by maximum order amount
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter by order status
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by start date (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by end date (YYYY-MM-DD)
+ *       - in: query
+ *         name: paymentMethod
+ *         schema:
+ *           type: string
+ *         description: Filter by payment method
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: -createdAt
+ *         description: Sort field with prefix - for descending (e.g., -createdAt)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of filtered orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 orders:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
+ *                 currentPage:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 totalOrders:
+ *                   type: integer
+ */
+router.route('/admin/orders/search').get(isAuthenticatedUser, authorizeRoles('admin'), searchOrders);
 
 /**
  * @swagger

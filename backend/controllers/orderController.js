@@ -157,6 +157,97 @@ async function updateStock(id, quantity) {
     await product.save({ validateBeforeSave: false });
 }
 
+// Search Orders with Filters ---ADMIN
+exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
+    const {
+        orderId,
+        customerName,
+        customerEmail,
+        productName,
+        minAmount,
+        maxAmount,
+        status,
+        startDate,
+        endDate,
+        paymentMethod,
+        sortBy = '-createdAt',
+        page = 1,
+        limit = 10
+    } = req.query;
+
+    const query = {};
+
+    // Filter by order ID
+    if (orderId) {
+        query._id = orderId;
+    }
+
+    // Filter by customer name (case-insensitive)
+    if (customerName) {
+        query['shippingInfo.name'] = { $regex: customerName, $options: 'i' };
+    }
+
+    // Filter by customer email (case-insensitive)
+    if (customerEmail) {
+        query['user.email'] = { $regex: customerEmail, $options: 'i' };
+    }
+
+    // Filter by product name in order items
+    if (productName) {
+        query['orderItems.name'] = { $regex: productName, $options: 'i' };
+    }
+
+    // Filter by order amount range
+    if (minAmount || maxAmount) {
+        query.totalPrice = {};
+        if (minAmount) query.totalPrice.$gte = Number(minAmount);
+        if (maxAmount) query.totalPrice.$lte = Number(maxAmount);
+    }
+
+    // Filter by order status
+    if (status) {
+        query.orderStatus = status;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+        query.createdAt = {};
+        if (startDate) query.createdAt.$gte = new Date(startDate);
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // End of the day
+            query.createdAt.$lte = end;
+        }
+    }
+
+    // Filter by payment method
+    if (paymentMethod) {
+        query.paymentInfo.type = paymentMethod;
+    }
+
+    // Pagination
+    const currentPage = Number(page) || 1;
+    const skip = (currentPage - 1) * limit;
+
+    // Execute query with pagination
+    const orders = await Order.find(query)
+        .sort(sortBy)
+        .limit(limit)
+        .skip(skip)
+        .populate('user', 'name email');
+
+    // Get total count for pagination
+    const totalOrders = await Order.countDocuments(query);
+
+    res.status(200).json({
+        success: true,
+        orders,
+        currentPage,
+        totalPages: Math.ceil(totalOrders / limit),
+        totalOrders
+    });
+});
+
 // Delete Order ---ADMIN
 exports.deleteOrder = asyncErrorHandler(async (req, res, next) => {
 

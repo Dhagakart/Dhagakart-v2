@@ -5,7 +5,7 @@ import { forgotPasswordReducer, profileReducer, userReducer, allUsersReducer, us
 import { newProductReducer, newReviewReducer, productDetailsReducer, productReducer, productsReducer, productReviewsReducer, reviewReducer } from './reducers/productReducer';
 import { cartReducer } from './reducers/cartReducer';
 import { saveForLaterReducer } from './reducers/saveForLaterReducer';
-import { allOrdersReducer, myOrdersReducer, newOrderReducer, orderDetailsReducer, orderReducer, paymentStatusReducer } from './reducers/orderReducer';
+import { allOrdersReducer, myOrdersReducer, newOrderReducer, orderDetailsReducer, orderReducer, paymentStatusReducer, searchOrdersReducer } from './reducers/orderReducer';
 import { wishlistReducer } from './reducers/wishlistReducer';
 import { quoteListReducer, quoteDetailsReducer, newQuoteReducer } from './reducers/quoteReducer';
 
@@ -24,6 +24,7 @@ const reducer = combineReducers({
     orderDetails: orderDetailsReducer,
     allOrders: allOrdersReducer,
     order: orderReducer,
+    searchOrders: searchOrdersReducer,
     newProduct: newProductReducer,
     product: productReducer,
     users: allUsersReducer,
