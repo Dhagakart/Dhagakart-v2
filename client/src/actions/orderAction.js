@@ -236,7 +236,7 @@ export const searchOrders = (filters) => async (dispatch) => {
             .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
             .join('&');
 
-        const { data } = await api.get(`/api/v1/admin/orders/search?${queryString}`);
+        const { data } = await api.get(`/admin/orders/search?${queryString}`);
 
         dispatch({
             type: SEARCH_ORDERS_SUCCESS,
