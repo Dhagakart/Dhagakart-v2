@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getProductDetails, newReview } from '../../actions/productAction';
+import { getProductDetails, newReview, getSimilarProducts, getProducts } from '../../actions/productAction';
 import { createQuote } from '../../actions/quoteActions';
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
@@ -40,14 +40,13 @@ const getDiscount = (price, cuttedPrice) => {
 };
 
 const ProductDetailsDG = () => {
+  // Hooks must be called unconditionally at the top level
   const dispatch = useDispatch();
   const { id } = useParams();
-  const { product, loading, error: productError } = useSelector((state) => state.productDetails);
-  const { cartItems } = useSelector((state) => state.cart);
-  const { wishlistItems } = useSelector((state) => state.wishlist);
-  const { success, error: reviewError } = useSelector((state) => state.newReview);
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
+  
+  // All state hooks
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -56,6 +55,66 @@ const ProductDetailsDG = () => {
     quantity: '1',
     message: '',
   });
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+  const [open, setOpen] = useState(false);
+  
+  // Refs
+  const mainSlider = useRef(null);
+  const sliderRef = useRef(null);
+  
+  // All selectors
+  const { product, loading, error: productError } = useSelector((state) => state.productDetails);
+  const { products: similarProducts = [], loading: similarLoading } = useSelector((state) => state.products);
+  const { products: allProducts = [], loading: allProductsLoading } = useSelector((state) => state.allProducts || {});
+  const { cartItems = [] } = useSelector((state) => state.cart);
+  const { wishlistItems = [] } = useSelector((state) => state.wishlist);
+  const { success, error: reviewError } = useSelector((state) => state.newReview);
+  const { isAuthenticated, user } = useSelector((state) => state.user);
+  
+  // Debug log the products data
+  useEffect(() => {
+    console.log('Similar Products:', similarProducts);
+    console.log('All Products:', allProducts);
+  }, [similarProducts, allProducts]);
+
+  // Get products to display in the slider
+  const getDisplayProducts = () => {
+    // First, try to get similar products (from the same category)
+    const similar = similarProducts
+      .filter(item => item && item._id !== product?._id)
+      .slice(0, 6);
+
+    // If we have enough similar products, use them
+    if (similar.length >= 6) {
+      return similar;
+    }
+
+    // Otherwise, get other products (from any category)
+    const otherProducts = (allProducts?.products || [])
+      .filter(item => 
+        item && 
+        item._id !== product?._id && 
+        !similar.some(p => p && p._id === item._id)
+      )
+      .slice(0, 6 - similar.length);
+
+    // Combine and ensure no duplicates
+    let combined = [...similar, ...otherProducts];
+    combined = [...new Map(combined.map(item => [item._id, item])).values()];
+    
+    // If we still have fewer than 6 products, repeat the array to fill the space
+    if (combined.length > 0 && combined.length < 6) {
+      const needed = 6 - combined.length;
+      combined = [...combined, ...combined.slice(0, needed)];
+    }
+    
+    return combined.slice(0, 6);
+  };
+  
+  const displayProducts = getDisplayProducts();
 
   // Format date to relative time (e.g., "2 days ago")
   const formatDate = (dateString) => {
@@ -90,14 +149,6 @@ const ProductDetailsDG = () => {
   const productId = id;
   const itemInWishlist = wishlistItems.some((i) => i.product === productId);
 
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
-  const [open, setOpen] = useState(false);
-  const mainSlider = useRef(null);
-  const { isAuthenticated, user } = useSelector((state) => state.user);
-
   // Set initial quantity from cart if item exists
   useEffect(() => {
     if (id && cartItems) {
@@ -115,6 +166,23 @@ const ProductDetailsDG = () => {
       dispatch(getProductDetails(id));
     }
   }, [dispatch, id]);
+
+  // Fetch similar products when product details are loaded
+  useEffect(() => {
+    if (product?._id && product?.category) {
+      // First fetch similar products from the same category
+      dispatch(getSimilarProducts(product.category));
+      
+      // Then fetch all products (we'll filter them client-side)
+      dispatch(getProducts({
+        page: 1,
+        price: [0, 100000],
+        ratings: 0,
+        sort: 'rating,desc',
+        limit: 12
+      }));
+    }
+  }, [dispatch, product?._id, product?.category]);
 
   const mainSliderSettings = {
     dots: false,
@@ -311,6 +379,20 @@ const ProductDetailsDG = () => {
   }, [product]);
 
   if (loading) return <Loader />;
+
+  const scrollAmount = 300; // Pixels to scroll on button click
+
+  const handleScrollLeft = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollRight = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="container mx-auto px-16 py-8 mt-10">
@@ -743,6 +825,85 @@ const ProductDetailsDG = () => {
             </div>
           </div>
         </div>
+          {/* Similar Products Slider */}
+          {product && displayProducts.length > 0 && (
+            <div className="mt-12">
+              <h2 className="text-2xl font-semibold mb-6">You May Also Like</h2>
+              <div className="relative">
+                {/* Left Navigation Button */}
+                <button
+                  onClick={handleScrollLeft}
+                  className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-[#003366] hover:bg-[#002244] shadow-md hover:cursor-pointer transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+
+                {/* Products Container */}
+                <div
+                  ref={sliderRef}
+                  className="flex overflow-x-auto scroll-smooth space-x-6 py-4 px-2"
+                  style={{
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                  }}
+                >
+                  {displayProducts.map((product) => (
+                      <div key={product._id} className="flex-shrink-0 w-56">
+                        <div
+                          onClick={() => navigate(`/product/${product._id}`)}
+                          className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer h-full flex flex-col"
+                        >
+                          <div className="h-48 flex items-center justify-center mb-3">
+                            <img
+                              src={product.images?.[0]?.url || 'https://via.placeholder.com/150'}
+                              alt={product.name}
+                              className="h-full w-full object-contain"
+                              onError={(e) => {
+                                e.target.src = 'https://via.placeholder.com/150';
+                              }}
+                            />
+                          </div>
+                          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">
+                            {product.name}
+                          </h3>
+                          <div className="mt-auto">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-bold text-gray-900">
+                                ₹{product.price?.toLocaleString()}
+                              </span>
+                              {product.cuttedPrice > product.price && (
+                                <span className="text-xs text-gray-500 line-through ml-2">
+                                  ₹{product.cuttedPrice?.toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                            {product.cuttedPrice > product.price && (
+                              <span className="text-xs text-green-600 mt-1 block">
+                                {getDiscount(product.cuttedPrice, product.price)}% off
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Right Navigation Button */}
+                <button
+                  onClick={handleScrollRight}
+                  className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-[#003366] hover:bg-[#002244] shadow-md hover:cursor-pointer transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );
