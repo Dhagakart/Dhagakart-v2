@@ -160,22 +160,56 @@ export const getPaymentStatus = (id) => async (dispatch) => {
 };
 
 // Get All Orders ---ADMIN
-export const getAllOrders = () => async (dispatch) => {
+export const getAllOrders = ({ page = 1, limit = 10, sortBy = '-createdAt' } = {}) => async (dispatch) => {
     try {
         dispatch({ type: ALL_ORDERS_REQUEST });
-
-        const { data } = await api.get('/admin/orders');
+        
+        console.log('Fetching all orders with:', { page, limit, sortBy });
+        
+        const queryParams = new URLSearchParams({
+            page,
+            limit,
+            sortBy
+        }).toString();
+        
+        const url = `/admin/orders?${queryParams}`;
+        console.log('API URL:', url);
+        
+        const { data } = await api.get(url);
+        
+        console.log('Orders API response:', {
+            ordersCount: data.orders?.length || 0,
+            pagination: data.pagination
+        });
 
         dispatch({
             type: ALL_ORDERS_SUCCESS,
-            payload: data.orders,
-        })
+            payload: {
+                orders: data.orders || [],
+                totalOrders: data.pagination?.totalOrders || 0,
+                totalPages: data.pagination?.totalPages || 1,
+                currentPage: data.pagination?.currentPage || 1
+            },
+        });
+        
+        return data; // Return the data for potential use in components
 
     } catch (error) {
+        console.error('Error fetching orders:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch orders';
+        
         dispatch({
             type: ALL_ORDERS_FAIL,
-            payload: error.response.data.message,
+            payload: errorMessage,
         });
+        
+        // Re-throw the error to be caught by the component
+        throw new Error(errorMessage);
     }
 };
 
@@ -229,24 +263,60 @@ export const deleteOrder = (id) => async (dispatch) => {
 export const searchOrders = (filters) => async (dispatch) => {
     try {
         dispatch({ type: SEARCH_ORDERS_REQUEST });
-
-        // Convert filters to query string
+        
+        // Convert filters to query string with proper handling of dates and objects
         const queryString = Object.entries(filters)
-            .filter(([_, value]) => value !== '' && value !== null && value !== undefined)
-            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .filter(([_, value]) => {
+                // Filter out empty strings, null, and undefined
+                if (value === '' || value === null || value === undefined) {
+                    return false;
+                }
+                // Filter out empty objects and arrays
+                if (typeof value === 'object' && Object.keys(value).length === 0) {
+                    return false;
+                }
+                return true;
+            })
+            .map(([key, value]) => {
+                // Handle date objects
+                if (value instanceof Date) {
+                    return `${key}=${encodeURIComponent(value.toISOString())}`;
+                }
+                // Handle nested objects (like shippingInfo)
+                if (typeof value === 'object' && value !== null) {
+                    return `${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                }
+                return `${key}=${encodeURIComponent(value)}`;
+            })
             .join('&');
 
-        const { data } = await api.get(`/admin/orders/search?${queryString}`);
+        console.log('Making API request to:', `/admin/orders/search?${queryString}`);
+        const response = await api.get(`/admin/orders/search?${queryString}`);
+        console.log('Search API response:', response.data);
 
         dispatch({
             type: SEARCH_ORDERS_SUCCESS,
-            payload: data
+            payload: response.data
         });
+        
+        return response.data; // Return the data for potential use in components
     } catch (error) {
+        console.error('Search orders error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to search orders';
+        
         dispatch({
             type: SEARCH_ORDERS_FAIL,
-            payload: error.response?.data?.message || error.message
+            payload: errorMessage
         });
+        
+        // Re-throw the error to be caught by the component
+        throw new Error(errorMessage);
     }
 };
 

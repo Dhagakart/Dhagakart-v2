@@ -130,35 +130,46 @@ export const orderDetailsReducer = (state = { order: {} }, { type, payload }) =>
 };
 
 
-export const allOrdersReducer = (state = { orders: [] }, { type, payload }) => {
+export const allOrdersReducer = (state = { 
+    orders: [], 
+    totalOrders: 0,
+    totalPages: 1,
+    currentPage: 1,
+    limit: 10
+}, { type, payload }) => {
     switch (type) {
         case ALL_ORDERS_REQUEST:
             return {
                 ...state,
                 loading: true,
+                error: null
             };
-
+            
         case ALL_ORDERS_SUCCESS:
             return {
                 ...state,
                 loading: false,
-                orders: payload.orders,
-                totalAmount: payload.totalAmount,
+                orders: Array.isArray(payload.orders) ? payload.orders : [],
+                totalOrders: payload.totalOrders || 0,
+                totalPages: payload.totalPages || 1,
+                currentPage: payload.currentPage || 1,
+                limit: payload.limit || 10
             };
-
+            
         case ALL_ORDERS_FAIL:
             return {
                 ...state,
                 loading: false,
                 error: payload,
+                orders: []
             };
-
+            
         case CLEAR_ERRORS:
             return {
                 ...state,
                 error: null,
             };
-
+            
         default:
             return state;
     }
@@ -174,15 +185,19 @@ export const searchOrdersReducer = (state = { orders: [], pagination: {} }, { ty
             };
 
         case SEARCH_ORDERS_SUCCESS:
+            // Handle both direct array response and paginated response
+            const orders = Array.isArray(payload) ? payload : (payload.orders || []);
+            const pagination = {
+                currentPage: payload.currentPage || 1,
+                totalPages: payload.totalPages || 1,
+                totalOrders: payload.totalOrders || (Array.isArray(payload) ? payload.length : 0)
+            };
+            
             return {
                 ...state,
                 loading: false,
-                orders: payload.orders || [],
-                pagination: {
-                    currentPage: payload.currentPage || 1,
-                    totalPages: payload.totalPages || 1,
-                    totalOrders: payload.totalOrders || 0
-                },
+                orders,
+                pagination,
                 error: null
             };
 

@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import { 
     clearErrors, 
     deleteOrder, 
-    getAllOrders,
-    searchOrders as searchOrdersAction 
+    getAllOrders, 
+    searchOrders, 
 } from '../../actions/orderAction';
 import { DELETE_ORDER_RESET } from '../../constants/orderConstants';
 import Actions from './Actions';
@@ -43,8 +43,73 @@ const OrderTable = () => {
     });
     const [sortBy, setSortBy] = useState('-createdAt');
 
-    const { orders, totalOrders, totalPages, currentPage, error } = useSelector((state) => state.allOrders);
-    const { loading, isDeleted, error: deleteError } = useSelector((state) => state.order);
+    // Get orders from Redux state with default values
+    const { 
+        orders: allOrders = [], 
+        totalOrders: allTotalOrders = 0, 
+        totalPages: allTotalPages = 1, 
+        currentPage: allCurrentPage = 1,
+        limit: allLimit = 10,
+        error: allOrdersError,
+        loading: allOrdersLoading = false
+    } = useSelector((state) => state.allOrders || {});
+
+    const { 
+        orders: searchResults = [], 
+        pagination: searchPagination = {
+            currentPage: 1,
+            totalPages: 1,
+            totalOrders: 0,
+            limit: 10
+        }, 
+        loading: searchLoading = false, 
+        error: searchError 
+    } = useSelector((state) => state.searchOrders || {});
+    
+    // Get order operation states
+    const { 
+        loading: isDeleting = false, 
+        isDeleted = false,
+        error: deleteError = null
+    } = useSelector((state) => state.order || {});
+    
+    // Check if we're currently searching (any search parameter has a value)
+    const isSearching = useMemo(() => 
+        Object.values(searchParams).some(param => 
+            param !== '' && param !== null && param !== undefined
+        ),
+        [searchParams]
+    );
+    
+    // Get orders from the appropriate state slice
+    const orders = isSearching ? searchResults : allOrders;
+    
+    // Log state for debugging
+    useEffect(() => {
+        console.log('OrderTable state:', {
+            allOrders,
+            searchResults,
+            searchPagination,
+            isSearching,
+            searchParams,
+            pagination: {
+                currentPage: isSearching ? searchPagination.currentPage : allCurrentPage,
+                totalPages: isSearching ? searchPagination.totalPages : allTotalPages,
+                totalOrders: isSearching ? searchPagination.totalOrders : allTotalOrders
+            }
+        });
+    }, [allOrders, searchResults, searchPagination, isSearching, searchParams, allCurrentPage, allTotalPages, allTotalOrders]);
+    
+    // Get pagination info based on whether we're searching or not
+    const paginationInfo = useMemo(() => ({
+        currentPage: isSearching ? (searchPagination.currentPage || 1) : (allCurrentPage || 1),
+        totalPages: isSearching ? (searchPagination.totalPages || 1) : (allTotalPages || 1),
+        totalOrders: isSearching ? (searchPagination.totalOrders || 0) : (allTotalOrders || 0),
+        limit: isSearching ? (searchPagination.limit || 10) : (allLimit || 10)
+    }), [isSearching, searchPagination, allCurrentPage, allTotalPages, allTotalOrders, allLimit]);
+    
+    const error = searchError || allOrdersError;
+    const isLoading = allOrdersLoading || searchLoading;
 
     useEffect(() => {
         if (window.innerWidth < 600) {
@@ -52,56 +117,102 @@ const OrderTable = () => {
         }
     }, []);
 
-    useEffect(() => {
-        if (error) {
-            enqueueSnackbar(error, { variant: "error" });
-            dispatch(clearErrors());
-        }
-        if (deleteError) {
-            enqueueSnackbar(deleteError, { variant: "error" });
-            dispatch(clearErrors());
-        }
-        if (isDeleted) {
-            enqueueSnackbar("Deleted Successfully", { variant: "success" });
-            dispatch({ type: DELETE_ORDER_RESET });
-            fetchOrders();
-        }
-    }, [dispatch, error, deleteError, isDeleted, enqueueSnackbar]);
-
-    useEffect(() => {
-        fetchOrders();
-    }, [page, limit, sortBy]);
-
-    const fetchOrders = () => {
+    // Define fetchOrders with useCallback to prevent recreation on every render
+    const fetchOrders = useCallback(async () => {
         const hasSearchParams = Object.values(searchParams).some(param => 
             param !== '' && param !== null && param !== undefined
         );
 
-        if (hasSearchParams) {
-            const params = {
-                ...searchParams,
-                startDate: searchParams.startDate ? searchParams.startDate.toISOString().split('T')[0] : '',
-                endDate: searchParams.endDate ? searchParams.endDate.toISOString().split('T')[0] : '',
-                page,
-                limit,
-                sortBy
-            };
-            // Remove empty params
-            Object.keys(params).forEach(key => {
-                if (params[key] === '' || params[key] === null || params[key] === undefined) {
-                    delete params[key];
-                }
+        try {
+            if (hasSearchParams) {
+                console.log('Fetching orders with search params:', searchParams);
+                // Prepare search parameters
+                const params = {
+                    ...searchParams,
+                    startDate: searchParams.startDate ? searchParams.startDate.toISOString().split('T')[0] : null,
+                    endDate: searchParams.endDate ? searchParams.endDate.toISOString().split('T')[0] : null,
+                    page,
+                    limit,
+                    sortBy
+                };
+                
+                // Remove empty params
+                Object.keys(params).forEach(key => {
+                    if (params[key] === '' || params[key] === null || params[key] === undefined) {
+                        delete params[key];
+                    }
+                });
+
+                console.log('Searching with params:', params);
+                await dispatch(searchOrders(params));
+            } else {
+                console.log('Fetching all orders with pagination:', { page, limit, sortBy });
+                await dispatch(getAllOrders({ 
+                    page, 
+                    limit, 
+                    sortBy 
+                }));
+            }
+        } catch (error) {
+            console.error('Error in fetchOrders:', error);
+            enqueueSnackbar(error.message || 'An error occurred while fetching orders', { 
+                variant: 'error' 
             });
-            dispatch(searchOrdersAction(params));
-        } else {
-            dispatch(getAllOrders({ page, limit, sortBy }));
         }
-    };
+    }, [searchParams, page, limit, sortBy, dispatch, enqueueSnackbar]);
+
+    // Track initial load
+    const isInitialMount = useRef(true);
+
+    // Handle all data fetching in a single effect
+    useEffect(() => {
+        // Skip the initial render to prevent duplicate calls
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        
+        console.log('Fetching orders...', { page, limit, sortBy, isSearching });
+        fetchOrders();
+    }, [page, limit, sortBy, isSearching, fetchOrders]);
+    
+    // Handle delete order success/error
+    useEffect(() => {
+        if (deleteError) {
+            enqueueSnackbar(deleteError, { variant: 'error' });
+            dispatch(clearErrors());
+        }
+        
+        if (isDeleted) {
+            enqueueSnackbar('Order deleted successfully', { variant: 'success' });
+            dispatch({ type: 'DELETE_ORDER_RESET' });
+            // Refresh the orders list after deletion
+            fetchOrders();
+        }
+    }, [dispatch, deleteError, isDeleted, enqueueSnackbar, fetchOrders]);
+    
+    // Initial data load
+    useEffect(() => {
+        console.log('Initial load, fetching orders...');
+        fetchOrders();
+        
+        // Cleanup function
+        return () => {
+            isInitialMount.current = true;
+        };
+    }, [fetchOrders]); // Add fetchOrders to dependency array
+    
+    // Reset to first page when search params change
+    useEffect(() => {
+        if (!isInitialMount.current) {
+            setPage(1);
+        }
+    }, [searchParams]);
 
     const handleSearch = (e) => {
         e.preventDefault();
         setPage(1); // Reset to first page on new search
-        fetchOrders();
+        // fetchOrders will be called automatically by the main effect
     };
 
     const handleClearFilters = () => {
@@ -210,22 +321,74 @@ const OrderTable = () => {
         },
     ];
 
-    const rows = orders?.map((order) => ({
-        id: order._id,
-        itemsQty: order.orderItems?.length || 0,
-        amount: order.totalPrice || 0,
-        orderOn: formatDate(order.createdAt),
-        status: order.orderStatus,
-        customerName: order.shippingInfo?.businessName || 'N/A',
-        customerEmail: order.user?.email || 'N/A',
-        paymentMethod: order.paymentInfo?.type || 'N/A'
-    })) || [];
+// Format orders for the DataGrid
+const rows = useMemo(() => {
+    if (!Array.isArray(orders)) {
+        console.warn('Orders is not an array:', orders);
+        return [];
+    }
+
+    return orders.map((order) => {
+        if (!order) {
+            console.warn('Encountered null/undefined order in orders array');
+            return null;
+        }
+
+        try {
+            return {
+                id: order._id || order.id || `temp-${Math.random().toString(36).substr(2, 9)}`,
+                itemsQty: Array.isArray(order.orderItems) ? order.orderItems.length : 0,
+                amount: order.totalPrice || 0,
+                orderOn: order.createdAt ? formatDate(order.createdAt) : 'N/A',
+                status: order.orderStatus || 'N/A',
+                customerName: order.shippingInfo?.name || order.shippingInfo?.businessName || 'N/A',
+                customerEmail: order.user?.email || order.userEmail || 'N/A',
+                paymentMethod: order.paymentInfo?.type || 'N/A',
+                // Include raw data for potential use in custom renderers
+                _rawData: order,
+                // Include additional fields that might be needed
+                orderItems: order.orderItems || [],
+                shippingInfo: order.shippingInfo || {},
+                user: order.user || {}
+            };
+        } catch (error) {
+            console.error('Error formatting order:', error, 'Order data:', order);
+            return null;
+        }
+    }).filter(Boolean); // Filter out any null entries
+}, [orders]);
+
+// Debug effect to log important state changes
+useEffect(() => {
+    console.group('OrderTable Debug Info');
+    console.log('Orders count:', orders?.length || 0);
+    console.log('Rows count:', rows.length);
+    console.log('Pagination:', paginationInfo);
+    console.log('Is searching:', isSearching);
+    
+    if (isSearching) {
+        console.log('Search params:', searchParams);
+        if (searchResults.length > 0) {
+            console.log('First search result:', searchResults[0]);
+        } else {
+            console.log('No search results');
+        }
+    } else if (allOrders.length > 0) {
+        console.log('First order in allOrders:', allOrders[0]);
+    }
+    
+    if (rows.length > 0) {
+        console.log('First row data:', rows[0]);
+    }
+    
+    console.groupEnd();
+}, [orders, rows, paginationInfo, isSearching, searchResults, allOrders, searchParams]);
 
     return (
         <>
             <MetaData title="Admin Orders | DhagaKart" />
 
-            {loading && <BackdropLoader />}
+            {isLoading && <BackdropLoader />}
 
             <main className="flex min-h-screen">
                 {!onMobile && <Sidebar activeTab="orders" />}
@@ -367,17 +530,39 @@ const OrderTable = () => {
                             <DataGrid
                                 rows={rows}
                                 columns={columns}
-                                pageSize={limit}
-                                page={page - 1}
-                                onPageChange={(newPage) => setPage(newPage + 1)}
-                                onPageSizeChange={(newPageSize) => setLimit(newPageSize)}
+                                rowCount={paginationInfo.totalOrders}
+                                pageSize={paginationInfo.limit}
+                                page={paginationInfo.currentPage - 1}
+                                onPageChange={(newPage) => {
+                                    console.log('Page changed to:', newPage + 1);
+                                    setPage(newPage + 1);
+                                    window.scrollTo(0, 0);
+                                }}
+                                onPageSizeChange={(newPageSize) => {
+                                    console.log('Page size changed to:', newPageSize);
+                                    setLimit(newPageSize);
+                                    setPage(1); // Reset to first page when page size changes
+                                }}
                                 rowsPerPageOptions={[5, 10, 25, 50]}
-                                rowCount={totalOrders || 0}
                                 paginationMode="server"
+                                pagination
                                 disableSelectionOnClick
                                 disableColumnMenu
                                 autoHeight
-                                loading={loading}
+                                loading={isLoading}
+                                getRowId={(row) => row._id || row.id}
+                                components={{
+                                    NoRowsOverlay: () => (
+                                        <div className="flex items-center justify-center h-full">
+                                            <p>No orders found</p>
+                                        </div>
+                                    ),
+                                    LoadingOverlay: () => (
+                                        <div className="flex items-center justify-center h-full">
+                                            <p>Loading orders...</p>
+                                        </div>
+                                    )
+                                }}
                                 sx={{
                                     '& .MuiDataGrid-main': {
                                         width: '100%',
@@ -390,12 +575,6 @@ const OrderTable = () => {
                                         borderTopLeftRadius: '8px',
                                         borderTopRightRadius: '8px',
                                     },
-                                    '& .MuiDataGrid-cell': {
-                                        borderBottom: '1px solid #f3f4f6',
-                                    },
-                                    '& .MuiDataGrid-row:hover': {
-                                        backgroundColor: '#f9fafb',
-                                    },
                                     '& .MuiDataGrid-footerContainer': {
                                         borderTop: '1px solid #e5e7eb',
                                     },
@@ -404,7 +583,11 @@ const OrderTable = () => {
                                     },
                                     '& .MuiDataGrid-cell': {
                                         padding: '12px 16px',
+                                        borderBottom: '1px solid #f3f4f6',
                                     },
+                                    '& .MuiDataGrid-row:hover': {
+                                        backgroundColor: '#f9fafb',
+                                    }
                                 }}
                             />
                         </div>

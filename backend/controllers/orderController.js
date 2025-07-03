@@ -99,23 +99,54 @@ exports.myOrders = asyncErrorHandler(async (req, res, next) => {
 
 
 // Get All Orders ---ADMIN
+// Get All Orders ---ADMIN
 exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
-
-    const orders = await Order.find();
-
-    if (!orders) {
-        return next(new ErrorHandler("Order Not Found", 404));
-    }
-
-    let totalAmount = 0;
-    orders.forEach((order) => {
-        totalAmount += order.totalPrice;
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Sorting
+    const sortBy = req.query.sortBy || '-createdAt';
+    
+    // Build query
+    const query = {};
+    
+    // Execute query with pagination and sorting
+    const [orders, totalOrders] = await Promise.all([
+        Order.find(query)
+            .sort(sortBy)
+            .limit(limit)
+            .skip(skip)
+            .populate('user', 'name email'),
+        Order.countDocuments(query)
+    ]);
+    
+    // Calculate total pages
+    const totalPages = Math.ceil(totalOrders / limit);
+    
+    // Calculate total amount for all orders (for backward compatibility)
+    const totalAmount = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+    
+    // Log the response for debugging
+    console.log('Sending orders response:', {
+        ordersCount: orders.length,
+        totalOrders,
+        totalPages,
+        currentPage: page,
+        totalAmount
     });
 
     res.status(200).json({
         success: true,
         orders,
         totalAmount,
+        pagination: {
+            totalOrders,
+            totalPages,
+            currentPage: page,
+            limit
+        }
     });
 });
 
@@ -159,6 +190,8 @@ async function updateStock(id, quantity) {
 
 // Search Orders with Filters ---ADMIN
 exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
+    console.log('Search request received with query:', req.query);
+    
     const {
         orderId,
         customerName,
@@ -229,23 +262,35 @@ exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
     const currentPage = Number(page) || 1;
     const skip = (currentPage - 1) * limit;
 
+    console.log('MongoDB query:', JSON.stringify(query, null, 2));
+    console.log('Pagination:', { page, limit, skip, sortBy });
+    
     // Execute query with pagination
     const orders = await Order.find(query)
         .sort(sortBy)
-        .limit(limit)
-        .skip(skip)
+        .limit(Number(limit))
+        .skip(Number(skip))
         .populate('user', 'name email');
 
     // Get total count for pagination
     const totalOrders = await Order.countDocuments(query);
+    
+    console.log(`Found ${orders.length} orders out of ${totalOrders} total`);
 
-    res.status(200).json({
+    const response = {
         success: true,
         orders,
-        currentPage,
-        totalPages: Math.ceil(totalOrders / limit),
+        currentPage: Number(page),
+        totalPages: Math.ceil(totalOrders / Number(limit)),
         totalOrders
-    });
+    };
+    
+    console.log('Sending response:', JSON.stringify({
+        ...response,
+        orders: `[${response.orders.length} orders]`
+    }, null, 2));
+    
+    res.status(200).json(response);
 });
 
 // Delete Order ---ADMIN

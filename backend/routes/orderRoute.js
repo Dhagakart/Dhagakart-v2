@@ -426,6 +426,10 @@ router.route('/admin/orders').get(isAuthenticatedUser, authorizeRoles("admin"), 
  *       404:
  *         description: Order not found
  */
+// Admin routes
+router.route('/admin/orders')
+    .get(isAuthenticatedUser, authorizeRoles("admin"), getAllOrders);
+
 router.route('/admin/order/:id')
     .put(isAuthenticatedUser, authorizeRoles("admin"), updateOrder)
     .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteOrder);
