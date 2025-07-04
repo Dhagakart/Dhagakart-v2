@@ -160,6 +160,45 @@ export const getPaymentStatus = (id) => async (dispatch) => {
 };
 
 // Get All Orders ---ADMIN
+// Get All Orders Without Pagination ---ADMIN
+export const getAllOrdersWithoutPagination = () => async (dispatch) => {
+    try {
+        dispatch({ type: ALL_ORDERS_REQUEST });
+        
+        console.log('Fetching all orders without pagination');
+        
+        const { data } = await axios.get('/admin/orders/all');
+        
+        dispatch({
+            type: ALL_ORDERS_SUCCESS,
+            payload: {
+                orders: data.data,
+                totalAmount: data.data.reduce((sum, order) => sum + order.totalPrice, 0)
+            },
+        });
+        
+        return data.data; // Return the orders for the component to use
+    } catch (error) {
+        console.error('Error fetching all orders:', {
+            error,
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch all orders';
+        
+        dispatch({
+            type: ALL_ORDERS_FAIL,
+            payload: errorMessage,
+        });
+        
+        // Re-throw the error to be caught by the component
+        throw new Error(errorMessage);
+    }
+};
+
+// Get All Orders With Pagination ---ADMIN
 export const getAllOrders = ({ page = 1, limit = 10, sortBy = '-createdAt' } = {}) => async (dispatch) => {
     try {
         dispatch({ type: ALL_ORDERS_REQUEST });

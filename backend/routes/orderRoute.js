@@ -1,5 +1,5 @@
 const express = require('express');
-const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders } = require('../controllers/orderController');
+const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders, getAllOrdersWithoutPagination } = require('../controllers/orderController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -339,6 +339,33 @@ router.route('/admin/orders').get(isAuthenticatedUser, authorizeRoles("admin"), 
  *                   type: integer
  */
 router.route('/admin/orders/search').get(isAuthenticatedUser, authorizeRoles('admin'), searchOrders);
+
+/**
+ * @swagger
+ * /api/v1/admin/orders/all:
+ *   get:
+ *     summary: Get all orders without pagination (Admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
+ */
+router.route('/admin/orders/all').get(isAuthenticatedUser, authorizeRoles('admin'), getAllOrdersWithoutPagination);
 
 /**
  * @swagger

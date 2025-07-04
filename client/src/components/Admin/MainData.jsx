@@ -3,7 +3,7 @@ import Chart from 'chart.js/auto';
 import { Doughnut, Line, Pie, Bar } from 'react-chartjs-2';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAdminProducts } from '../../actions/productAction';
-import { getAllOrders } from '../../actions/orderAction';
+import { getAllOrdersWithoutPagination } from '../../actions/orderAction';
 import { getAllUsers } from '../../actions/userAction';
 import { categories } from '../../utils/constants';
 import MetaData from '../Layouts/MetaData';
@@ -35,9 +35,19 @@ const MainData = () => {
   const totalAmount = orders?.reduce((total, order) => total + order.totalPrice, 0) || 0;
 
   useEffect(() => {
-    dispatch(getAdminProducts());
-    dispatch(getAllOrders());
-    dispatch(getAllUsers());
+    const fetchData = async () => {
+      try {
+        await Promise.all([
+          dispatch(getAdminProducts()),
+          dispatch(getAllOrdersWithoutPagination()),
+          dispatch(getAllUsers())
+        ]);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    
+    fetchData();
   }, [dispatch]);
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

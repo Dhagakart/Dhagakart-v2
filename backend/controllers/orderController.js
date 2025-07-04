@@ -188,6 +188,25 @@ async function updateStock(id, quantity) {
     await product.save({ validateBeforeSave: false });
 }
 
+// Get All Orders Without Pagination --- ADMIN
+exports.getAllOrdersWithoutPagination = asyncErrorHandler(async (req, res, next) => {
+    try {
+        // Get all orders with user details populated
+        const orders = await Order.find()
+            .sort('-createdAt')
+            .populate('user', 'name email');
+
+        res.status(200).json({
+            success: true,
+            count: orders.length,
+            data: orders
+        });
+    } catch (error) {
+        console.error('Error fetching all orders:', error);
+        return next(new ErrorHandler('Error fetching all orders', 500));
+    }
+});
+
 // Search Orders with Filters ---ADMIN
 exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
     console.log('Search request received with query:', req.query);
