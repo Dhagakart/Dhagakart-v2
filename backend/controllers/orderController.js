@@ -199,7 +199,8 @@ exports.getAllOrdersWithoutPagination = asyncErrorHandler(async (req, res, next)
         res.status(200).json({
             success: true,
             count: orders.length,
-            data: orders
+            orders: orders,  // Changed from 'data' to 'orders' to match frontend expectation
+            totalAmount: orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0)
         });
     } catch (error) {
         console.error('Error fetching all orders:', error);

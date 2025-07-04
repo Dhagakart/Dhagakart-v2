@@ -169,15 +169,18 @@ export const getAllOrdersWithoutPagination = () => async (dispatch) => {
         
         const { data } = await axios.get('/admin/orders/all');
         
+        // Use data.orders if available, otherwise fallback to empty array
+        const orders = data.orders || [];
+        
         dispatch({
             type: ALL_ORDERS_SUCCESS,
             payload: {
-                orders: data.data,
-                totalAmount: data.data.reduce((sum, order) => sum + order.totalPrice, 0)
+                orders: orders,
+                totalAmount: data.totalAmount || orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0)
             },
         });
         
-        return data.data; // Return the orders for the component to use
+        return orders; // Return the orders for the component to use
     } catch (error) {
         console.error('Error fetching all orders:', {
             error,
