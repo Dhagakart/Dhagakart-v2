@@ -457,6 +457,12 @@ router.route('/admin/orders').get(isAuthenticatedUser, authorizeRoles("admin"), 
 router.route('/admin/orders')
     .get(isAuthenticatedUser, authorizeRoles("admin"), getAllOrders);
 
+router.route('/admin/orders/all')
+    .get(isAuthenticatedUser, authorizeRoles('admin'), getAllOrdersWithoutPagination);
+
+router.route('/admin/orders/search')
+    .get(isAuthenticatedUser, authorizeRoles('admin'), searchOrders);
+
 router.route('/admin/order/:id')
     .put(isAuthenticatedUser, authorizeRoles("admin"), updateOrder)
     .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteOrder);

@@ -27,12 +27,33 @@ const ChartContainer = ({ title, children }) => (
 
 const MainData = () => {
   const dispatch = useDispatch();
+  // Get data from Redux store
   const { products } = useSelector((state) => state.products);
-  const { orders } = useSelector((state) => state.allOrders);
+  const allOrdersState = useSelector((state) => state.allOrders);
   const { users } = useSelector((state) => state.users);
 
+  // Log the entire allOrders state for debugging
+  console.log('All Orders State:', allOrdersState);
+
+  // Extract values with proper fallbacks
+  const orders = allOrdersState?.orders || [];
+  const totalOrders = allOrdersState?.totalOrders || 0;
+  const totalAmount = allOrdersState?.totalAmount || 0;
+
+  // Calculate derived values
   const outOfStock = products?.reduce((count, item) => count + (item.stock === 0 ? 1 : 0), 0);
-  const totalAmount = orders?.reduce((total, order) => total + order.totalPrice, 0) || 0;
+  const calculatedTotalAmount = totalAmount > 0 ? totalAmount : 
+    (Array.isArray(orders) ? orders.reduce((total, order) => total + (order.totalPrice || 0), 0) : 0);
+  
+  // Debug logs
+  console.log('Processed Values:', {
+    ordersCount: orders.length,
+    totalOrders,
+    totalAmount,
+    calculatedTotalAmount,
+    productsCount: products?.length,
+    usersCount: users?.length
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -154,12 +175,12 @@ const MainData = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Total Sales Amount"
-            value={`₹${totalAmount.toLocaleString()}`}
+            value={`₹${calculatedTotalAmount.toLocaleString()}`}
             icon={<i className="fas fa-rupee-sign" />}
           />
           <StatCard
             title="Total Orders"
-            value={orders?.length || 0}
+            value={totalOrders}
             icon={<i className="fas fa-shopping-cart" />}
           />
           <StatCard

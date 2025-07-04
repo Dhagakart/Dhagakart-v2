@@ -150,7 +150,9 @@ export const allOrdersReducer = (state = {
                 ...state,
                 loading: false,
                 orders: Array.isArray(payload.orders) ? payload.orders : [],
-                totalOrders: payload.totalOrders || 0,
+                totalOrders: payload.totalOrders || (Array.isArray(payload.orders) ? payload.orders.length : 0),
+                totalAmount: payload.totalAmount || (Array.isArray(payload.orders) ? 
+                    payload.orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0) : 0),
                 totalPages: payload.totalPages || 1,
                 currentPage: payload.currentPage || 1,
                 limit: payload.limit || 10
