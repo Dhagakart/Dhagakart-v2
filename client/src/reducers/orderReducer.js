@@ -133,9 +133,12 @@ export const orderDetailsReducer = (state = { order: {} }, { type, payload }) =>
 export const allOrdersReducer = (state = { 
     orders: [], 
     totalOrders: 0,
+    totalAmount: 0,
     totalPages: 1,
     currentPage: 1,
-    limit: 10
+    limit: 10,
+    loading: false,
+    error: null
 }, { type, payload }) => {
     switch (type) {
         case ALL_ORDERS_REQUEST:
@@ -146,24 +149,27 @@ export const allOrdersReducer = (state = {
             };
             
         case ALL_ORDERS_SUCCESS:
+            console.log('ALL_ORDERS_SUCCESS payload:', payload);
             return {
                 ...state,
                 loading: false,
                 orders: Array.isArray(payload.orders) ? payload.orders : [],
-                totalOrders: payload.totalOrders || (Array.isArray(payload.orders) ? payload.orders.length : 0),
-                totalAmount: payload.totalAmount || (Array.isArray(payload.orders) ? 
-                    payload.orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0) : 0),
+                totalOrders: payload.totalOrders || 0,
+                totalAmount: payload.totalAmount || 0,
                 totalPages: payload.totalPages || 1,
                 currentPage: payload.currentPage || 1,
-                limit: payload.limit || 10
+                limit: payload.limit || (Array.isArray(payload.orders) ? payload.orders.length : 10)
             };
             
         case ALL_ORDERS_FAIL:
+            console.error('ALL_ORDERS_FAIL:', payload);
             return {
                 ...state,
                 loading: false,
                 error: payload,
-                orders: []
+                orders: [],
+                totalOrders: 0,
+                totalAmount: 0
             };
             
         case CLEAR_ERRORS:

@@ -194,17 +194,29 @@ exports.getAllOrdersWithoutPagination = asyncErrorHandler(async (req, res, next)
         // Get all orders with user details populated
         const orders = await Order.find()
             .sort('-createdAt')
-            .populate('user', 'name email');
+            .populate('user', 'name email')
+            .lean(); // Convert to plain JavaScript object
+
+        const totalAmount = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+        const totalOrders = orders.length;
+
+        console.log('Sending response with:', {
+            success: true,
+            totalOrders,
+            totalAmount,
+            ordersCount: orders.length
+        });
 
         res.status(200).json({
             success: true,
-            count: orders.length,
-            orders: orders,  // Changed from 'data' to 'orders' to match frontend expectation
-            totalAmount: orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0)
+            orders: orders,
+            totalOrders: totalOrders,
+            totalAmount: totalAmount,
+            count: totalOrders
         });
     } catch (error) {
-        console.error('Error fetching all orders:', error);
-        return next(new ErrorHandler('Error fetching all orders', 500));
+        console.error('Error in getAllOrdersWithoutPagination:', error);
+        return next(new ErrorHandler('Error fetching all orders: ' + error.message, 500));
     }
 });
 

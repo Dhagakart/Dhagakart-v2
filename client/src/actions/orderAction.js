@@ -167,33 +167,36 @@ export const getAllOrdersWithoutPagination = () => async (dispatch) => {
         
         console.log('Fetching all orders without pagination');
         
-        const response = await axios.get('/api/v1/admin/orders/all');
-        console.log('API Response:', response);
+        const { data } = await axios.get('/api/v1/admin/orders/all');
+        console.log('API Response Data:', data);
         
-        const { data } = response;
-        console.log('Response Data:', data);
+        // Ensure we have the expected data structure
+        const orders = Array.isArray(data.orders) ? data.orders : [];
+        const totalAmount = data.totalAmount || 0;
+        const totalOrders = data.totalOrders || orders.length;
         
-        // Use data.orders if available, otherwise fallback to empty array
-        const orders = data.orders || [];
-        const totalAmount = data.totalAmount || orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+        console.log('Processed Orders Data:', { 
+            ordersCount: orders.length,
+            totalOrders,
+            totalAmount 
+        });
         
-        console.log('Processed Data:', { orders, totalAmount });
-        
+        // Prepare the payload for the reducer
         const payload = {
-            orders: orders,
-            totalAmount: totalAmount,
-            totalOrders: data.count || orders.length,
-            // Ensure we have all required fields for the reducer
+            orders,
+            totalAmount,
+            totalOrders,
             totalPages: 1,
             currentPage: 1,
-            limit: orders.length
+            limit: totalOrders,
+            count: totalOrders
         };
         
         console.log('Dispatching with payload:', payload);
         
         dispatch({
             type: ALL_ORDERS_SUCCESS,
-            payload: payload
+            payload
         });
         
         return orders; // Return the orders for the component to use
