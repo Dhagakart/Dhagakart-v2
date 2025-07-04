@@ -3,7 +3,7 @@ import Chart from 'chart.js/auto';
 import { Doughnut, Line, Pie, Bar } from 'react-chartjs-2';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAdminProducts } from '../../actions/productAction';
-import { getAllOrdersWithoutPagination } from '../../actions/orderAction';
+import { getAllOrders } from '../../actions/orderAction';
 import { getAllUsers } from '../../actions/userAction';
 import { categories } from '../../utils/constants';
 import MetaData from '../Layouts/MetaData';
@@ -29,24 +29,16 @@ const MainData = () => {
   const dispatch = useDispatch();
   // Get data from Redux store
   const { products } = useSelector((state) => state.products);
-  const allOrdersState = useSelector((state) => state.allOrders);
+  const { orders = [], totalAmount = 0, totalOrders = 0 } = useSelector((state) => state.allOrders);
   const { users } = useSelector((state) => state.users);
-
-  // Log the entire allOrders state for debugging
-  console.log('All Orders State:', allOrdersState);
-
-  // Extract values with proper fallbacks
-  const orders = allOrdersState?.orders || [];
-  const totalOrders = allOrdersState?.totalOrders || 0;
-  const totalAmount = allOrdersState?.totalAmount || 0;
 
   // Calculate derived values
   const outOfStock = products?.reduce((count, item) => count + (item.stock === 0 ? 1 : 0), 0);
   const calculatedTotalAmount = totalAmount > 0 ? totalAmount : 
     (Array.isArray(orders) ? orders.reduce((total, order) => total + (order.totalPrice || 0), 0) : 0);
   
-  // Debug logs
-  console.log('Processed Values:', {
+  // Log current state for debugging
+  console.log('Dashboard State:', {
     ordersCount: orders.length,
     totalOrders,
     totalAmount,
@@ -58,13 +50,14 @@ const MainData = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch all orders with a large page size (1000 should be enough)
         await Promise.all([
           dispatch(getAdminProducts()),
-          dispatch(getAllOrdersWithoutPagination()),
+          dispatch(getAllOrders({ page: 1, limit: 1000 })),
           dispatch(getAllUsers())
         ]);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching dashboard data:', error);
       }
     };
     
