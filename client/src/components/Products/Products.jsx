@@ -774,7 +774,7 @@ const Products = () => {
         <>
             <MetaData title="All Products | DhagaKart" />
 
-            <MinCategory />
+            {/* <MinCategory /> */}
             <main className="w-full min-h-[90vh] mt-10 px-4 sm:px-16">
                 {/* <!-- row --> */}
                 <div className="min-h-[90vh] flex gap-3 mt-4 m-auto mb-7">
