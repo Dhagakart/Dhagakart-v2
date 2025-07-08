@@ -1,24 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSnackbar } from 'notistack';
+import toast from 'react-hot-toast';
 import { saveShippingInfo } from '../../actions/cartAction';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+    addShippingAddress, 
+    updateShippingAddress, 
+    deleteShippingAddress,
+    clearErrors 
+} from '../../actions/userAction';
+import { useNavigate } from 'react-router-dom';
 import MetaData from '../Layouts/MetaData';
-import api from '../../utils/api';
 import { formatPrice } from '../../utils/formatPrice';
 
 const Shipping = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { enqueueSnackbar } = useSnackbar();
 
-    // API functions
-    const getAddresses = () => api.get('/users/me');
-    const addAddress = (address) => api.post('/users/me/address/add', address);
-    const updateAddress = (id, address) => api.put(`/users/me/address/${id}`, address);
-    const deleteAddress = (id) => api.delete(`/users/me/address/${id}`);
 
     const { cartItems, shippingInfo } = useSelector((state) => state.cart);
+    const { user, loading, error, isUpdated, isDeleted } = useSelector((state) => state.user);
+    
     const [addresses, setAddresses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,7 +30,6 @@ const Shipping = () => {
     // Form state
     const [formData, setFormData] = useState({
         fullName: '',
-        companyName: '',
         primaryAddress: '',
         city: '',
         state: '',
@@ -37,29 +37,57 @@ const Shipping = () => {
         zipCode: '',
         phoneNumber: '',
         email: '',
-        additionalInfo: ''
+        additionalInfo: '',
+        isDefault: false
     });
 
     // Load user addresses
     useEffect(() => {
-        const fetchAddresses = async () => {
-            try {
-                const { data } = await getAddresses();
-                setAddresses(data.user.addresses || []);
-                
-                if (data.user.addresses?.length > 0) {
-                    const defaultAddress = data.user.addresses.find(addr => addr.isDefault) || data.user.addresses[0];
-                    setSelectedAddress(defaultAddress._id);
-                    handleAddressSelect(defaultAddress);
-                }
-            } catch (error) {
-                enqueueSnackbar('Failed to load addresses', { variant: 'error' });
-            } finally {
-                setIsLoading(false);
+        console.log('useEffect - user changed:', { user });
+        if (user) {
+            console.log('Setting addresses from user:', user.shippingAddresses);
+            setAddresses(user.shippingAddresses || []);
+            
+            if (user.shippingAddresses?.length > 0) {
+                const defaultAddress = user.shippingAddresses.find(addr => addr.isDefault) || user.shippingAddresses[0];
+                console.log('Setting default address:', defaultAddress);
+                setSelectedAddress(defaultAddress._id);
+                handleAddressSelect(defaultAddress);
+            } else {
+                console.log('No shipping addresses found');
             }
-        };
-        fetchAddresses();
-    }, []);
+            setIsLoading(false);
+        }
+    }, [user]);
+
+    // Handle success/error messages and state updates
+    useEffect(() => {
+        console.log('useEffect - state changes:', { error, isDeleted, isUpdated });
+        if (error) {
+            console.error('Error in Shipping component:', error);
+            toast.error(error);
+            dispatch(clearErrors());
+        }
+        
+        if (isDeleted) {
+            console.log('Address deleted successfully');
+            toast.success('Address deleted successfully');
+            dispatch({ type: 'DELETE_SHIPPING_ADDRESS_RESET' });
+        }
+        
+        if (isUpdated) {
+            console.log('Address update detected in useEffect');
+            console.log('Current isEditing:', isEditing);
+            console.log('Current isNewAddress:', isNewAddress);
+            toast.success('Address updated successfully');
+            dispatch({ type: 'UPDATE_SHIPPING_ADDRESS_RESET' });
+            
+            // Force close the form
+            console.log('Forcing form to close');
+            setIsEditing(false);
+            setIsNewAddress(false);
+        }
+    }, [dispatch, error, isDeleted, isUpdated]);
 
     // Handle form input changes
     const handleInputChange = (e) => {
@@ -79,102 +107,206 @@ const Shipping = () => {
             state: address.state,
             pincode: address.zipCode,
             phoneNo: address.phoneNumber,
-            country: address.country
+            country: address.country,
+            email: address.email
         }));
     };
 
-    // Add new address
+    // Add new shipping address
     const handleAddAddress = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        
+        const addressData = {
+            fullName: formData.fullName,
+            primaryAddress: formData.primaryAddress,
+            city: formData.city,
+            state: formData.state,
+            country: formData.country,
+            zipCode: formData.zipCode,
+            phoneNumber: formData.phoneNumber,
+            email: formData.email,
+            additionalInfo: formData.additionalInfo,
+            isDefault: formData.isDefault || addresses.length === 0
+        };
+        
         try {
-            console.log('Sending address data:', formData);
-            const { data } = await addAddress(formData);
-            console.log('Response:', data);
-            const newAddress = data.user.addresses[data.user.addresses.length - 1];
-            setAddresses([...addresses, newAddress]);
-            enqueueSnackbar('Address added successfully', { variant: 'success' });
+            const updatedUser = await dispatch(addShippingAddress(addressData));
             
-            if (formData.isDefault) {
-                setSelectedAddress(newAddress._id);
-                handleAddressSelect(newAddress);
+            if (updatedUser) {
+                toast.success('Address added successfully');
+                
+                // Update addresses list from user state
+                const updatedAddresses = updatedUser.shippingAddresses || [];
+                setAddresses(updatedAddresses);
+                
+                // Select the new address if it's set as default or no address was selected
+                if (formData.isDefault || !selectedAddress) {
+                    const newAddress = updatedAddresses[updatedAddresses.length - 1];
+                    if (newAddress) {
+                        setSelectedAddress(newAddress._id);
+                        handleAddressSelect(newAddress);
+                    }
+                }
+                
+                // Close form and reset state
+                setIsNewAddress(false);
+                setIsEditing(false);
+                setFormData({
+                    fullName: '',
+                    primaryAddress: '',
+                    city: '',
+                    state: '',
+                    country: 'India',
+                    zipCode: '',
+                    phoneNumber: '',
+                    email: '',
+                    additionalInfo: '',
+                    isDefault: false
+                });
             }
-            
-            setIsNewAddress(false);
-            setFormData({
-                fullName: '',
-                companyName: '',
-                primaryAddress: '',
-                city: '',
-                state: '',
-                country: 'India',
-                zipCode: '',
-                phoneNumber: '',
-                email: '',
-                additionalInfo: '',
-                isDefault: addresses.length === 0
-            });
         } catch (error) {
             console.error('Error adding address:', error);
-            enqueueSnackbar(
-                error.response?.data?.message || 'Failed to add address', 
-                { variant: 'error' }
-            );
+            toast.error(error.response?.data?.message || 'Failed to add address');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Update address
+    // Update shipping address
     const handleUpdateAddress = async (e) => {
         e.preventDefault();
+        console.log('handleUpdateAddress called with:', formData);
         setIsSubmitting(true);
+        
+        const addressData = {
+            fullName: formData.fullName,
+            primaryAddress: formData.primaryAddress,
+            city: formData.city,
+            state: formData.state,
+            country: formData.country,
+            zipCode: formData.zipCode,
+            phoneNumber: formData.phoneNumber,
+            email: formData.email,
+            additionalInfo: formData.additionalInfo,
+            isDefault: formData.isDefault
+        };
+        
         try {
-            await updateAddress(selectedAddress, formData);
-            const { data } = await getAddresses();
-            setAddresses(data.user.addresses || []);
-            enqueueSnackbar('Address updated successfully', { variant: 'success' });
+            console.log('Dispatching updateShippingAddress with:', { selectedAddress, addressData });
+            const updatedUser = await dispatch(updateShippingAddress(selectedAddress, addressData));
+            console.log('updateShippingAddress result:', updatedUser);
             
-            if (selectedAddress === formData._id) {
-                handleAddressSelect(formData);
+            if (updatedUser) {
+                console.log('Update successful, updating local state');
+                // Update addresses list from user state
+                setAddresses(updatedUser.shippingAddresses || []);
+                
+                // Update selected address if it was the one edited
+                if (selectedAddress) {
+                    const updatedAddress = updatedUser.shippingAddresses.find(addr => addr._id === selectedAddress);
+                    if (updatedAddress) {
+                        console.log('Updated address found, selecting it');
+                        handleAddressSelect(updatedAddress);
+                    }
+                }
+                
+                // Close form and reset state
+                console.log('Closing form and resetting state');
+                setIsEditing(false);
+                setIsNewAddress(false);
+                setFormData({
+                    fullName: '',
+                    primaryAddress: '',
+                    city: '',
+                    state: '',
+                    country: 'India',
+                    zipCode: '',
+                    phoneNumber: '',
+                    email: '',
+                    additionalInfo: '',
+                    isDefault: false
+                });
+                
+                // Show success message
+                toast.success('Address updated successfully');
+                
+                console.log('Form should be closed now');
+            } else {
+                console.warn('Update was not successful');
+                toast.error('Failed to update address');
             }
-            
-            setIsEditing(false);
         } catch (error) {
             console.error('Error updating address:', error);
-            enqueueSnackbar(
-                error.response?.data?.message || 'Failed to update address', 
-                { variant: 'error' }
-            );
+            toast.error(error.response?.data?.message || 'Failed to update address');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Delete address
-    const handleDeleteAddress = async (id) => {
+    // State for delete confirmation modal
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState(null);
+
+    // Open delete confirmation modal
+    const confirmDeleteAddress = (id, e) => {
+        e.stopPropagation();
+        setAddressToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    // Close delete confirmation modal
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+        setAddressToDelete(null);
+    };
+
+    // Delete shipping address
+    const handleDeleteAddress = async () => {
+        if (!addressToDelete) return;
+        
         try {
-            await deleteAddress(id);
-            const updatedAddresses = addresses.filter(addr => addr._id !== id);
-            setAddresses(updatedAddresses);
-            enqueueSnackbar('Address deleted successfully', { variant: 'success' });
+            console.log('Attempting to delete address:', addressToDelete);
+            const result = await dispatch(deleteShippingAddress(addressToDelete));
+            console.log('Delete result:', result);
             
-            if (selectedAddress === id) {
-                setSelectedAddress(null);
-                dispatch(saveShippingInfo({}));
+            if (result && result.success) {
+                // Update addresses list from the updated user data
+                const updatedUser = result.user || user; // Fallback to current user data if not in result
+                const updatedAddresses = updatedUser.shippingAddresses || [];
                 
-                if (updatedAddresses.length > 0) {
-                    const firstAddress = updatedAddresses[0];
-                    setSelectedAddress(firstAddress._id);
-                    handleAddressSelect(firstAddress);
+                setAddresses(updatedAddresses);
+                
+                // Update selected address if the deleted one was selected
+                if (selectedAddress === addressToDelete) {
+                    setSelectedAddress(null);
+                    dispatch(saveShippingInfo({}));
+                    
+                    // Select the first available address if any
+                    if (updatedAddresses.length > 0) {
+                        const firstAddress = updatedAddresses[0];
+                        setSelectedAddress(firstAddress._id);
+                        handleAddressSelect(firstAddress);
+                    }
                 }
+                
+                // Show success message
+                toast.success('Address deleted successfully');
+                
+                // Close the modal
+                closeDeleteModal();
+                
+                // Reset form if in edit mode
+                setIsEditing(false);
+                setIsNewAddress(false);
+            } else {
+                console.error('Delete operation did not return success');
+                toast.error('Failed to delete address');
             }
         } catch (error) {
-            console.error('Error deleting address:', error);
-            enqueueSnackbar(
-                error.response?.data?.message || 'Failed to delete address', 
-                { variant: 'error' }
-            );
+            console.error('Error in handleDeleteAddress:', error);
+            toast.error(error.message || 'Failed to delete address');
+            closeDeleteModal(); // Ensure modal is closed even on error
         }
     };
 
@@ -234,15 +366,6 @@ const Shipping = () => {
     const renderPriceSidebar = () => (
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
             <h2 className="text-xl font-semibold mb-5 text-gray-800">Order Summary</h2>
-
-            {/* Cart Items List */}
-            {/* <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-                {cartItems.map((item) => (
-                    <CartItemCard key={item.product} item={item} />
-                ))}
-            </div> */}
-
-            {/* Price Breakdown */}
             <div className="space-y-4 pt-4">
                 <PriceRow label="Sub-total" value={formatPrice(subtotal)} />
                 <PriceRow label="Shipping" value="Free" isDiscount />
@@ -297,7 +420,6 @@ const Shipping = () => {
                                                 phoneNumber: '',
                                                 email: '',
                                                 additionalInfo: '',
-
                                             });
                                         }}
                                         className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:cursor-pointer"
@@ -353,19 +475,12 @@ const Shipping = () => {
                                                                 </svg>
                                                                 {isEditing && selectedAddress === address._id ? 'Editing...' : 'Edit'}
                                                             </button>
-                                                            {isEditing && selectedAddress === address._id && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if (window.confirm('Are you sure you want to delete this address?')) {
-                                                                            handleDeleteAddress(address._id);
-                                                                        }
-                                                                    }}
-                                                                    className="text-red-600 hover:text-red-800 text-sm ml-2 hover:cursor-pointer"
-                                                                >
-                                                                    Delete
-                                                                </button>
-                                                            )}
+                                                            <button
+                                                                onClick={(e) => confirmDeleteAddress(address._id, e)}
+                                                                className="text-red-600 hover:text-red-800 text-sm ml-2 hover:cursor-pointer"
+                                                            >
+                                                                Delete
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -635,6 +750,30 @@ const Shipping = () => {
                         {renderPriceSidebar()}
                     </div>
                 </div>
+                
+                {/* Delete Confirmation Modal */}
+                {showDeleteModal && (
+                    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-xl border border-gray-200 max-w-md w-full mx-4">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Address</h3>
+                            <p className="text-gray-700 mb-6">Are you sure you want to delete this address? This action cannot be undone.</p>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={closeDeleteModal}
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteAddress}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );

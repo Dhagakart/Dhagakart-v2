@@ -80,23 +80,23 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  if (!isDesktop) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        textAlign: 'center',
-        padding: '20px',
-        fontSize: '1.5rem',
-        lineHeight: '2rem',
-        fontWeight: 500
-      }}>
-        Kindly continue on a PC or laptop for the best experience.
-      </div>
-    );
-  }
+  // if (!isDesktop) {
+  //   return (
+  //     <div style={{
+  //       display: 'flex',
+  //       justifyContent: 'center',
+  //       alignItems: 'center',
+  //       height: '100vh',
+  //       textAlign: 'center',
+  //       padding: '20px',
+  //       fontSize: '1.5rem',
+  //       lineHeight: '2rem',
+  //       fontWeight: 500
+  //     }}>
+  //       Kindly continue on a PC or laptop for the best experience.
+  //     </div>
+  //   );
+  // }
 
   // In App.jsx
   useEffect(() => {

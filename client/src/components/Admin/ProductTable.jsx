@@ -198,15 +198,14 @@ const ProductTable = () => {
 
                 <div className="w-full h-auto">
                     <div className="flex flex-col gap-6 sm:p-8 p-4">
-                        <div className="flex items-center justify-between">
+                        {/* <div className="flex items-center justify-between">
                             <button 
                                 onClick={() => setToggleSidebar(true)} 
                                 className="sm:hidden bg-gray-700 w-10 h-10 rounded-full shadow text-white flex items-center justify-center hover:bg-gray-600 transition-colors"
                             >
                                 <MenuIcon />
                             </button>
-                            {/* <h1 className="text-2xl font-bold text-gray-900">Products</h1> */}
-                        </div>
+                        </div> */}
 
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">

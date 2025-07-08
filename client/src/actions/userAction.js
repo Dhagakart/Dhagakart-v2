@@ -35,6 +35,26 @@ import {
     ALL_USERS_FAIL,
     ALL_USERS_SUCCESS,
     ALL_USERS_REQUEST,
+    // Shipping Address
+    ADD_SHIPPING_ADDRESS_REQUEST,
+    ADD_SHIPPING_ADDRESS_SUCCESS,
+    ADD_SHIPPING_ADDRESS_FAIL,
+    UPDATE_SHIPPING_ADDRESS_REQUEST,
+    UPDATE_SHIPPING_ADDRESS_SUCCESS,
+    UPDATE_SHIPPING_ADDRESS_FAIL,
+    DELETE_SHIPPING_ADDRESS_REQUEST,
+    DELETE_SHIPPING_ADDRESS_SUCCESS,
+    DELETE_SHIPPING_ADDRESS_FAIL,
+    // Billing Address
+    ADD_BILLING_ADDRESS_REQUEST,
+    ADD_BILLING_ADDRESS_SUCCESS,
+    ADD_BILLING_ADDRESS_FAIL,
+    UPDATE_BILLING_ADDRESS_REQUEST,
+    UPDATE_BILLING_ADDRESS_SUCCESS,
+    UPDATE_BILLING_ADDRESS_FAIL,
+    DELETE_BILLING_ADDRESS_REQUEST,
+    DELETE_BILLING_ADDRESS_SUCCESS,
+    DELETE_BILLING_ADDRESS_FAIL,
 } from '../constants/userConstants';
 import api from '../utils/api';
 
@@ -314,6 +334,171 @@ export const deleteUser = (id) => async (dispatch) => {
             type: DELETE_USER_FAIL,
             payload: error.response.data.message,
         });
+    }
+};
+
+// Add Shipping Address
+export const addShippingAddress = (addressData) => async (dispatch) => {
+    try {
+        dispatch({ type: ADD_SHIPPING_ADDRESS_REQUEST });
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const { data } = await api.post('/users/me/address/shipping', addressData, config);
+
+        dispatch({
+            type: ADD_SHIPPING_ADDRESS_SUCCESS,
+            payload: data.user,
+        });
+
+        return data.user;
+    } catch (error) {
+        dispatch({
+            type: ADD_SHIPPING_ADDRESS_FAIL,
+            payload: error.response?.data?.message || 'Failed to add shipping address',
+        });
+        throw error;
+    }
+};
+
+// Update Shipping Address
+export const updateShippingAddress = (addressId, addressData) => async (dispatch) => {
+    try {
+        dispatch({ type: UPDATE_SHIPPING_ADDRESS_REQUEST });
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const { data } = await api.put(`/users/me/address/shipping/${addressId}`, addressData, config);
+
+        dispatch({
+            type: UPDATE_SHIPPING_ADDRESS_SUCCESS,
+            payload: data.user,
+        });
+
+        return data.user;
+    } catch (error) {
+        dispatch({
+            type: UPDATE_SHIPPING_ADDRESS_FAIL,
+            payload: error.response?.data?.message || 'Failed to update shipping address',
+        });
+        throw error;
+    }
+};
+
+// Delete Shipping Address
+export const deleteShippingAddress = (addressId) => async (dispatch) => {
+    try {
+        dispatch({ type: DELETE_SHIPPING_ADDRESS_REQUEST });
+        console.log('Deleting shipping address with ID:', addressId);
+        
+        // Remove the /api/v1 prefix since it's already in the baseURL
+        const { data } = await api.delete(`/users/me/address/shipping/${addressId}`);
+        console.log('Delete shipping address response:', data);
+
+        if (data && data.success) {
+            dispatch({
+                type: DELETE_SHIPPING_ADDRESS_SUCCESS,
+                payload: data.user,
+            });
+            return { success: true, user: data.user };
+        } else {
+            throw new Error(data?.message || 'Failed to delete shipping address');
+        }
+    } catch (error) {
+        console.error('Error in deleteShippingAddress:', error);
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to delete shipping address';
+        
+        dispatch({
+            type: DELETE_SHIPPING_ADDRESS_FAIL,
+            payload: errorMessage,
+        });
+        throw new Error(errorMessage);
+    }
+};
+
+// Add Billing Address
+export const addBillingAddress = (addressData) => async (dispatch) => {
+    try {
+        dispatch({ type: ADD_BILLING_ADDRESS_REQUEST });
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const { data } = await api.post('/users/me/address/billing', addressData, config);
+
+        dispatch({
+            type: ADD_BILLING_ADDRESS_SUCCESS,
+            payload: data.user,
+        });
+
+        return data.user;
+    } catch (error) {
+        dispatch({
+            type: ADD_BILLING_ADDRESS_FAIL,
+            payload: error.response?.data?.message || 'Failed to add billing address',
+        });
+        throw error;
+    }
+};
+
+// Update Billing Address
+export const updateBillingAddress = (addressId, addressData) => async (dispatch) => {
+    try {
+        dispatch({ type: UPDATE_BILLING_ADDRESS_REQUEST });
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const { data } = await api.put(`/users/me/address/billing/${addressId}`, addressData, config);
+
+        dispatch({
+            type: UPDATE_BILLING_ADDRESS_SUCCESS,
+            payload: data.user,
+        });
+
+        return data.user;
+    } catch (error) {
+        dispatch({
+            type: UPDATE_BILLING_ADDRESS_FAIL,
+            payload: error.response?.data?.message || 'Failed to update billing address',
+        });
+        throw error;
+    }
+};
+
+// Delete Billing Address
+export const deleteBillingAddress = (addressId) => async (dispatch) => {
+    try {
+        dispatch({ type: DELETE_BILLING_ADDRESS_REQUEST });
+
+        const { data } = await api.delete(`/users/me/address/billing/${addressId}`);
+
+        dispatch({
+            type: DELETE_BILLING_ADDRESS_SUCCESS,
+            payload: data.user,
+        });
+
+        return data.user;
+    } catch (error) {
+        dispatch({
+            type: DELETE_BILLING_ADDRESS_FAIL,
+            payload: error.response?.data?.message || 'Failed to delete billing address',
+        });
+        throw error;
     }
 };
 

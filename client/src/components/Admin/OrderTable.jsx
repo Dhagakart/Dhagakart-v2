@@ -429,7 +429,7 @@ useEffect(() => {
                 {!onMobile && <Sidebar activeTab="orders" />}
                 {toggleSidebar && <Sidebar activeTab="orders" setToggleSidebar={setToggleSidebar} />}
 
-                <Box component="main" sx={{ flexGrow: 1, px: 3, pb:3, width: { sm: `calc(100% - 240px)` } }}>
+                <Box component="main" sx={{ flexGrow: 1, px: 1, pb:3, width: { sm: `calc(100% - 240px)` } }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             {/* <Box>
@@ -440,12 +440,12 @@ useEffect(() => {
                                     Manage and track customer orders
                                 </Typography>
                             </Box> */}
-                            <IconButton 
+                            {/* <IconButton 
                                 onClick={() => setToggleSidebar(true)} 
                                 sx={{ display: { sm: 'none' }, bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
                             >
                                 <MenuIcon />
-                            </IconButton>
+                            </IconButton> */}
                         </Box>
 
                         {/* Search Card */}

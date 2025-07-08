@@ -40,6 +40,30 @@ import {
     DELETE_USER_RESET,
     DELETE_USER_FAIL,
     REMOVE_USER_DETAILS,
+    // Shipping Address
+    ADD_SHIPPING_ADDRESS_REQUEST,
+    ADD_SHIPPING_ADDRESS_SUCCESS,
+    ADD_SHIPPING_ADDRESS_FAIL,
+    UPDATE_SHIPPING_ADDRESS_REQUEST,
+    UPDATE_SHIPPING_ADDRESS_SUCCESS,
+    UPDATE_SHIPPING_ADDRESS_FAIL,
+    UPDATE_SHIPPING_ADDRESS_RESET,
+    DELETE_SHIPPING_ADDRESS_REQUEST,
+    DELETE_SHIPPING_ADDRESS_SUCCESS,
+    DELETE_SHIPPING_ADDRESS_FAIL,
+    DELETE_SHIPPING_ADDRESS_RESET,
+    // Billing Address
+    ADD_BILLING_ADDRESS_REQUEST,
+    ADD_BILLING_ADDRESS_SUCCESS,
+    ADD_BILLING_ADDRESS_FAIL,
+    UPDATE_BILLING_ADDRESS_REQUEST,
+    UPDATE_BILLING_ADDRESS_SUCCESS,
+    UPDATE_BILLING_ADDRESS_FAIL,
+    UPDATE_BILLING_ADDRESS_RESET,
+    DELETE_BILLING_ADDRESS_REQUEST,
+    DELETE_BILLING_ADDRESS_SUCCESS,
+    DELETE_BILLING_ADDRESS_FAIL,
+    DELETE_BILLING_ADDRESS_RESET,
 } from '../constants/userConstants';
 
 export const userReducer = (state = { user: {}, success: false }, { type, payload }) => {
@@ -100,23 +124,47 @@ export const userReducer = (state = { user: {}, success: false }, { type, payloa
 };
 
 export const profileReducer = (state = {}, { type, payload }) => {
+    // Handle shipping and billing address operations
+    if (type.includes('SHIPPING_ADDRESS') || type.includes('BILLING_ADDRESS')) {
+        return {
+            ...state,
+            loading: type.endsWith('_REQUEST'),
+            isUpdated: type.endsWith('_SUCCESS') && (type.includes('UPDATE_') || type.includes('ADD_')),
+            isDeleted: type.endsWith('_SUCCESS') && type.includes('DELETE_'),
+            error: type.endsWith('_FAIL') ? payload : null,
+        };
+    }
+    
+    // Handle other profile operations
     switch (type) {
         case UPDATE_PROFILE_REQUEST:
         case UPDATE_PASSWORD_REQUEST:
         case UPDATE_USER_REQUEST:
         case DELETE_USER_REQUEST:
+        case ADD_SHIPPING_ADDRESS_REQUEST:
+        case UPDATE_SHIPPING_ADDRESS_REQUEST:
+        case DELETE_SHIPPING_ADDRESS_REQUEST:
+        case ADD_BILLING_ADDRESS_REQUEST:
+        case UPDATE_BILLING_ADDRESS_REQUEST:
+        case DELETE_BILLING_ADDRESS_REQUEST:
             return {
                 ...state,
                 loading: true,
             };
         case UPDATE_PROFILE_SUCCESS:
         case UPDATE_PASSWORD_SUCCESS:
+        case ADD_SHIPPING_ADDRESS_SUCCESS:
+        case UPDATE_SHIPPING_ADDRESS_SUCCESS:
+        case ADD_BILLING_ADDRESS_SUCCESS:
+        case UPDATE_BILLING_ADDRESS_SUCCESS:
         case UPDATE_USER_SUCCESS:
             return {
                 ...state,
                 loading: false,
                 isUpdated: payload,
             };
+        case DELETE_SHIPPING_ADDRESS_SUCCESS:
+        case DELETE_BILLING_ADDRESS_SUCCESS:
         case DELETE_USER_SUCCESS:
             return {
                 ...state,
@@ -127,6 +175,12 @@ export const profileReducer = (state = {}, { type, payload }) => {
         case UPDATE_PASSWORD_FAIL:
         case UPDATE_USER_FAIL:
         case DELETE_USER_FAIL:
+        case ADD_SHIPPING_ADDRESS_FAIL:
+        case UPDATE_SHIPPING_ADDRESS_FAIL:
+        case DELETE_SHIPPING_ADDRESS_FAIL:
+        case ADD_BILLING_ADDRESS_FAIL:
+        case UPDATE_BILLING_ADDRESS_FAIL:
+        case DELETE_BILLING_ADDRESS_FAIL:
             return {
                 ...state,
                 loading: false,
@@ -135,11 +189,15 @@ export const profileReducer = (state = {}, { type, payload }) => {
         case UPDATE_PROFILE_RESET:
         case UPDATE_PASSWORD_RESET:
         case UPDATE_USER_RESET:
+        case UPDATE_SHIPPING_ADDRESS_RESET:
+        case UPDATE_BILLING_ADDRESS_RESET:
             return {
                 ...state,
                 isUpdated: false,
             }
         case DELETE_USER_RESET:
+        case DELETE_SHIPPING_ADDRESS_RESET:
+        case DELETE_BILLING_ADDRESS_RESET:
             return {
                 ...state,
                 isDeleted: false,

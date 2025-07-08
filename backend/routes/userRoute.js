@@ -13,9 +13,12 @@ const {
   getSingleUser,
   updateUserRole,
   deleteUser,
-  addAddress,
-  updateAddress,
-  deleteAddress
+  addShippingAddress,
+  updateShippingAddress,
+  deleteShippingAddress,
+  addBillingAddress,
+  updateBillingAddress,
+  deleteBillingAddress
 } = require('../controllers/userController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 const router = express.Router();
@@ -47,7 +50,11 @@ const router = express.Router();
  *               type: string
  *             url:
  *               type: string
- *         addresses:
+ *         shippingAddresses:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Address'
+ *         billingAddresses:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/Address'
@@ -411,9 +418,9 @@ router
 
 /**
  * @swagger
- * /api/v1/users/me/address/add:
+ * /api/v1/users/me/address/shipping:
  *   post:
- *     summary: Add new address
+ *     summary: Add new shipping address
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -422,47 +429,23 @@ router
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - addressType
- *               - addressLine1
- *               - city
- *               - state
- *               - postalCode
- *               - country
- *             properties:
- *               addressType:
- *                 type: string
- *                 enum: [home, work, other]
- *               addressLine1:
- *                 type: string
- *               addressLine2:
- *                 type: string
- *               city:
- *                 type: string
- *               state:
- *                 type: string
- *               postalCode:
- *                 type: string
- *               country:
- *                 type: string
- *               isDefault:
- *                 type: boolean
+ *             $ref: '#/components/schemas/Address'
  *     responses:
- *       201:
- *         description: Address added successfully
+ *       200:
+ *         description: Shipping address added successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.route('/me/address/add').post(isAuthenticatedUser, addAddress);
+router.route('/me/address/shipping')
+  .post(isAuthenticatedUser, addShippingAddress);
 
 /**
  * @swagger
- * /api/v1/users/me/address/{id}:
+ * /api/v1/users/me/address/shipping/{id}:
  *   put:
- *     summary: Update address
+ *     summary: Update shipping address
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -477,34 +460,16 @@ router.route('/me/address/add').post(isAuthenticatedUser, addAddress);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               addressType:
- *                 type: string
- *                 enum: [home, work, other]
- *               addressLine1:
- *                 type: string
- *               addressLine2:
- *                 type: string
- *               city:
- *                 type: string
- *               state:
- *                 type: string
- *               postalCode:
- *                 type: string
- *               country:
- *                 type: string
- *               isDefault:
- *                 type: boolean
+ *             $ref: '#/components/schemas/Address'
  *     responses:
  *       200:
- *         description: Address updated successfully
+ *         description: Shipping address updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  *   delete:
- *     summary: Delete address
+ *     summary: Delete shipping address
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -516,14 +481,88 @@ router.route('/me/address/add').post(isAuthenticatedUser, addAddress);
  *           type: string
  *     responses:
  *       200:
- *         description: Address deleted successfully
+ *         description: Shipping address deleted successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.route('/me/address/:id')
-  .put(isAuthenticatedUser, updateAddress)
-  .delete(isAuthenticatedUser, deleteAddress);
+router.route('/me/address/shipping/:id')
+  .put(isAuthenticatedUser, updateShippingAddress)
+  .delete(isAuthenticatedUser, deleteShippingAddress);
+
+/**
+ * @swagger
+ * /api/v1/users/me/address/billing:
+ *   post:
+ *     summary: Add new billing address
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Address'
+ *     responses:
+ *       200:
+ *         description: Billing address added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
+router.post('/me/address/billing', isAuthenticatedUser, addBillingAddress);
+
+/**
+ * @swagger
+ * /api/v1/users/me/address/billing/{id}:
+ *   put:
+ *     summary: Update billing address
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Address'
+ *     responses:
+ *       200:
+ *         description: Billing address updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *   delete:
+ *     summary: Delete billing address
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Billing address deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
+router.route('/me/address/billing/:id')
+  .put(isAuthenticatedUser, updateBillingAddress)
+  .delete(isAuthenticatedUser, deleteBillingAddress);
 
 module.exports = router;

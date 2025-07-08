@@ -373,24 +373,24 @@ exports.deleteUser = asyncErrorHandler(async (req, res, next) => {
     });
 });
 
-// Add Address
-exports.addAddress = asyncErrorHandler(async (req, res, next) => {
+// Add Shipping Address
+exports.addShippingAddress = asyncErrorHandler(async (req, res, next) => {
     const user = await User.findById(req.user.id);
     if (!user) return next(new ErrorHandler("User not found", 404));
     
-    user.addresses.push(req.body);
+    user.shippingAddresses.push(req.body);
     await user.save();
     
     res.status(200).json({ success: true, user });
 });
 
-// Update Address
-exports.updateAddress = asyncErrorHandler(async (req, res, next) => {
+// Update Shipping Address
+exports.updateShippingAddress = asyncErrorHandler(async (req, res, next) => {
     const user = await User.findById(req.user.id);
     if (!user) return next(new ErrorHandler("User not found", 404));
     
-    const address = user.addresses.id(req.params.id);
-    if (!address) return next(new ErrorHandler("Address not found", 404));
+    const address = user.shippingAddresses.id(req.params.id);
+    if (!address) return next(new ErrorHandler("Shipping address not found", 404));
     
     address.set(req.body);
     await user.save();
@@ -398,13 +398,52 @@ exports.updateAddress = asyncErrorHandler(async (req, res, next) => {
     res.status(200).json({ success: true, user });
 });
 
-// Delete Address
-exports.deleteAddress = asyncErrorHandler(async (req, res, next) => {
+// Delete Shipping Address
+exports.deleteShippingAddress = asyncErrorHandler(async (req, res, next) => {
     const user = await User.findById(req.user.id);
     if (!user) return next(new ErrorHandler("User not found", 404));
     
-    const address = user.addresses.id(req.params.id);
-    if (!address) return next(new ErrorHandler("Address not found", 404));
+    const address = user.shippingAddresses.id(req.params.id);
+    if (!address) return next(new ErrorHandler("Shipping address not found", 404));
+    
+    address.remove();
+    await user.save();
+    
+    res.status(200).json({ success: true, user });
+});
+
+// Add Billing Address
+exports.addBillingAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) return next(new ErrorHandler("User not found", 404));
+    
+    user.billingAddresses.push(req.body);
+    await user.save();
+    
+    res.status(200).json({ success: true, user });
+});
+
+// Update Billing Address
+exports.updateBillingAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) return next(new ErrorHandler("User not found", 404));
+    
+    const address = user.billingAddresses.id(req.params.id);
+    if (!address) return next(new ErrorHandler("Billing address not found", 404));
+    
+    address.set(req.body);
+    await user.save();
+    
+    res.status(200).json({ success: true, user });
+});
+
+// Delete Billing Address
+exports.deleteBillingAddress = asyncErrorHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if (!user) return next(new ErrorHandler("User not found", 404));
+    
+    const address = user.billingAddresses.id(req.params.id);
+    if (!address) return next(new ErrorHandler("Billing address not found", 404));
     
     address.remove();
     await user.save();

@@ -172,7 +172,7 @@ const UserTable = () => {
 
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 max-lg:mt-6">
                     <div className="flex items-center space-x-3">
                         <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
                             <FiUsers className="w-6 h-6" />

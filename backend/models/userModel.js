@@ -40,7 +40,50 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "user",
     },
-    addresses: [{
+    shippingAddresses: [{
+        fullName: {
+            type: String,
+            required: [true, "Please enter full name"],
+        },
+        primaryAddress: {
+            type: String,
+            required: [true, "Please enter primary address"],
+        },
+        country: {
+            type: String,
+            required: [true, "Please enter country"],
+        },
+        state: {
+            type: String,
+            required: [true, "Please enter state"],
+        },
+        city: {
+            type: String,
+            required: [true, "Please enter city"],
+        },
+        zipCode: {
+            type: String,
+            required: [true, "Please enter zip code"],
+        },
+        phoneNumber: {
+            type: String,
+            required: [true, "Please enter phone number"],
+        },
+        email: {
+            type: String,
+            required: [true, "Please enter email"],
+            validate: [validator.isEmail, "Please enter a valid email"],
+        },
+        additionalInfo: {
+            type: String,
+            required: false,
+        },
+        isDefault: {
+            type: Boolean,
+            default: false,
+        }
+    }],
+    billingAddresses: [{
         fullName: {
             type: String,
             required: [true, "Please enter full name"],

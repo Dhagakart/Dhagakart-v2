@@ -1,34 +1,83 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate, useLocation, useParams, Outlet } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { TextField, Button } from '@mui/material';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { 
+    Box, 
+    IconButton,
+    Typography,
+    Divider,
+    Button,
+    TextField,
+    CircularProgress,
+    Grid,
+    Paper,
+    Card,
+    CardContent,
+    CardActions,
+    FormControlLabel,
+    Checkbox
+} from '@mui/material';
+import { 
+    User, 
+    ShoppingBag, 
+    Truck, 
+    FileText, 
+    LogOut, 
+    FileSearch, 
+    MapPin, 
+    CreditCard, 
+    Edit, 
+    Trash2, 
+    Plus 
+} from 'lucide-react';
+
+// Redux Actions
+import { 
+    logoutUser as logoutAction, 
+    updateProfile,
+    addShippingAddress, 
+    updateShippingAddress, 
+    deleteShippingAddress,
+    addBillingAddress,
+    updateBillingAddress,
+    deleteBillingAddress
+} from '../../actions/userAction';
+
+// Components
 import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
-import toast from 'react-hot-toast';
 import OrderHistory from './OrderHistory';
 import RFQsAndQuotes from './RFQsAndQuotes';
 import TrackOrder from './TrackOrder';
-import { logoutUser, updateProfile, clearErrors } from '../../actions/userAction';
 import LogoutConfirmationModal from './LogoutConfirmationModal';
-import { loadUser } from '../../actions/userAction';
-import { UPDATE_PROFILE_RESET } from '../../constants/userConstants';
+import ShippingModal from './modals/ShippingModal';
+import BillingModal from './modals/BillingModal';
 
-// Icons
-import { User, ShoppingBag, Truck, FileText, LogOut, FileSearch } from 'lucide-react';
+// Utils
+import statesData from '../../utils/states';
 
 const AccountDG = ({ defaultTab = 'profile' }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    const { enqueueSnackbar } = useSnackbar();
+    
+    // Redux state
     const { user, loading, isAuthenticated } = useSelector(state => state.user);
     const { error, isUpdated } = useSelector(state => state.profile);
+    
+    // Local state
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
+    const [isEditing, setIsEditing] = useState(false);
+    const [showShippingModal, setShowShippingModal] = useState(false);
+    const [showBillingModal, setShowBillingModal] = useState(false);
+    const [addressType, setAddressType] = useState(null);
+    const [editingAddress, setEditingAddress] = useState(null);
+    
+    // Form states
+    const [profileFormData, setProfileFormData] = useState({
         name: '',
         email: '',
         phone: '',
@@ -36,6 +85,24 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
         businessName: '',
         businessType: ''
     });
+    
+    const [addressFormData, setAddressFormData] = useState({
+        fullName: '',
+        primaryAddress: '',
+        city: '',
+        state: '',
+        country: 'India',
+        zipCode: '',
+        phoneNumber: '',
+        email: '',
+        additionalInfo: '',
+        isDefault: false,
+        sameAsShipping: false
+    });
+
+    // Get addresses from user data
+    const shippingAddresses = user?.shippingAddresses || [];
+    const billingAddresses = user?.billingAddresses || [];
     
     // Update active tab based on URL
     useEffect(() => {
@@ -57,8 +124,8 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     }, [location]);
 
     const handleLogout = () => {
-        dispatch(logoutUser());
-        enqueueSnackbar("Logout Successful", { variant: "success" });
+        dispatch(logoutAction());
+        toast.success("Logout Successful");
         navigate("/login");
     };
 
@@ -66,7 +133,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
         if (isAuthenticated === false) {
             navigate("/login");
         } else if (user) {
-            setFormData({
+            setProfileFormData({
                 name: user.name || '',
                 email: user.email || '',
                 phone: user.phone || '',
@@ -79,60 +146,206 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
 
     useEffect(() => {
         if (error) {
-            enqueueSnackbar(error, { variant: 'error' });
-            toast.error(error, {
-                position: 'top-right',
-                duration: 3000,
-            });
-            dispatch(clearErrors());
+            toast.error(error);
+            dispatch({ type: 'CLEAR_ERRORS' });
         }
         if (isUpdated) {
-            enqueueSnackbar('Profile updated successfully', { variant: 'success' });
-            toast.success('Profile updated successfully!', {
-                position: 'top-right',
-                duration: 3000,
-            });
-            dispatch(loadUser());
-            dispatch({ type: UPDATE_PROFILE_RESET });
+            toast.success('Profile updated successfully');
+            dispatch({ type: 'LOAD_USER' });
+            dispatch({ type: 'UPDATE_PROFILE_RESET' });
             setIsEditing(false);
         }
-    }, [dispatch, error, isUpdated, enqueueSnackbar]);
+    }, [dispatch, error, isUpdated]);
 
-    const handleInputChange = (e) => {
+    const handleProfileInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
+        setProfileFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const myForm = new FormData();
-        
-        Object.entries(formData).forEach(([key, value]) => {
-            myForm.set(key, value);
-        });
-        
         setIsSubmitting(true);
-        
-        dispatch(updateProfile(myForm))
+        dispatch(updateProfile(profileFormData))
             .unwrap()
             .then(() => {
-                toast.success('Profile updated successfully!', {
-                    position: 'top-right',
-                    duration: 3000,
-                });
+                toast.success('Profile updated successfully');
             })
             .catch((error) => {
-                toast.error(error?.message || 'Failed to update profile', {
-                    position: 'top-right',
-                    duration: 3000,
-                });
+                toast.error(error?.message || 'Failed to update profile');
             })
             .finally(() => {
                 setIsSubmitting(false);
             });
+    };
+
+    const handleAddShippingAddress = () => {
+        setAddressType('shipping');
+        setEditingAddress(null);
+        setAddressFormData({
+            fullName: '',
+            primaryAddress: '',
+            city: '',
+            state: '',
+            country: 'India',
+            zipCode: '',
+            phoneNumber: '',
+            email: user?.email || '',
+            additionalInfo: '',
+            isDefault: shippingAddresses.length === 0
+        });
+        setShowShippingModal(true);
+    };
+
+    const handleAddBillingAddress = () => {
+        setAddressType('billing');
+        setEditingAddress(null);
+        setAddressFormData({
+            fullName: '',
+            companyName: '',
+            primaryAddress: '',
+            city: '',
+            state: '',
+            country: 'India',
+            zipCode: '',
+            phoneNumber: '',
+            email: user?.email || '',
+            additionalInfo: '',
+            isDefault: billingAddresses.length === 0,
+            sameAsShipping: false
+        });
+        setShowBillingModal(true);
+    };
+
+    const handleEditAddress = (address, type) => {
+        setAddressType(type);
+        setEditingAddress(address);
+        setAddressFormData({
+            ...address,
+            isDefault: address.isDefault || false
+        });
+        if (type === 'shipping') {
+            setShowShippingModal(true);
+        } else {
+            setShowBillingModal(true);
+        }
+    };
+
+    const handleAddressSubmit = async (e, formData) => {
+        e?.preventDefault?.();
+        
+        try {
+            // If formData is not provided, use the current addressFormData state
+            const addressData = formData || addressFormData;
+            const addressType = showShippingModal ? 'shipping' : 'billing';
+            const isDefault = addressData.isDefault || false;
+            
+            // Create the final address data object
+            const finalAddressData = {
+                ...addressData,
+                isDefault
+            };
+            
+            let promise;
+            try {
+                if (editingAddress) {
+                    // Update existing address
+                    if (addressType === 'shipping') {
+                        await dispatch(updateShippingAddress({ id: editingAddress, addressData: finalAddressData })).unwrap();
+                    } else {
+                        await dispatch(updateBillingAddress({ id: editingAddress, addressData: finalAddressData })).unwrap();
+                    }
+                } else {
+                    // Add new address
+                    if (addressType === 'shipping') {
+                        await dispatch(addShippingAddress(finalAddressData)).unwrap();
+                    } else {
+                        await dispatch(addBillingAddress(finalAddressData)).unwrap();
+                    }
+                }
+                
+                // Show success message
+                toast.success(
+                    editingAddress 
+                        ? `${addressType === 'shipping' ? 'Shipping' : 'Billing'} address updated successfully`
+                        : `${addressType === 'shipping' ? 'Shipping' : 'Billing'} address added successfully`
+                );
+                
+                // Reset the form data
+                setAddressFormData({
+                    fullName: '',
+                    primaryAddress: '',
+                    city: '',
+                    state: '',
+                    country: 'India',
+                    zipCode: '',
+                    phoneNumber: '',
+                    email: user?.email || '',
+                    additionalInfo: '',
+                    isDefault: false
+                });
+                
+                // Close the modal
+                setShowShippingModal(false);
+                setShowBillingModal(false);
+                
+                // Reset the editing state
+                setEditingAddress(null);
+                
+                // Refresh the addresses
+                if (addressType === 'shipping') {
+                    await dispatch({ type: 'GET_SHIPPING_ADDRESSES' });
+                    await dispatch({ type: 'GET_BILLING_ADDRESSES' });
+                } else {
+                    await dispatch({ type: 'GET_BILLING_ADDRESSES' });
+                    await dispatch({ type: 'GET_SHIPPING_ADDRESSES' });
+                }
+                
+            } catch (error) {
+                console.error('Error saving address:', error);
+                throw error; // Re-throw to be caught by the outer try-catch
+            }
+            
+        } catch (error) {
+            console.error('Error saving address:', error);
+            toast.error(
+                error.response?.data?.message || 
+                error.message || 
+                'Failed to save address. Please try again.'
+            );
+            throw error; // Re-throw to allow parent to handle if needed
+        }
+    };
+
+    const handleDeleteAddress = (e, addressId, type) => {
+        e.preventDefault();
+        if (window.confirm('Are you sure you want to delete this address?')) {
+            const action = type === 'shipping' 
+                ? deleteShippingAddress(addressId)
+                : deleteBillingAddress(addressId);
+            
+            dispatch(action)
+                .then((result) => {
+                    if (result?.error) {
+                        throw new Error(result.error.message || 'Failed to delete address');
+                    }
+                    toast.success(`${type === 'shipping' ? 'Shipping' : 'Billing'} address deleted successfully`);
+                    
+                    // Refresh both shipping and billing addresses
+                    return Promise.all([
+                        dispatch({ type: 'GET_SHIPPING_ADDRESSES' }),
+                        dispatch({ type: 'GET_BILLING_ADDRESSES' })
+                    ]);
+                })
+                .then(() => {
+                    // Close any open modals after successful deletion
+                    setShowShippingModal(false);
+                    setShowBillingModal(false);
+                })
+                .catch(error => {
+                    console.error('Error deleting address:', error);
+                    toast.error(error?.message || `Failed to delete ${type} address`);
+                });
+        }
     };
 
     if (loading) return <Loader />;
@@ -149,28 +362,28 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                 <div className="flex flex-col gap-2">
                                     <button
                                         onClick={() => navigate('/account/profile')}
-                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'profile' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'profile' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} cursor-pointer`}
                                     >
                                         <User className="h-5 w-5" />
                                         <span>Profile</span>
                                     </button>
                                     <button
                                         onClick={() => navigate('/account/orders')}
-                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'orders' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'orders' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} cursor-pointer`}
                                     >
                                         <ShoppingBag className="h-5 w-5" />
                                         <span>Order History</span>
                                     </button>
                                     <button
                                         onClick={() => navigate('/account/track-order')}
-                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'track-order' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'track-order' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} cursor-pointer`}
                                     >
                                         <Truck className="h-5 w-5" />
                                         <span>Track Order</span>
                                     </button>
                                     <button
                                         onClick={() => navigate('/account/rfqs')}
-                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'rfqs' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} hover:cursor-pointer`}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'rfqs' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} cursor-pointer`}
                                     >
                                         <FileSearch className="h-5 w-5" />
                                         <span>My RFQ's & Quotes</span>
@@ -178,34 +391,31 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                     {user?.role === 'admin' && (
                                         <button
                                             onClick={() => navigate('/admin/dashboard')}
-                                            className="flex items-center gap-2 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 hover:cursor-pointer w-full text-left"
+                                            className="flex items-center gap-2 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 cursor-pointer w-full text-left"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.707-.707a1 1 0 000-1.414l-7-7z" />
                                             </svg>
                                             <span>Admin Dashboard</span>
                                         </button>
                                     )}
                                     <button
                                         onClick={() => setShowLogoutConfirm(true)}
-                                        className="flex items-center gap-2 px-4 py-3 text-red-600 rounded-lg hover:bg-red-50 hover:cursor-pointer"
+                                        className="flex items-center gap-2 px-4 py-3 text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
                                     >
                                         <LogOut className="h-5 w-5" />
                                         <span>Logout</span>
                                     </button>
                                 </div>
-                                <LogoutConfirmationModal 
-                                    isOpen={showLogoutConfirm}
-                                    onCancel={() => setShowLogoutConfirm(false)}
-                                    onConfirm={handleLogout}
-                                />
                             </nav>
                         </div>
                     </aside>
 
+                    {/* Modals */}
+
                     {/* Main Content */}
                     <main className="flex-1 space-y-6">
-                        {activeTab === 'profile' ? (
+                        {activeTab === 'profile' && (
                             <>
                                 {/* General Information */}
                                 <div className="bg-white rounded-lg shadow-sm p-6">
@@ -214,18 +424,18 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                         {!isEditing ? (
                                             <button 
                                                 onClick={() => setIsEditing(true)}
-                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer"
                                             >
                                                 Edit Details
                                             </button>
                                         ) : (
                                             <div className="flex gap-2">
                                                 <button 
+                                                    type="button"
                                                     onClick={() => {
                                                         setIsEditing(false);
-                                                        // Reset form data to original user data
                                                         if (user) {
-                                                            setFormData({
+                                                            setProfileFormData({
                                                                 name: user.name || '',
                                                                 email: user.email || '',
                                                                 phone: user.phone || '',
@@ -235,14 +445,15 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                             });
                                                         }
                                                     }}
-                                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
+                                                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium cursor-pointer"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button 
-                                                    onClick={handleSubmit}
+                                                    type="submit"
+                                                    form="profile-form"
                                                     disabled={isSubmitting}
-                                                    className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer flex items-center justify-center gap-2 min-w-[120px] ${isSubmitting ? 'opacity-75' : ''}`}
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer flex items-center justify-center gap-2 min-w-[120px]"
                                                 >
                                                     {isSubmitting ? (
                                                         <>
@@ -257,42 +468,41 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                             </div>
                                         )}
                                     </div>
-                                    <form onSubmit={handleSubmit} className="w-full">
+                                    <form id="profile-form" onSubmit={handleSubmit} className="w-full">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
                                                 <TextField
                                                     fullWidth
                                                     name="name"
-                                                    value={formData.name}
-                                                    onChange={handleInputChange}
+                                                    value={profileFormData.name}
+                                                    onChange={handleProfileInputChange}
                                                     disabled={!isEditing}
                                                     variant="outlined"
                                                     size="small"
-                                                    required
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                                                <label className="block text-sm font-medium text-gray-500 mb-1">Email</label>
                                                 <TextField
                                                     fullWidth
                                                     type="email"
                                                     name="email"
-                                                    value={formData.email}
-                                                    onChange={handleInputChange}
+                                                    value={profileFormData.email}
+                                                    onChange={handleProfileInputChange}
                                                     disabled={!isEditing}
                                                     variant="outlined"
                                                     size="small"
-                                                    required
                                                 />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
                                                 <TextField
                                                     fullWidth
+                                                    type="tel"
                                                     name="phone"
-                                                    value={formData.phone}
-                                                    onChange={handleInputChange}
+                                                    value={profileFormData.phone}
+                                                    onChange={handleProfileInputChange}
                                                     disabled={!isEditing}
                                                     variant="outlined"
                                                     size="small"
@@ -303,8 +513,8 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                 <TextField
                                                     fullWidth
                                                     name="city"
-                                                    value={formData.city}
-                                                    onChange={handleInputChange}
+                                                    value={profileFormData.city}
+                                                    onChange={handleProfileInputChange}
                                                     disabled={!isEditing}
                                                     variant="outlined"
                                                     size="small"
@@ -315,8 +525,8 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                 <TextField
                                                     fullWidth
                                                     name="businessName"
-                                                    value={formData.businessName}
-                                                    onChange={handleInputChange}
+                                                    value={profileFormData.businessName}
+                                                    onChange={handleProfileInputChange}
                                                     disabled={!isEditing}
                                                     variant="outlined"
                                                     size="small"
@@ -327,77 +537,169 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                 <TextField
                                                     fullWidth
                                                     name="businessType"
-                                                    value={formData.businessType}
-                                                    onChange={handleInputChange}
+                                                    value={profileFormData.businessType}
+                                                    onChange={handleProfileInputChange}
                                                     disabled={!isEditing}
                                                     variant="outlined"
                                                     size="small"
-                                                    select
-                                                    SelectProps={{ native: true }}
-                                                >
-                                                    <option value="">Select Business Type</option>
-                                                    <option value="Manufacturer">Manufacturer</option>
-                                                    <option value="Wholesaler">Wholesaler</option>
-                                                    <option value="Retailer">Retailer</option>
-                                                    <option value="Distributor">Distributor</option>
-                                                    <option value="Service Provider">Service Provider</option>
-                                                    <option value="Other">Other</option>
-                                                </TextField>
+                                                />
                                             </div>
                                         </div>
                                     </form>
                                 </div>
 
-                                {/* Address Section */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {/* Billing Address */}
-                                    <div className="bg-white rounded-lg shadow-sm p-6 h-full flex flex-col">
-                                        <div className="flex justify-between items-center pb-4">
-                                            <h2 className="text-lg font-semibold text-gray-800 uppercase">Billing Address</h2>
-                                            <button className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer">
-                                                Edit Address
+                                {/* Address Sections */}
+                                <div className="space-y-8">
+                                    {/* Shipping Address Section */}
+                                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                                                <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                                                Shipping Addresses
+                                            </h2>
+                                            <button 
+                                                onClick={handleAddShippingAddress}
+                                                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                            >
+                                                <Plus className="h-4 w-4 mr-1" /> Add New
                                             </button>
                                         </div>
-                                        <div className="space-y-2 flex-grow">
-                                            <div className="font-medium text-gray-800">Kevin Gilbert</div>
-                                            <p className="text-gray-600">
-                                                East Tejturi Bazar, Word No. 04, Road No. 13/x, House no. 1320/C, Flat No. 5D, Dhaka - 1200, Bangladesh
-                                            </p>
-                                            <div className="text-gray-600">Phone Number: +1-202-555-0118</div>
-                                            <div className="text-gray-600">Email: kevin.gilbert@gmail.com</div>
-                                        </div>
+                                        {shippingAddresses.length > 0 ? (
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                                {shippingAddresses.map((address) => (
+                                                    <div key={address._id} className="border border-gray-200 rounded-lg p-4 relative group">
+                                                        {address.isDefault && (
+                                                            <span className="absolute top-2 right-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                                                Default
+                                                            </span>
+                                                        )}
+                                                        <div className="font-medium text-gray-900">{address.fullName}</div>
+                                                        <p className="text-gray-600 mt-1">{address.primaryAddress}</p>
+                                                        <p className="text-gray-600">{address.city}, {address.state} {address.zipCode}</p>
+                                                        <p className="text-gray-600">{address.country}</p>
+                                                        <div className="mt-2 text-sm text-gray-500">
+                                                            <div>Phone: {address.phoneNumber}</div>
+                                                            {address.email && <div>Email: {address.email}</div>}
+                                                        </div>
+                                                        <div className="mt-3 flex space-x-2">
+                                                            <button 
+                                                                onClick={() => handleEditAddress(address, 'shipping')}
+                                                                className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                                            >
+                                                                <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => handleDeleteAddress(e, address._id, 'shipping')}
+                                                                className="text-red-600 hover:text-red-800 text-sm flex items-center"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-600 text-center">No shipping addresses found.</p>
+                                        )}
                                     </div>
 
-                                    {/* Shipping Address */}
-                                    <div className="bg-white rounded-lg shadow-sm p-6 h-full flex flex-col">
-                                        <div className="flex justify-between items-center pb-4">
-                                            <h2 className="text-lg font-semibold text-gray-800 uppercase">Shipping Address</h2>
-                                            <button className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md text-sm font-medium hover:cursor-pointer">
-                                                Edit Address
+                                    {/* Billing Address Section */}
+                                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                                                <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                                                Billing Addresses
+                                            </h2>
+                                            <button 
+                                                onClick={handleAddBillingAddress}
+                                                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                            >
+                                                <Plus className="h-4 w-4 mr-1" /> Add New
                                             </button>
                                         </div>
-                                        <div className="space-y-2 flex-grow">
-                                            <div className="font-medium text-gray-800">Kevin Gilbert</div>
-                                            <p className="text-gray-600">
-                                                East Tejturi Bazar, Word No. 04, Road No. 13/x, House no. 1320/C, Flat No. 5D, Dhaka - 1200, Bangladesh
-                                            </p>
-                                            <div className="text-gray-600">Phone Number: +1-202-555-0118</div>
-                                            <div className="text-gray-600">Email: kevin.gilbert@gmail.com</div>
-                                        </div>
+                                        {billingAddresses.length > 0 ? (
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                                {billingAddresses.map((address) => (
+                                                    <div key={address._id} className="border border-gray-200 rounded-lg p-4 relative group">
+                                                        {address.isDefault && (
+                                                            <span className="absolute top-2 right-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                                                Default
+                                                            </span>
+                                                        )}
+                                                        <div className="font-medium text-gray-900">{address.fullName}</div>
+                                                        <p className="text-gray-600 mt-1">{address.primaryAddress}</p>
+                                                        <p className="text-gray-600">{address.city}, {address.state} {address.zipCode}</p>
+                                                        <p className="text-gray-600">{address.country}</p>
+                                                        <div className="mt-2 text-sm text-gray-500">
+                                                            <div>Phone: {address.phoneNumber}</div>
+                                                            {address.email && <div>Email: {address.email}</div>}
+                                                        </div>
+                                                        <div className="mt-3 flex space-x-2">
+                                                            <button 
+                                                                onClick={() => handleEditAddress(address, 'billing')}
+                                                                className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                                            >
+                                                                <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => handleDeleteAddress(e, address._id, 'billing')}
+                                                                className="text-red-600 hover:text-red-800 text-sm flex items-center"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-600 text-center">No billing addresses found.</p>
+                                        )}
                                     </div>
                                 </div>
-
                             </>
-                        ) : activeTab === 'orders' ? (
-                            <OrderHistory />
-                        ) : activeTab === 'rfqs' ? (
-                            <RFQsAndQuotes />
-                        ) : activeTab === 'track-order' ? (
-                            <TrackOrder />
-                        ) : null}
+                        )}
+                        
+                        {activeTab === 'orders' && <OrderHistory />}
+                        {activeTab === 'rfqs' && <RFQsAndQuotes />}
+                        {activeTab === 'track-orders' && <TrackOrder />}
                     </main>
                 </div>
             </div>
+            
+            {/* Logout Confirmation Modal */}
+            <LogoutConfirmationModal
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={handleLogout}
+            />
+            
+            {/* Shipping Address Modal */}
+            <ShippingModal
+                open={showShippingModal}
+                onClose={() => setShowShippingModal(false)}
+                onSubmit={handleAddressSubmit}
+                shippingDetails={editingAddress || {}}
+                setShippingDetails={(data) => setAddressFormData(prev => ({
+                    ...prev,
+                    ...data
+                }))}
+                user={user}
+                shippingAddresses={user?.shippingAddresses || []}
+            />
+            
+            {/* Billing Address Modal */}
+            <BillingModal
+                open={showBillingModal}
+                onClose={() => setShowBillingModal(false)}
+                onSubmit={handleAddressSubmit}
+                billingDetails={editingAddress || {}}
+                setBillingDetails={(data) => setAddressFormData(prev => ({
+                    ...prev,
+                    ...data
+                }))}
+                user={user}
+                billingAddresses={user?.billingAddresses || []}
+            />
         </div>
     );
 };

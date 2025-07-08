@@ -382,7 +382,7 @@ const NewProduct = () => {
     <>
       <MetaData title="Admin: New Product | DhagaKart" />
       {loading && <BackdropLoader />}
-      <div className="w-full mx-auto">
+      <div className="w-full mx-auto max-lg:mt-8">
         <form onSubmit={newProductSubmitHandler} encType="multipart/form-data" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col gap-6">
             <ProductDetails
