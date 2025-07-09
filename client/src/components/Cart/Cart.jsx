@@ -271,7 +271,7 @@ const Cart = () => {
                                                 {cartItems.map((item) => (
                                                     <div key={item.product} className="flex flex-col bg-gray-50 rounded-lg shadow-sm border border-gray-200 p-4">
                                                         <div className="flex items-center mb-2">
-                                                            <img className="h-16 w-16 object-contain mr-4" src={item.images[0].url} alt={item.name} />
+                                                            <img className="h-16 w-16 object-contain mr-4" src={item.image} alt={item.name} />
                                                             <div className="flex-1">
                                                                 <div className="font-medium text-gray-900 text-base">{item.name}</div>
                                                                 <div className="flex items-center gap-2 mt-1">
