@@ -252,7 +252,7 @@ const Login = () => {
             <MetaData title="Login | DhagaKart" />
             {loading && <BackdropLoader />}
 
-            <main className="w-full min-h-[80vh] mt-4 sm:mt-10 flex justify-center items-center px-4 sm:px-0">
+            <main className="w-full md:mt-16 md:mb-12 min-h-[80vh] mt-4 sm:mt-10 flex justify-center items-center px-4 sm:px-0">
                 <div className="flex flex-col lg:flex-row rounded-xl w-full max-w-6xl bg-white shadow-lg overflow-hidden">
                     {/* Left Side - Blue Background (Hidden on mobile, visible on desktop) */}
                     <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-[#00264d] to-[#003366] p-8 flex-col justify-center">

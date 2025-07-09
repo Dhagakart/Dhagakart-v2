@@ -662,7 +662,7 @@ const Register = () => {
     <>
       <MetaData title="Register | DhagaKart" />
       {loading && <BackdropLoader />}
-      <Box className="min-h-[80vh] mt-10 flex items-center justify-center p-4">
+      <Box className="min-h-[80vh] mt-10 md:mt-16 md:mb-12 flex items-center justify-center p-4">
         <Grid container component="main" className="max-w-6xl bg-white shadow-xl rounded-xl overflow-hidden">
           {/* Hide left section on mobile */}
           {!isMobile && (
