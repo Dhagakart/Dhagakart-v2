@@ -1115,7 +1115,7 @@ const ProductDetailsDG = () => {
   const handleAddToCart = () => {
     dispatch(addItemsToCart(id, quantity));
     toast.success(
-      quantity > 1 ? `${quantity} items added to cart!` : 'Item added to cart!',
+      quantity > 1 ? `${quantity} items added to cart!` : '1 item added to cart!',
       {
         position: 'top-right',
         duration: 3000,
