@@ -126,7 +126,7 @@ function App() {
   return (
     <>
       <HeaderDG />
-      <main className="pt-8">
+      <main className="-mt-8">
         <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

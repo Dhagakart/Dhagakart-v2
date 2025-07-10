@@ -20,7 +20,6 @@ import {
   ExitToApp as ExitToAppIcon,
   Login as LoginIcon,
   ListAlt as ListAltIcon,
-  Search as SearchIcon,
   ExpandLess,
   ExpandMore,
   Category as CategoryIcon,
@@ -47,9 +46,6 @@ const MobileNav = ({
   isAuthenticated, 
   user, 
   setShowLogoutConfirm,
-  searchQuery,
-  setSearchQuery,
-  handleSearch
 }) => {
   const [openProducts, setOpenProducts] = useState(false);
   const [openBulkOrder, setOpenBulkOrder] = useState(false);
@@ -69,18 +65,20 @@ const MobileNav = ({
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
     handleDrawerToggle(); // Close the drawer
-  }
-
-  const onSearchSubmit = (e) => {
-    handleSearch(e);
-    handleDrawerToggle(); // Close the drawer on search
-  }
+  };
 
   return (
     <Box
-      sx={{ width: 250, height: '100%', display: 'flex', flexDirection: 'column' }}
+      sx={{
+        width: 250,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'white',
+        overflowY: 'auto',
+      }}
       role="presentation"
-      onClick={handleDrawerToggle}
+      onClick={(e) => e.stopPropagation()}
       onKeyDown={handleDrawerToggle}
     >
       {isAuthenticated && user ? (
@@ -94,24 +92,6 @@ const MobileNav = ({
         </Box>
       )}
       <Divider />
-      <Box sx={{ p: 2 }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-        <form onSubmit={onSearchSubmit} className="flex items-center w-full">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for products..."
-            className="flex-1 h-10 px-4 text-sm bg-gray-100 text-gray-800 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button 
-            type="submit" 
-            className="h-10 w-10 flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white rounded-r-md flex items-center justify-center transition-colors"
-            aria-label="Search"
-          >
-            <SearchIcon style={{ fontSize: '1.1rem' }} />
-          </button>
-        </form>
-      </Box>
       <List>
         <ListItem disablePadding>
           <ListItemButton component={Link} to="/">
@@ -204,22 +184,6 @@ const MobileNav = ({
         {isAuthenticated ? (
           <>
             <ListItem disablePadding>
-              <ListItemButton component={Link} to="/account">
-                <ListItemIcon>
-                  <AccountCircleIcon />
-                </ListItemIcon>
-                <ListItemText primary="My Account" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton component={Link} to="/account/orders">
-                <ListItemIcon>
-                  <ListAltIcon />
-                </ListItemIcon>
-                <ListItemText primary="My Orders" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
               <ListItemButton onClick={handleLogoutClick}>
                 <ListItemIcon>
                   <ExitToAppIcon />
@@ -230,7 +194,7 @@ const MobileNav = ({
           </>
         ) : (
           <ListItem disablePadding>
-            <ListItemButton component={Link} to="/login">
+            <ListItemButton component={Link} to="/login" onClick={handleDrawerToggle}>
               <ListItemIcon>
                 <LoginIcon />
               </ListItemIcon>

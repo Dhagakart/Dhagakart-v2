@@ -1631,21 +1631,21 @@ const ProductDetailsDG = () => {
                     </svg>
                   </button>
                 </div>
-                <div className="flex gap-3 w-full sm:w-auto">
+              </div>
+                <div className="flex gap-3 w-full sm:w-auto mt-6">
                   <button
                     onClick={handleAddToCart}
-                    className="flex-1 py-3 px-6 bg-[#003366] text-white hover:bg-[#003366]/90 cursor-pointer transition-colors rounded-lg font-medium text-sm shadow-sm whitespace-nowrap hover:cursor-pointer"
+                    className="w-1/3 py-3 px-6 border border-[#003366] text-[#003366] hover:border-[#003366]/90 hover:text-[#003366]/90 hover:cursor-pointer transition-all rounded-lg font-medium text-sm shadow-sm whitespace-nowrap"
                   >
                     ADD TO CART
                   </button>
                   <button
                     onClick={handleBuyNow}
-                    className="flex-1 py-3 px-6 border border-[#003366] text-[#003366] hover:border-[#003366]/90 hover:text-[#003366]/90 hover:cursor-pointer transition-all rounded-lg font-medium text-sm shadow-sm whitespace-nowrap hover:cursor-pointer"
+                    className="w-2/3 py-3 px-6 bg-[#003366] text-white hover:bg-[#003366]/90 transition-colors rounded-lg font-medium text-sm shadow-sm whitespace-nowrap hover:cursor-pointer"
                   >
                     BUY NOW
                   </button>
                 </div>
-              </div>
               {/* Highlights */}
               <div className="pt-4">
                 <h3 className="text-base font-large mb-2">Features</h3>
