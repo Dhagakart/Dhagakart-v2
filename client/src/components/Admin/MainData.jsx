@@ -133,14 +133,17 @@ const MainData = () => {
   };
 
   const barState = {
-    labels: categories,
+    labels: categories.map(cat => typeof cat === 'object' ? cat.name : cat),
     datasets: [
       {
         label: 'Products',
         borderColor: '#003366',
         backgroundColor: '#003366',
         hoverBackgroundColor: '#002244',
-        data: categories.map((cat) => products?.filter((item) => item.category === cat).length),
+        data: categories.map((cat) => {
+          const categoryName = typeof cat === 'object' ? cat.name : cat;
+          return products?.filter((item) => item.category === categoryName).length;
+        }),
       },
     ],
   };
