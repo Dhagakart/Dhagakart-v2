@@ -30,6 +30,10 @@ export const categories = [
     {
         name: "Home",
         subcategories: ["Furniture", "Kitchen & Dining", "Home Decor", "Lighting", "Bath"]
+    },
+    {
+      name: "Yarn",
+      subcategories: ["Silk Yarn", "Cotton Yarn", "Polyester Yarn", "Viscous Yarn", "Zari Thread"]
     }
 ];
 
