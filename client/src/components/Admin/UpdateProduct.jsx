@@ -37,13 +37,14 @@ const UpdateProduct = () => {
     const [cuttedPrice, setCuttedPrice] = useState(0);
     const [brandname, setBrandname] = useState("");
     const [highlights, setHighlights] = useState([]);
-    const [specifications, setSpecifications] = useState([]);
+    const [specifications, setSpecifications] = useState([{ name: '', value: '' }]);
     const [oldImages, setOldImages] = useState([]);
     const [images, setImages] = useState([]);
     const [imagesPreview, setImagesPreview] = useState([]);
     const [removedImages, setRemovedImages] = useState([]);
     const [logo, setLogo] = useState("");
     const [logoPreview, setLogoPreview] = useState("");
+    const [highlightInput, setHighlightInput] = useState("");
 
     const categories = [
         "Electronics",
@@ -70,7 +71,15 @@ const UpdateProduct = () => {
                 setCategory(product.category);
                 setBrandname(product.brand?.name || "");
                 setHighlights(product.highlights || []);
-                setSpecifications(product.specifications || []);
+                // Ensure specifications is an array of objects with name and value properties
+                const productSpecs = product.specifications || [];
+                const formattedSpecs = productSpecs.length > 0 
+                    ? productSpecs.map(spec => ({
+                        name: spec.name || '',
+                        value: spec.value || ''
+                      }))
+                    : [{ name: '', value: '' }];
+                setSpecifications(formattedSpecs);
                 setOldImages(product.images || []);
                 setLogoPreview(product.brand?.logo?.url || "");
             }
@@ -285,7 +294,7 @@ const UpdateProduct = () => {
                                                 <div className="flex items-center justify-between">
                                                     <label className="text-sm font-medium text-gray-700 flex items-center">
                                                         <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4.5L4 7m16 0l-8 4.5M4 7v10l8 4.5m0-18.5l8 4.5v18.5m-8-13v10l8-4.5v-10l-8 4.5z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                                         </svg>
                                                         Stock Quantity
                                                         <span className="ml-1 text-red-500">*</span>
@@ -329,7 +338,7 @@ const UpdateProduct = () => {
                                                                 </svg>
                                                                 <h3 className="text-base font-semibold text-gray-800">Brand Information</h3>
                                                             </div>
-                                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white text-blue-700 border border-blue-100 shadow-sm">
+                                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-blue-700 border border-blue-100 shadow-sm">
                                                                 Brand Identity
                                                             </span>
                                                         </div>
@@ -576,17 +585,13 @@ const UpdateProduct = () => {
                                                             htmlFor="productImages"
                                                             className="w-full h-28 sm:h-24 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group/upload"
                                                         >
-                                                            <div className="p-2 bg-blue-50 rounded-full text-blue-500 group-hover/upload:bg-blue-100 transition-colors">
-                                                                <FiUpload className="w-5 h-5" />
-                                                            </div>
+                                                            <FiUpload className="w-6 h-6 text-gray-400 mb-1.5" />
                                                             <span className="mt-2 text-xs font-medium text-gray-600 group-hover/upload:text-blue-600">
                                                                 {imagesPreview.length + oldImages.length === 0 ? 'Upload images' : 'Add more'}
                                                             </span>
                                                             <span className="text-[10px] text-gray-400 mt-0.5">
                                                                 Max {4 - (imagesPreview.length + oldImages.length)} more
                                                             </span>
-                                                            <FiUpload className="w-6 h-6 text-gray-400 mb-2" />
-                                                            <span className="text-sm text-gray-600">Upload Image</span>
                                                         </label>
                                                     )}
                                                 </div>
@@ -602,115 +607,148 @@ const UpdateProduct = () => {
 
 {/* Highlights */}
                                             <div className="md:col-span-2 space-y-4">
-                                                <label className="block text-sm font-medium text-gray-700">Highlights</label>
-                                                <div className="space-y-2">
-                                                    {highlights.map((highlight, index) => (
-                                                        <div key={index} className="flex items-center gap-2">
-                                                            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                                                {highlight}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => {
-                                                                    const newHighlights = [...highlights];
-                                                                    newHighlights.splice(index, 1);
-                                                                    setHighlights(newHighlights);
-                                                                }}
-                                                                className="text-red-500 hover:text-red-600 transition-colors"
-                                                            >
-                                                                <FiX className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    <div className="flex items-center gap-2">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        Highlights
+                                                        <span className="ml-1 text-xs font-normal text-gray-500">(Optional)</span>
+                                                    </label>
+                                                    <span className="text-xs text-gray-500">{highlights.length} added</span>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {highlights.map((highlight, index) => (
+                                                            <div key={index} className="flex items-center gap-1 bg-blue-50 text-blue-800 px-3 py-1.5 rounded-lg text-sm">
+                                                                <span>{highlight}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newHighlights = [...highlights];
+                                                                        newHighlights.splice(index, 1);
+                                                                        setHighlights(newHighlights);
+                                                                    }}
+                                                                    className="text-blue-600 hover:text-blue-800 transition-colors ml-1"
+                                                                    aria-label="Remove highlight"
+                                                                >
+                                                                    <FiX className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="relative">
                                                         <input
                                                             type="text"
-                                                            value={''}
-                                                            onChange={(e) => {
-                                                                const newHighlight = e.target.value;
-                                                                if (e.key === 'Enter' && newHighlight.trim()) {
-                                                                    setHighlights([...highlights, newHighlight]);
-                                                                    e.target.value = '';
-                                                                }
-                                                            }}
+                                                            value={highlightInput}
+                                                            onChange={(e) => setHighlightInput(e.target.value)}
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter') {
                                                                     e.preventDefault();
+                                                                    if (highlightInput.trim()) {
+                                                                        setHighlights([...highlights, highlightInput.trim()]);
+                                                                        setHighlightInput('');
+                                                                    }
                                                                 }
                                                             }}
-                                                            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            placeholder="Add highlight..."
+                                                            className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            placeholder="Type and press Enter to add a highlight"
                                                         />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const input = document.querySelector('input[placeholder="Add highlight..."]');
-                                                                if (input && input.value.trim()) {
-                                                                    setHighlights([...highlights, input.value.trim()]);
-                                                                    input.value = '';
-                                                                }
-                                                            }}
-                                                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                                                        >
-                                                            <FiPlus className="w-4 h-4" />
-                                                        </button>
+                                                        {highlightInput && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (highlightInput.trim()) {
+                                                                        setHighlights([...highlights, highlightInput.trim()]);
+                                                                        setHighlightInput('');
+                                                                    }
+                                                                }}
+                                                                className="absolute inset-y-0 right-0 px-3 text-blue-500 hover:text-blue-700 focus:outline-none"
+                                                                aria-label="Add highlight"
+                                                            >
+                                                                <FiPlus className="w-5 h-5" />
+                                                            </button>
+                                                        )}
                                                     </div>
+                                                    <p className="text-xs text-gray-500">
+                                                        Add key features or selling points of the product
+                                                    </p>
                                                 </div>
                                             </div>
 
                                             {/* Specifications */}
                                             <div className="md:col-span-2 space-y-4">
-                                                <label className="block text-sm font-medium text-gray-700">Specifications</label>
-                                                <div className="space-y-2">
-                                                    {specifications.map((spec, index) => (
-                                                        <div key={index} className="flex items-center gap-4">
-                                                            <div className="flex-1">
-                                                                <input
-                                                                    type="text"
-                                                                    value={spec.name}
-                                                                    onChange={(e) => {
-                                                                        const newSpecs = [...specifications];
-                                                                        newSpecs[index].name = e.target.value;
-                                                                        setSpecifications(newSpecs);
-                                                                    }}
-                                                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                                    placeholder="Specification name"
-                                                                />
+                                                <div className="flex items-center justify-between">
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        Specifications
+                                                        <span className="ml-1 text-xs font-normal text-gray-500">(Optional)</span>
+                                                    </label>
+                                                    <span className="text-xs text-gray-500">{specifications.length} specifications</span>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="space-y-3">
+                                                        {specifications && specifications.length > 0 ? specifications.map((spec, index) => (
+                                                            <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+                                                                <div className="md:col-span-5">
+                                                                    <div className="relative
+                                                                        after:content-[''] after:absolute after:left-3 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-1 after:bg-gray-400 after:rounded-full">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={spec.name}
+                                                                            onChange={(e) => {
+                                                                                const newSpecs = [...specifications];
+                                                                                newSpecs[index].name = e.target.value;
+                                                                                setSpecifications(newSpecs);
+                                                                            }}
+                                                                            className="w-full pl-6 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                                            placeholder="Specification name"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="md:col-span-6">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={spec.value}
+                                                                            onChange={(e) => {
+                                                                                const newSpecs = [...specifications];
+                                                                                newSpecs[index].value = e.target.value;
+                                                                                setSpecifications(newSpecs);
+                                                                            }}
+                                                                            className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                                            placeholder="Enter value"
+                                                                        />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                const newSpecs = [...specifications];
+                                                                                newSpecs.splice(index, 1);
+                                                                                setSpecifications(newSpecs);
+                                                                            }}
+                                                                            className="p-2 text-gray-500 hover:text-red-500 transition-colors rounded-full hover:bg-gray-100"
+                                                                            aria-label="Remove specification"
+                                                                        >
+                                                                            <FiX className="w-5 h-5" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            <div className="flex-1">
-                                                                <input
-                                                                    type="text"
-                                                                    value={spec.value}
-                                                                    onChange={(e) => {
-                                                                        const newSpecs = [...specifications];
-                                                                        newSpecs[index].value = e.target.value;
-                                                                        setSpecifications(newSpecs);
-                                                                    }}
-                                                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                                    placeholder="Value"
-                                                                />
-                                                            </div>
-                                                            <button
-                                                                onClick={() => {
-                                                                    const newSpecs = [...specifications];
-                                                                    newSpecs.splice(index, 1);
-                                                                    setSpecifications(newSpecs);
-                                                                }}
-                                                                className="text-red-500 hover:text-red-600 transition-colors"
-                                                            >
-                                                                <FiX className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSpecifications([...specifications, { name: '', value: '' }])}
-                                                        className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 border border-dashed border-gray-300 rounded-lg text-blue-600 hover:text-blue-700 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group"
-                                                    >
-                                                        <svg className="w-5 h-5 text-blue-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                        </svg>
-                                                        <span className="text-sm font-medium">Add Specification</span>
-                                                    </button>
+                                                        ))}
+                                                    </div>
+                                                    <div className="pt-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSpecifications([...specifications, { name: '', value: '' }])}
+                                                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                            </svg>
+                                                            <span>Add Specification</span>
+                                                        </button>
+                                                    </div>
+                                                    {specifications.length > 0 && (
+                                                        <p className="text-xs text-gray-500">
+                                                            Add detailed specifications like material, dimensions, weight, etc.
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
 

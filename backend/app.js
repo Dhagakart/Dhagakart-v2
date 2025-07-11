@@ -31,7 +31,7 @@ if (process.env.NODE_ENV !== 'production') {
 //     optionsSuccessStatus: 200
 // };
 
-const allowedOrigins = ['http://localhost:5173', 'https://dhagakart-jfaj.vercel.app', 'https://dhagakart.com'];
+const allowedOrigins = ['http://localhost:5173', 'https://dhagakart-jfaj.vercel.app', 'https://dhagakart.com', 'https://www.dhagakart.com'];
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
