@@ -73,11 +73,11 @@ const UpdateProduct = () => {
                 setHighlights(product.highlights || []);
                 // Ensure specifications is an array of objects with name and value properties
                 const productSpecs = product.specifications || [];
-                const formattedSpecs = productSpecs.length > 0 
+                const formattedSpecs = productSpecs.length > 0
                     ? productSpecs.map(spec => ({
                         name: spec.name || '',
                         value: spec.value || ''
-                      }))
+                    }))
                     : [{ name: '', value: '' }];
                 setSpecifications(formattedSpecs);
                 setOldImages(product.images || []);
@@ -343,94 +343,94 @@ const UpdateProduct = () => {
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div className="p-5 space-y-5">
                                                         {/* Brand Name */}
                                                         <div className="space-y-1.5">
-                                                        <label className="text-sm font-medium text-gray-700 flex items-center">
-                                                            Brand Name
-                                                            <span className="ml-1 text-red-500">*</span>
-                                                        </label>
-                                                        <div className="relative">
-                                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                                </svg>
+                                                            <label className="text-sm font-medium text-gray-700 flex items-center">
+                                                                Brand Name
+                                                                <span className="ml-1 text-red-500">*</span>
+                                                            </label>
+                                                            <div className="relative">
+                                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                                    </svg>
+                                                                </div>
+                                                                <input
+                                                                    type="text"
+                                                                    value={brandname}
+                                                                    onChange={(e) => setBrandname(e.target.value)}
+                                                                    className="block w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                                                    required
+                                                                    placeholder="e.g., Nike, Apple"
+                                                                />
                                                             </div>
-                                                            <input
-                                                                type="text"
-                                                                value={brandname}
-                                                                onChange={(e) => setBrandname(e.target.value)}
-                                                                className="block w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                                                required
-                                                                placeholder="e.g., Nike, Apple"
-                                                            />
                                                         </div>
-                                                    </div>
-                                                    
-                                                    {/* Brand Logo */}
-                                                    <div className="space-y-1">
-                                                        <label className="block text-sm font-medium text-gray-700">
-                                                            Brand Logo
-                                                            <span className="ml-1 text-xs font-normal text-gray-500">(Optional)</span>
-                                                        </label>
-                                                        <div className="flex items-center space-x-4">
-                                                            <div className="relative group w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
-                                                                {logoPreview ? (
-                                                                    <>
-                                                                        <img
-                                                                            src={logoPreview}
-                                                                            alt="Brand Logo"
-                                                                            className="w-full h-full object-contain bg-white p-2"
-                                                                        />
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                setLogoPreview('');
-                                                                                setLogo('');
-                                                                            }}
-                                                                            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
-                                                                            title="Remove logo"
+
+                                                        {/* Brand Logo */}
+                                                        <div className="space-y-1">
+                                                            <label className="block text-sm font-medium text-gray-700">
+                                                                Brand Logo
+                                                                <span className="ml-1 text-xs font-normal text-gray-500">(Optional)</span>
+                                                            </label>
+                                                            <div className="flex items-center space-x-4">
+                                                                <div className="relative group w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+                                                                    {logoPreview ? (
+                                                                        <>
+                                                                            <img
+                                                                                src={logoPreview}
+                                                                                alt="Brand Logo"
+                                                                                className="w-full h-full object-contain bg-white p-2"
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    setLogoPreview('');
+                                                                                    setLogo('');
+                                                                                }}
+                                                                                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
+                                                                                title="Remove logo"
+                                                                            >
+                                                                                <FiX className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                                                            <FiUpload className="w-6 h-6 text-gray-400 mb-1.5" />
+                                                                            <span className="text-xs text-center text-gray-500 px-2">
+                                                                                Upload Logo
+                                                                            </span>
+                                                                            <input
+                                                                                type="file"
+                                                                                id="logo"
+                                                                                accept="image/*"
+                                                                                onChange={handleLogoChange}
+                                                                                className="hidden"
+                                                                            />
+                                                                        </label>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <label
+                                                                            htmlFor="logo"
+                                                                            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                                                         >
-                                                                            <FiX className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                    </>
-                                                                ) : (
-                                                                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-                                                                        <FiUpload className="w-6 h-6 text-gray-400 mb-1.5" />
-                                                                        <span className="text-xs text-center text-gray-500 px-2">
-                                                                            Upload Logo
-                                                                        </span>
-                                                                        <input
-                                                                            type="file"
-                                                                            id="logo"
-                                                                            accept="image/*"
-                                                                            onChange={handleLogoChange}
-                                                                            className="hidden"
-                                                                        />
-                                                                    </label>
-                                                                )}
-                                                            </div>
-                                                            
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center gap-3">
-                                                                    <label
-                                                                        htmlFor="logo"
-                                                                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                                                                    >
-                                                                        <FiUpload className="-ml-1 mr-2 h-4 w-4 text-gray-500" />
-                                                                        {logoPreview ? 'Change Logo' : 'Choose File'}
-                                                                    </label>
-                                                                    {logoPreview && (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                setLogoPreview('');
-                                                                                setLogo('');
-                                                                            }}
-                                                                            className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700"
-                                                                        >
-                                                                            Remove
+                                                                            <FiUpload className="-ml-1 mr-2 h-4 w-4 text-gray-500" />
+                                                                            {logoPreview ? 'Change Logo' : 'Choose File'}
+                                                                        </label>
+                                                                        {logoPreview && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    setLogoPreview('');
+                                                                                    setLogo('');
+                                                                                }}
+                                                                                className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700"
+                                                                            >
+                                                                                Remove
                                                                             </button>
                                                                         )}
                                                                     </div>
@@ -474,7 +474,7 @@ const UpdateProduct = () => {
                                                                 Months
                                                             </span>
                                                         </div>
-                                                        
+
                                                         <div className="mt-2 relative rounded-lg shadow-sm">
                                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                                 <svg className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -492,11 +492,11 @@ const UpdateProduct = () => {
                                                             />
                                                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 border-l border-blue-100">
                                                                 <span className="text-gray-500 text-sm font-medium">
-                                                                    {warranty === 0 ? 'No warranty' : warranty + ' mo'} 
+                                                                    {warranty === 0 ? 'No warranty' : warranty + ' mo'}
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <div className="mt-2 flex items-center">
                                                             <button
                                                                 type="button"
@@ -604,8 +604,6 @@ const UpdateProduct = () => {
                                                     className="hidden"
                                                 />
                                             </div>
-
-{/* Highlights */}
                                             <div className="md:col-span-2 space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <label className="block text-sm font-medium text-gray-700">
@@ -684,11 +682,10 @@ const UpdateProduct = () => {
                                                 </div>
                                                 <div className="space-y-4">
                                                     <div className="space-y-3">
-                                                        {specifications && specifications.length > 0 ? specifications.map((spec, index) => (
+                                                        {specifications && specifications.length > 0 && specifications.map((spec, index) => (
                                                             <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
                                                                 <div className="md:col-span-5">
-                                                                    <div className="relative
-                                                                        after:content-[''] after:absolute after:left-3 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-1 after:bg-gray-400 after:rounded-full">
+                                                                    <div className="relative after:content-[''] after:absolute after:left-3 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-1 after:bg-gray-400 after:rounded-full">
                                                                         <input
                                                                             type="text"
                                                                             value={spec.name}
@@ -757,11 +754,10 @@ const UpdateProduct = () => {
                                                 <button
                                                     type="submit"
                                                     disabled={loading || updateLoading}
-                                                    className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
-                                                        loading || updateLoading
+                                                    className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${loading || updateLoading
                                                             ? 'bg-gray-300 cursor-not-allowed'
                                                             : 'bg-blue-500 hover:bg-blue-600'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {loading || updateLoading ? 'Updating...' : 'Update Product'}
                                                 </button>

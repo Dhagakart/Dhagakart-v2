@@ -31,9 +31,9 @@ const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice 
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col items-center justify-center gap-2 mx-2 py-2 px-4 relative border border-gray-200 rounded-lg hover:cursor-pointer" onClick={() => navigate(`/product/${_id}`)}>
+        <div className="flex flex-col items-center justify-center gap-2 mx-2 py-2 px-4 relative  rounded-lg hover:cursor-pointer" onClick={() => navigate(`/product/${_id}`)}>
             {/* <!-- image & product title --> */}
-            {/* <Link to={`/product/${_id}`} className="flex flex-col justify-center items-center text-center"> */}
+            {/* <Link to={/product/${_id}} className="flex flex-col justify-center items-center text-center"> */}
             <div className="w-48 h-48">
                 <img draggable="false" className="w-full h-full object-contain" src={images && images[0].url} alt="" />
             </div>
@@ -55,7 +55,7 @@ const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice 
                 </div>
                 {/* <!-- rating badge --> */}
 
-                {/* <h2 className="text-sm mt-4 text-center">{name.length > 85 ? `${name.substring(0, 85)}...` : name}</h2> */}
+                {/* <h2 className="text-sm mt-4 text-center">{name.length > 85 ? ${name.substring(0, 85)}... : name}</h2> */}
                 <h2 className="text-sm mt-4 text-start">{name.length > 65 ? `${name.substring(0, 65)}...` : name}</h2>
 
                 {/* <!-- price container --> */}

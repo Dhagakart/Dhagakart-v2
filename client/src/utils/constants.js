@@ -34,6 +34,14 @@ export const categories = [
     {
       name: "Yarn",
       subcategories: ["Silk Yarn", "Cotton Yarn", "Polyester Yarn", "Viscous Yarn", "Zari Thread"]
+    },
+    {
+      name: "Zari",
+      subcategories: ["Flora Zari", "Metallic Zari", "Zari", "Pure Zari"]
+    },
+    {
+      name: "Machinery",
+      subcategories: ["Sewing Machine", "Powerloom"]
     }
 ];
 

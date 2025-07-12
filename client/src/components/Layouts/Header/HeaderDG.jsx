@@ -733,18 +733,26 @@ const HeaderDG = () => {
                               </li>
                               <li>
                                 <a
-                                  href="/products/pure%20threads"
+                                  href="/products/metallic%20zari"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
-                                  Pure Threads
+                                  Metallic Zari
                                 </a>
                               </li>
                               <li>
                                 <a
-                                  href="/products/metallic%20laces"
+                                  href="/products/zari"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
-                                  Metallic Laces
+                                  Zari
+                                </a>
+                              </li>
+                              <li>
+                                <a
+                                  href="/products/pure%20zari"
+                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
+                                >
+                                  Pure Zari
                                 </a>
                               </li>
                             </ul>
@@ -754,28 +762,22 @@ const HeaderDG = () => {
                             <ul className="space-y-1">
                               <li>
                                 <a
-                                  href="/products/all%20fabrics"
+                                  href="/products/sewing%20machine"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
-                                  All Fabrics
+                                  Sewing Machine
                                 </a>
                               </li>
                               <li>
                                 <a
-                                  href="/products/cotton%20fabrics"
+                                  href="/products/powerloom"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
-                                  Cotton Fabrics
+                                  Powerloom
+
                                 </a>
                               </li>
-                              <li>
-                                <a
-                                  href="/products/silk%20fabrics"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Silk Fabrics
-                                </a>
-                              </li>
+                             
                             </ul>
                           </div>
                         </div>

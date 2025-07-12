@@ -834,29 +834,30 @@ const Products = () => {
                         )}
 
                         {loading ? <Loader /> : (
-                            <div className="w-full bg-white">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-                                    {products?.map((product) => (
-                                        <div key={product._id} className="w-full flex justify-center h-full">
-                                            <div className="w-full max-w-[280px] h-full flex flex-col">
-                                                <div className="flex-1">
-                                                    <Product {...product} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                {productsCount > resultPerPage && (
-                                    <div className="flex justify-center p-4">
-                                        <Pagination
-                                            count={Math.ceil(productsCount / resultPerPage)}
-                                            page={currentPage}
-                                            onChange={(e, val) => setCurrentPage(val)}
-                                            color="primary"
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                           <div className="w-full bg-white">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+                             {products?.map((product) => (
+                               <div key={product._id} className="w-full flex justify-center h-full">
+                                 <div className="w-full max-w-[280px] h-[400px] flex flex-col border border-gray-200  rounded shadow">
+                                   <div className="flex-1 flex flex-col">
+                                     <Product {...product} />
+                                   </div>
+                                 </div>
+                               </div>
+                             ))}
+                           </div>
+                           {productsCount > resultPerPage && (
+                             <div className="flex justify-center p-4">
+                               <Pagination
+                                 count={Math.ceil(productsCount / resultPerPage)}
+                                 page={currentPage}
+                                 onChange={(e, val) => setCurrentPage(val)}
+                                 color="primary"
+                               />
+                             </div>
+                           )}
+                         </div>
+                         
                         )}
                     </div>
                 </div>
