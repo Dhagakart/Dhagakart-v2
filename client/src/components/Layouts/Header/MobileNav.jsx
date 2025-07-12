@@ -178,20 +178,18 @@ const MobileNav = ({
             <ListItemText primary="Credit Finance" />
           </ListItemButton>
         </ListItem>
-      </List>
-      <Divider />
-      <List sx={{ marginTop: 'auto' }}>
+        
+        {/* Mobile-only Auth Section */}
+        <Divider />
         {isAuthenticated ? (
-          <>
-            <ListItem disablePadding>
-              <ListItemButton onClick={handleLogoutClick}>
-                <ListItemIcon>
-                  <ExitToAppIcon />
-                </ListItemIcon>
-                <ListItemText primary="Logout" />
-              </ListItemButton>
-            </ListItem>
-          </>
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleLogoutClick}>
+              <ListItemIcon>
+                <ExitToAppIcon />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          </ListItem>
         ) : (
           <ListItem disablePadding>
             <ListItemButton component={Link} to="/login" onClick={handleDrawerToggle}>
@@ -203,6 +201,7 @@ const MobileNav = ({
           </ListItem>
         )}
       </List>
+      {/* Removed bottom Logout button */}
     </Box>
   );
 };
