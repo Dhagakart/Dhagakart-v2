@@ -13,11 +13,11 @@ export const quickLinks = [
   { label: 'Flora Zari', href: '/products/flora%20zari' },
   { label: 'Pure Zari', href: '/products/pure%20zari' },
   { label: 'Sewing Machine', href: '/products/sewing%20machine' },
-  { label: 'Powerloom', href: '/products/powerloom' },
+  { label: 'Power Loom', href: '/products/power%20loom' },
 ];
 
 export const popularTags = [
   'Silk Yarn', 'Cotton Yarn', 'Polyester Yarn', 'Flora Zari',
-   'Pure Zari', 'Sewing Machine', 'Powerloom',
+   'Pure Zari', 'Sewing Machine', 'Power Loom',
   'Yarn', 'Zari', 'Machinery', 'All Products',
 ];

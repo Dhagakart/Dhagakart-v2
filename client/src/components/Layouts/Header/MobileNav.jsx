@@ -103,6 +103,16 @@ const MobileNav = ({
             <ListItemText primary="Home" />
           </ListItemButton>
         </ListItem>
+        {isAuthenticated && (
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/account">
+              <ListItemIcon>
+                <AccountCircleIcon />
+              </ListItemIcon>
+              <ListItemText primary="Account" />
+            </ListItemButton>
+          </ListItem>
+        )}
         {/* Products Accordion */}
         <ListItem disablePadding onClick={(e) => e.stopPropagation()}>
           <StyledListItemButton onClick={handleProductsClick}>

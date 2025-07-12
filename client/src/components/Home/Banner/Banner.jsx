@@ -211,11 +211,11 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos"
 
 // Example banner images (swap with your actual assets)
-import Banner1 from "../../../assets/images/banner1.png"
+import Banner1 from "./Banner1.png"
+import Banner2 from "./Banner2.png"
+import Banner3 from "./Banner3.png"
 import BannerTop from "../../../assets/images/bannerTop.png"
 import BannerBottom from "../../../assets/images/bannerBottom.png"
-import poco from "../../../assets/images/Banners/poco-m4-pro.webp"
-import realme from "../../../assets/images/Banners/realme-9-pro.webp"
 
 // ——————————————————————————————————————————————————
 // 1) Custom dot styles
@@ -328,12 +328,12 @@ const Banner = () => {
   }
 
   // Use Banner1 for all slides (replace or extend as needed)
-  const banners = [Banner1, Banner1, Banner1]
+  const banners = [Banner1, Banner2, Banner3]
 
   return (
     <div className="w-full h-auto lg:h-[600px] bg-white py-4 lg:py-8 flex flex-col lg:flex-row gap-4">
       {/* LEFT COLUMN: Carousel */}
-      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer" onClick={() => navigate('/product/6862c4bb5235d86a799dc67d')}>
+      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
         <Slider {...settings} className="h-full">
           {banners.map((src, idx) => (
             <div key={idx} className="h-full w-full">
@@ -351,7 +351,7 @@ const Banner = () => {
       {/* RIGHT COLUMN: Two "Cards" Stacked */}
       <div className="w-full lg:w-2/5 h-full flex flex-col gap-2 sm:gap-4">
         {/* TOP CARD */}
-        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6862c4bb5235d86a799dc67d')}>
+        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded">
             29% OFF
           </div>
@@ -375,7 +375,7 @@ const Banner = () => {
         </div>
 
         {/* BOTTOM CARD */}
-        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6862c4bb5235d86a799dc67d')}>
+        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
           <div className="flex flex-row h-full w-full">
             <div className="w-[120px] sm:w-[150px] lg:w-auto flex-shrink-0 flex items-center justify-center p-2 sm:pl-4">
               <img
