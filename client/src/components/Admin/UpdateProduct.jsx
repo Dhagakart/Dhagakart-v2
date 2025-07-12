@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
-import { getProductDetails, updateProduct, clearErrors } from '../../actions/productAction';
+import { getProductDetails, updateProduct, clearErrors, removeProductImage } from '../../actions/productAction';
 import { UPDATE_PRODUCT_RESET } from '../../constants/productConstants';
 import { FiUpload, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
 import MetaData from '../Layouts/MetaData';
@@ -130,19 +130,19 @@ const UpdateProduct = () => {
 
     const removeImage = (index, isOldImage = false, imageUrl = "") => {
         if (isOldImage) {
-            // Add to removed images if it's an old image
-            setRemovedImages(prev => [...prev, imageUrl]);
-            // Remove from old images preview
-            setOldImages(oldImages.filter((_, i) => i !== index));
+            const oldImagesCopy = [...oldImages];
+            const removedImage = oldImagesCopy.splice(index, 1)[0];
+            setOldImages(oldImagesCopy);
+            setRemovedImages([...removedImages, { url: imageUrl, public_id: removedImage.public_id }]);
+            // Dispatch action to update the Redux store
+            dispatch(removeProductImage(removedImage));
         } else {
-            // Remove from new images preview and state
-            const newImagesPreview = [...imagesPreview];
-            newImagesPreview.splice(index, 1);
-            setImagesPreview(newImagesPreview);
-
-            const newImages = [...images];
-            newImages.splice(index, 1);
-            setImages(newImages);
+            const imagesCopy = [...images];
+            const imagesPreviewCopy = [...imagesPreview];
+            imagesCopy.splice(index, 1);
+            imagesPreviewCopy.splice(index, 1);
+            setImages(imagesCopy);
+            setImagesPreview(imagesPreviewCopy);
         }
     };
 
@@ -175,9 +175,20 @@ const UpdateProduct = () => {
         });
 
         // Add removed images
-        removedImages.forEach((img) => {
-            formData.append("imagesToRemove", img);
-        });
+        if (removedImages.length > 0) {
+            formData.append("removedImages", JSON.stringify(removedImages));
+        }
+
+        // Get the current product from Redux store
+        const currentProduct = useSelector((state) => state.productDetails.product);
+        
+        // Include any images marked for removal in the Redux store
+        if (currentProduct.removedImages && currentProduct.removedImages.length > 0) {
+            const allRemovedImages = [...removedImages, ...currentProduct.removedImages];
+            if (allRemovedImages.length > 0) {
+                formData.set("removedImages", JSON.stringify(allRemovedImages));
+            }
+        }
 
         // Add logo if updated
         if (logo) {

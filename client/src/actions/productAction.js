@@ -188,12 +188,42 @@ export const createProduct = (productData) => async (dispatch) => {
     }
 }
 
+// Remove Product Image
+const removeProductImage = (image) => ({
+    type: 'REMOVE_PRODUCT_IMAGE',
+    payload: image
+});
+
 // Update Product ---ADMIN
 export const updateProduct = (id, productData) => async (dispatch) => {
     try {
         dispatch({ type: UPDATE_PRODUCT_REQUEST });
-        const config = { header: { "Content-Type": "application/json" } }
-        const { data } = await api.put(`/admin/product/${id}`, productData, config);
+        
+        // Create FormData for file uploads
+        const formData = new FormData();
+        
+        // Append all product data to formData
+        Object.keys(productData).forEach(key => {
+            if (key === 'images') {
+                // Handle multiple image files
+                for (let i = 0; i < productData.images.length; i++) {
+                    formData.append('images', productData.images[i]);
+                }
+            } else if (key === 'removedImages' && productData.removedImages) {
+                // Stringify removed images array
+                formData.append('removedImages', JSON.stringify(productData.removedImages));
+            } else if (key !== 'images') {
+                formData.append(key, productData[key]);
+            }
+        });
+        
+        const config = {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        };
+        
+        const { data } = await api.put(`/admin/product/${id}`, formData, config);
 
         dispatch({
             type: UPDATE_PRODUCT_SUCCESS,

@@ -114,23 +114,6 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
         return next(new ErrorHandler('Error uploading product images', 500));
     }
 
-    // Handle brand logo
-    let brandLogo = {};
-    try {
-        if (req.body.logo) {
-            const result = await cloudinary.v2.uploader.upload(req.body.logo, {
-                folder: "brands",
-            });
-            brandLogo = {
-                public_id: result.public_id,
-                    url: result.secure_url,
-            };
-        }
-    } catch (error) {
-        console.error('Error uploading brand logo to Cloudinary:', error);
-        return next(new ErrorHandler('Error uploading brand logo', 500));
-    }
-
     // Process highlights - ensure it's a flat array of strings
     let highlights = [];
     if (req.body.highlights) {
@@ -175,10 +158,6 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
     // Prepare product data
     const productData = {
         ...req.body,
-        brand: {
-            name: req.body.brandname,
-            logo: brandLogo
-        },
         images: imagesLink,
         highlights: highlights,
         specifications: specifications,
@@ -222,8 +201,32 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
         }, []);
     };
 
-    // Process new images if provided
+    // Process new images    // Process images
     let imagesLink = [...product.images];
+    
+    // Handle removed images
+    if (req.body.removedImages && Array.isArray(req.body.removedImages)) {
+        const removedImages = JSON.parse(req.body.removedImages);
+        // Delete images from Cloudinary
+        for (const img of removedImages) {
+            if (img.public_id) {
+                try {
+                    await cloudinary.v2.uploader.destroy(img.public_id);
+                } catch (error) {
+                    console.error('Error deleting image from Cloudinary:', error);
+                    // Continue with other images if one fails
+                }
+            }
+        }
+        
+        // Remove deleted images from the images array
+        if (removedImages.length > 0) {
+            const removedIds = removedImages.map(img => img.public_id);
+            imagesLink = imagesLink.filter(img => !removedIds.includes(img.public_id));
+        }
+    }
+    
+    // Add new images
     if (req.body.images && req.body.images.length > 0) {
         let newImages = [];
         if (typeof req.body.images === 'string') {
@@ -249,29 +252,6 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
                 console.error('Error uploading new images to Cloudinary:', error);
                 // Continue with other images if one fails
             }
-        }
-    }
-
-    // Handle brand logo update if provided
-    let brandLogo = product.brand?.logo || {};
-    if (req.body.logo && req.body.logo !== product.brand?.logo?.url) {
-        try {
-            // Delete old logo if exists
-            if (brandLogo.public_id) {
-                await cloudinary.v2.uploader.destroy(brandLogo.public_id);
-            }
-            
-            const result = await cloudinary.v2.uploader.upload(req.body.logo, {
-                folder: "brands",
-            });
-            
-            brandLogo = {
-                public_id: result.public_id,
-                url: result.secure_url,
-            };
-        } catch (error) {
-            console.error('Error updating brand logo:', error);
-            return next(new ErrorHandler('Error updating brand logo', 500));
         }
     }
 
@@ -320,10 +300,6 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     // Prepare update data
     const updateData = {
         ...req.body,
-        brand: {
-            name: req.body.brandname || product.brand?.name,
-            logo: brandLogo
-        },
         images: imagesLink,
         highlights: highlights,
         specifications: specifications,
@@ -335,7 +311,6 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     };
 
     // Remove fields that shouldn't be updated
-    delete updateData.brandname;
     delete updateData.logo; // Already handled separately
 
     // Update the product

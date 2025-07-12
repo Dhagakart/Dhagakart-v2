@@ -212,8 +212,22 @@ export const newProductReducer = (state = { product: {} }, { type, payload }) =>
 }
 
 // New Product Reducer
-export const productReducer = (state = {}, { type, payload }) => {
+export const productReducer = (state = { product: {} }, { type, payload }) => {
     switch (type) {
+        case 'REMOVE_PRODUCT_IMAGE':
+            return {
+                ...state,
+                product: {
+                    ...state.product,
+                    images: state.product.images.filter(img => 
+                        img.public_id !== payload.public_id
+                    ),
+                    removedImages: [
+                        ...(state.product.removedImages || []),
+                        payload
+                    ]
+                }
+            };
         case UPDATE_PRODUCT_REQUEST:
         case DELETE_PRODUCT_REQUEST:
             return {
@@ -257,7 +271,7 @@ export const productReducer = (state = {}, { type, payload }) => {
         default:
             return state;
     }
-}
+};
 
 export const productReviewsReducer = (state = { reviews: [] }, { type, payload }) => {
 

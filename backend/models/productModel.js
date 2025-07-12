@@ -48,26 +48,22 @@ const productSchema = new mongoose.Schema({
             }
         }
     ],
-    brand: {
-        name: {
-            type: String,
-            required: true
-        },
-        logo: {
-            public_id: {
-                type: String,
-                required: true,
-            },
-            url: {
-                type: String,
-                required: true,
-            }
-        }
-    },
     category: {
         type: String,
         required: [true, "Please enter product category"]
     },
+    removedImages: [
+        {
+            public_id: {
+                type: String,
+                required: true
+            },
+            url: {
+                type: String,
+                required: true
+            }
+        }
+    ],
     subCategory: {
         type: String,
         required: [true, "Please enter product sub category"]
