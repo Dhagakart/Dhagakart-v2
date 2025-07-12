@@ -21,7 +21,7 @@
 // } from '@mui/material';
 // import SearchIcon from '@mui/icons-material/Search';
 // import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-// import { useSnackbar } from 'notistack';
+// import { toast } from 'react-hot-toast';
 // import { Link, useNavigate, useLocation } from 'react-router-dom';
 // import { useDispatch, useSelector } from 'react-redux';
 // import { clearErrors, registerUser } from '../../actions/userAction';
@@ -34,7 +34,6 @@
 //   const dispatch = useDispatch();
 //   const navigate = useNavigate();
 //   const location = useLocation();
-//   const { enqueueSnackbar } = useSnackbar();
 //   const { loading, isAuthenticated, error, success } = useSelector(state => state.user);
 
 //   // Stepper state
@@ -62,13 +61,13 @@
 //   // Handle authentication errors and redirects
 //   useEffect(() => {
 //     if (error) {
-//       enqueueSnackbar(error, { variant: 'error' });
+//       toast.error(error);
 //       dispatch(clearErrors());
 //     }
 //     if (isAuthenticated) {
 //       navigate('/');
 //     }
-//   }, [error, isAuthenticated, dispatch, enqueueSnackbar, navigate]);
+//   }, [error, isAuthenticated, dispatch, navigate]);
 
 //   // Extract OAuth data from query parameters
 //   useEffect(() => {
@@ -81,11 +80,11 @@
 //         setIsOAuth(true);
 //         setUser(u => ({ ...u, name, email }));
 //       } else {
-//         enqueueSnackbar('Missing OAuth data. Please try again.', { variant: 'error' });
+//         toast.error('Missing OAuth data. Please try again.');
 //         navigate('/login');
 //       }
 //     }
-//   }, [location.pathname, navigate, enqueueSnackbar]);
+//   }, [location.pathname, navigate]);
 
 //   // Close city suggestions on click outside
 //   useEffect(() => {
@@ -93,7 +92,7 @@
 //       if (
 //         cityInputRef.current &&
 //         !cityInputRef.current.contains(e.target) &&
-//         suggestionListRef.current/ current &&
+//         suggestionListRef.current &&
 //         !suggestionListRef.current.contains(e.target)
 //       ) {
 //         setShowSuggestions(false);
@@ -158,11 +157,11 @@
 //     if (activeStep === 0) {
 //       const { name, email, password, cpassword, phone, city } = user;
 //       if (!name || !email || !password || !cpassword || !phone || !city) {
-//         enqueueSnackbar('Please fill all required fields', { variant: 'error' });
+//         toast.error('Please fill all required fields');
 //         return;
 //       }
 //       if (password !== cpassword) {
-//         enqueueSnackbar("Passwords don't match", { variant: 'error' });
+//         toast.error("Passwords don't match");
 //         return;
 //       }
 //     }
@@ -183,7 +182,7 @@
 //     e.preventDefault();
 //     const { businessName, businessType } = user;
 //     if (!businessName || !businessType) {
-//       enqueueSnackbar('Please fill all business details', { variant: 'error' });
+//       toast.error('Please fill all business details');
 //       return;
 //     }
 //     const payload = {
@@ -197,6 +196,7 @@
 //     };
     
 //     try {
+//       toast.loading('Registering...');
 //       await dispatch(registerUser(payload));
 //       // The success effect will handle the navigation
 //     } catch (error) {
@@ -466,8 +466,8 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { useSnackbar } from 'notistack';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearErrors, registerUser } from '../../actions/userAction';
 import BackdropLoader from '../Layouts/BackdropLoader';
@@ -481,7 +481,6 @@ const Register = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { enqueueSnackbar } = useSnackbar();
   const { loading, isAuthenticated, error, success } = useSelector(state => state.user);
 
   // Stepper state
@@ -506,16 +505,28 @@ const Register = () => {
     businessType: '',
   });
 
+  // Validation state
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+    cpassword: '',
+    phone: '',
+    city: '',
+    businessName: '',
+    businessType: '',
+  });
+
   // Handle authentication errors and redirects
   useEffect(() => {
     if (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      toast.error(error);
       dispatch(clearErrors());
     }
     if (isAuthenticated) {
       navigate('/');
     }
-  }, [error, isAuthenticated, dispatch, enqueueSnackbar, navigate]);
+  }, [error, isAuthenticated, dispatch, navigate]);
 
   // Extract OAuth data from query parameters
   useEffect(() => {
@@ -528,11 +539,11 @@ const Register = () => {
         setIsOAuth(true);
         setUser(u => ({ ...u, name, email }));
       } else {
-        enqueueSnackbar('Missing OAuth data. Please try again.', { variant: 'error' });
+        toast.error('Missing OAuth data. Please try again.');
         navigate('/login');
       }
     }
-  }, [location.pathname, navigate, enqueueSnackbar]);
+  }, [location.pathname, navigate]);
 
   // Close city suggestions on click outside
   useEffect(() => {
@@ -540,7 +551,7 @@ const Register = () => {
       if (
         cityInputRef.current &&
         !cityInputRef.current.contains(e.target) &&
-        suggestionListRef.current/ current &&
+        suggestionListRef.current &&
         !suggestionListRef.current.contains(e.target)
       ) {
         setShowSuggestions(false);
@@ -553,6 +564,78 @@ const Register = () => {
   const handleDataChange = e => {
     const { name, value } = e.target;
     setUser(u => ({ ...u, [name]: value }));
+    validateField(name, value);
+  };
+
+  const validateField = (fieldName, value) => {
+    let error = '';
+
+    switch(fieldName) {
+      case 'name':
+        if (!value.trim()) {
+          error = 'Name is required';
+        } else if (value.length < 2) {
+          error = 'Name must be at least 2 characters';
+        }
+        break;
+
+      case 'email':
+        if (!value.trim()) {
+          error = 'Email is required';
+        } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)) {
+          error = 'Invalid email address';
+        }
+        break;
+
+      case 'password':
+        if (!value.trim()) {
+          error = 'Password is required';
+        } else if (value.length < 8) {
+          error = 'Password must be at least 8 characters';
+        }
+        break;
+
+      case 'cpassword':
+        if (!value.trim()) {
+          error = 'Confirm password is required';
+        } else if (value !== user.password) {
+          error = 'Passwords do not match';
+        }
+        break;
+
+      case 'phone':
+        if (!value.trim()) {
+          error = 'Phone number is required';
+        } else if (!/^[0-9]{10}$/.test(value)) {
+          error = 'Please enter a valid 10-digit phone number';
+        }
+        break;
+
+      case 'city':
+        if (!value.trim()) {
+          error = 'City is required';
+        }
+        break;
+
+      case 'businessName':
+        if (!value.trim()) {
+          error = 'Business name is required';
+        } else if (value.length < 3) {
+          error = 'Business name must be at least 3 characters';
+        }
+        break;
+
+      case 'businessType':
+        if (!value.trim()) {
+          error = 'Business type is required';
+        }
+        break;
+    }
+
+    setErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
   };
 
   const handleCityChange = (event, newValue) => {
@@ -565,6 +648,7 @@ const Register = () => {
           )
         : indianCities
     );
+    validateField('city', newValue || '');
   };
 
   const handleCityInputChange = (event, newInputValue) => {
@@ -604,16 +688,32 @@ const Register = () => {
   const handleNext = () => {
     if (activeStep === 0) {
       const { name, email, password, cpassword, phone, city } = user;
-      if (!name || !email || !password || !cpassword || !phone || !city) {
-        enqueueSnackbar('Please fill all required fields', { variant: 'error' });
+      // Validate all fields
+      validateField('name', name);
+      validateField('email', email);
+      validateField('password', password);
+      validateField('cpassword', cpassword);
+      validateField('phone', phone);
+      validateField('city', city);
+  
+      // Gather all errors after validation
+      const validationErrors = [
+        errors.name,
+        errors.email,
+        errors.password,
+        errors.cpassword,
+        errors.phone,
+        errors.city
+      ].filter(Boolean);
+  
+      // Show the first error as a toast notification
+      if (validationErrors.length > 0) {
+        toast.error(validationErrors[0]);
         return;
       }
-      if (password !== cpassword) {
-        enqueueSnackbar("Passwords don't match", { variant: 'error' });
-        return;
-      }
+  
+      setActiveStep(s => s + 1);
     }
-    setActiveStep(s => s + 1);
   };
 
   const handleBack = () => setActiveStep(s => s - 1);
@@ -629,10 +729,15 @@ const Register = () => {
   const handleRegister = async e => {
     e.preventDefault();
     const { businessName, businessType } = user;
-    if (!businessName || !businessType) {
-      enqueueSnackbar('Please fill all business details', { variant: 'error' });
+
+    // Validate business details
+    validateField('businessName', businessName);
+    validateField('businessType', businessType);
+
+    if (Object.values(errors).some(error => error)) {
       return;
     }
+
     const payload = {
       name: user.name,
       email: user.email,
@@ -642,7 +747,7 @@ const Register = () => {
       businessType,
       password: user.password
     };
-    
+
     try {
       await dispatch(registerUser(payload));
       // The success effect will handle the navigation
