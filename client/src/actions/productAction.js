@@ -189,7 +189,7 @@ export const createProduct = (productData) => async (dispatch) => {
 }
 
 // Remove Product Image
-const removeProductImage = (image) => ({
+export const removeProductImage = (image) => ({
     type: 'REMOVE_PRODUCT_IMAGE',
     payload: image
 });

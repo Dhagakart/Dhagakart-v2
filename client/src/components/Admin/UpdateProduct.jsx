@@ -132,10 +132,16 @@ const UpdateProduct = () => {
         if (isOldImage) {
             const oldImagesCopy = [...oldImages];
             const removedImage = oldImagesCopy.splice(index, 1)[0];
-            setOldImages(oldImagesCopy);
-            setRemovedImages([...removedImages, { url: imageUrl, public_id: removedImage.public_id }]);
-            // Dispatch action to update the Redux store
-            dispatch(removeProductImage(removedImage));
+            if (removedImage) {
+                const newRemovedImage = { 
+                    url: imageUrl || removedImage.url, 
+                    public_id: removedImage.public_id 
+                };
+                setOldImages(oldImagesCopy);
+                setRemovedImages(prev => [...prev, newRemovedImage]);
+                // Dispatch action to update the Redux store
+                dispatch(removeProductImage(newRemovedImage));
+            }
         } else {
             const imagesCopy = [...images];
             const imagesPreviewCopy = [...imagesPreview];
@@ -145,6 +151,8 @@ const UpdateProduct = () => {
             setImagesPreview(imagesPreviewCopy);
         }
     };
+
+    const currentProduct = useSelector((state) => state.productDetails.product);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -164,9 +172,9 @@ const UpdateProduct = () => {
             formData.append("highlights", h);
         });
 
-        // Add specifications
-        specifications.forEach((s) => {
-            formData.append("specifications", JSON.stringify(s));
+        // Add specifications as JSON strings
+        specifications.forEach((spec) => {
+            formData.append("specifications", JSON.stringify(spec));
         });
 
         // Add new images
@@ -174,26 +182,42 @@ const UpdateProduct = () => {
             formData.append("images", image);
         });
 
-        // Add removed images
-        if (removedImages.length > 0) {
-            formData.append("removedImages", JSON.stringify(removedImages));
-        }
-
-        // Get the current product from Redux store
-        const currentProduct = useSelector((state) => state.productDetails.product);
+        // Combine removed images from local state and Redux
+        const removedFromRedux = currentProduct.removedImages || [];
+        const allRemovedImages = [...new Set([...removedImages, ...removedFromRedux])];
         
-        // Include any images marked for removal in the Redux store
-        if (currentProduct.removedImages && currentProduct.removedImages.length > 0) {
-            const allRemovedImages = [...removedImages, ...currentProduct.removedImages];
-            if (allRemovedImages.length > 0) {
-                formData.set("removedImages", JSON.stringify(allRemovedImages));
-            }
+        // Add removed images to form data if any exist
+        if (allRemovedImages.length > 0) {
+            // Ensure we only have unique images to remove
+            const uniqueRemovedImages = allRemovedImages.filter((img, index, self) => 
+                index === self.findIndex((i) => (
+                    i.public_id === img.public_id
+                ))
+            );
+            
+            console.log('Removing images:', uniqueRemovedImages);
+            formData.append("removedImages", JSON.stringify(uniqueRemovedImages));
         }
 
         // Add logo if updated
         if (logo) {
             formData.append("logo", logo);
         }
+
+        console.log('Submitting form with data:', {
+            name,
+            price,
+            category,
+            stock,
+            warranty,
+            cuttedPrice,
+            brandname,
+            highlights,
+            specifications,
+            imagesCount: images.length,
+            removedImagesCount: allRemovedImages.length,
+            hasLogo: !!logo
+        });
 
         dispatch(updateProduct(id, formData));
     };

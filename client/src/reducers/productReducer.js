@@ -219,8 +219,8 @@ export const productReducer = (state = { product: {} }, { type, payload }) => {
                 ...state,
                 product: {
                     ...state.product,
-                    images: state.product.images.filter(img => 
-                        img.public_id !== payload.public_id
+                    images: (state.product.images || []).filter(img => 
+                        img && img.public_id !== payload.public_id
                     ),
                     removedImages: [
                         ...(state.product.removedImages || []),

@@ -160,45 +160,6 @@ const HighlightsSection = ({ highlights, setHighlights, highlightInput, setHighl
   );
 };
 
-const BrandSection = ({ brand, setBrand, logo, setLogo, logoPreview, setLogoPreview }) => {
-  const handleLogoChange = (e) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (reader.readyState === 2) {
-        setLogoPreview(reader.result);
-        setLogo(reader.result);
-      }
-    };
-    reader.readAsDataURL(e.target.files[0]);
-  };
-
-  return (
-    <div className="flex flex-col gap-2">
-      <h2 className="text-lg font-semibold text-[#003366]">Brand Details</h2>
-      <div className="grid grid-cols-3 gap-4 items-center">
-        <TextField
-          label="Brand"
-          type="text"
-          variant="outlined"
-          size="small"
-          required
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          sx={{ '& .MuiOutlinedInput-root': { '&:hover fieldset': { borderColor: '#003366' }, '&.Mui-focused fieldset': { borderColor: '#003366' } } }}
-        />
-        <div className="w-20 h-20 flex items-center justify-center border border-[#004080] rounded-lg">
-          {!logoPreview ? <ImageIcon className="text-[#003366]" /> : (
-            <img draggable="false" src={logoPreview} alt="Brand Logo" className="w-full h-full object-contain rounded-lg" />
-          )}
-        </div>
-        <label className="flex items-center justify-center bg-[#003366] text-white rounded-lg py-2 px-4 cursor-pointer hover:bg-[#002244] transition-colors">
-          <input type="file" name="logo" accept="image/*" onChange={handleLogoChange} className="hidden" />
-          Choose Logo
-        </label>
-      </div>
-    </div>
-  );
-};
 
 const SpecificationsSection = ({ specs, setSpecs, specsInput, setSpecsInput }) => {
   const handleSpecsChange = (e) => {

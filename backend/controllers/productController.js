@@ -205,24 +205,44 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     let imagesLink = [...product.images];
     
     // Handle removed images
-    if (req.body.removedImages && Array.isArray(req.body.removedImages)) {
-        const removedImages = JSON.parse(req.body.removedImages);
-        // Delete images from Cloudinary
-        for (const img of removedImages) {
-            if (img.public_id) {
-                try {
-                    await cloudinary.v2.uploader.destroy(img.public_id);
-                } catch (error) {
-                    console.error('Error deleting image from Cloudinary:', error);
-                    // Continue with other images if one fails
+    if (req.body.removedImages) {
+        let removedImages = [];
+        
+        // Parse removedImages if it's a string (from form-data)
+        if (typeof req.body.removedImages === 'string') {
+            try {
+                removedImages = JSON.parse(req.body.removedImages);
+                if (!Array.isArray(removedImages)) {
+                    removedImages = [removedImages];
                 }
+            } catch (error) {
+                console.error('Error parsing removedImages:', error);
+                return next(new ErrorHandler('Invalid removedImages format', 400));
             }
+        } else if (Array.isArray(req.body.removedImages)) {
+            removedImages = req.body.removedImages;
         }
         
-        // Remove deleted images from the images array
+        // Delete images from Cloudinary and filter them out
         if (removedImages.length > 0) {
-            const removedIds = removedImages.map(img => img.public_id);
-            imagesLink = imagesLink.filter(img => !removedIds.includes(img.public_id));
+            const deletePromises = removedImages.map(img => {
+                if (img && img.public_id) {
+                    return cloudinary.v2.uploader.destroy(img.public_id)
+                        .catch(error => {
+                            console.error('Error deleting image from Cloudinary:', error);
+                            return null;
+                        });
+                }
+                return Promise.resolve();
+            });
+            
+            await Promise.all(deletePromises);
+            
+            // Remove deleted images from the images array
+            const removedIds = removedImages.map(img => img.public_id).filter(Boolean);
+            if (removedIds.length > 0) {
+                imagesLink = imagesLink.filter(img => !removedIds.includes(img.public_id));
+            }
         }
     }
     
