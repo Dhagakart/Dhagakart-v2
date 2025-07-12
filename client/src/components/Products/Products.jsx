@@ -612,7 +612,7 @@ const Products = () => {
             dispatch(clearErrors());
         }
         // Pass selected category and subcategory to filter products
-        dispatch(getProducts(keyword, selectedCategory || "", [0, 200000], 0, currentPage, selectedSubcategory || ""));
+        dispatch(getProducts(keyword, selectedCategory || "", [0, 20000000], 0, currentPage, selectedSubcategory || ""));
     }, [dispatch, keyword, selectedCategory, selectedSubcategory, currentPage, error, enqueueSnackbar]);
     
     // Reset subcategory and page when category changes
@@ -663,7 +663,7 @@ const Products = () => {
                     </div>
 
                     {categoryToggle && (
-                        <div className="flex flex-col mt-2 space-y-2">
+                        <div className="flex flex-col mt-2 md:space-y-2 space-y-1">
                             <FormControl>
                                 <RadioGroup
                                     aria-labelledby="category-radio-buttons-group"
@@ -723,7 +723,7 @@ const Products = () => {
                     </div>
 
                     {subcategoryToggle && selectedCategory && (
-                        <div className="flex flex-col mt-2 space-y-2">
+                        <div className="flex flex-col mt-2 md:space-y-2 space-y-1">
                             <FormControl>
                                 <RadioGroup
                                     aria-labelledby="subcategory-radio-buttons-group"
@@ -775,7 +775,7 @@ const Products = () => {
             <MetaData title="All Products | DhagaKart" />
 
             {/* <MinCategory /> */}
-            <main className="w-full min-h-[90vh] mt-10 px-4 sm:px-16">
+            <main className="w-full min-h-[90vh] mt-10 px-1.5 md:px-16">
                 {/* <!-- row --> */}
                 <div className="min-h-[90vh] flex gap-3 mt-4 m-auto mb-7">
                     {/* Mobile Filter Button */}
@@ -835,17 +835,18 @@ const Products = () => {
 
                         {loading ? <Loader /> : (
                            <div className="w-full bg-white">
-                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+                           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4 px-0">
                              {products?.map((product) => (
                                <div key={product._id} className="w-full flex justify-center h-full">
-                                 <div className="w-full max-w-[280px] h-[400px] flex flex-col border border-gray-200  rounded shadow">
-                                   <div className="flex-1 flex flex-col">
-                                     <Product {...product} />
+                                <div className="w-full max-w-[280px] h-auto flex flex-col border border-gray-200 rounded shadow">
+                                  <div className="flex-1 flex flex-col">
+                                    <Product {...product} />
                                    </div>
-                                 </div>
+                                  </div>
                                </div>
                              ))}
                            </div>
+                         
                            {productsCount > resultPerPage && (
                              <div className="flex justify-center p-4">
                                <Pagination
@@ -857,6 +858,7 @@ const Products = () => {
                              </div>
                            )}
                          </div>
+                         
                          
                         )}
                     </div>

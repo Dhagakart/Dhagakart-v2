@@ -273,11 +273,8 @@ const NewProduct = () => {
   const [availableSubcategories, setAvailableSubcategories] = useState([]);
   const [stock, setStock] = useState(0);
   const [warranty, setWarranty] = useState(0);
-  const [brand, setBrand] = useState("");
   const [images, setImages] = useState([]);
   const [imagesPreview, setImagesPreview] = useState([]);
-  const [logo, setLogo] = useState("");
-  const [logoPreview, setLogoPreview] = useState("");
 
   useEffect(() => {
     if (category) {
@@ -294,10 +291,6 @@ const NewProduct = () => {
     e.preventDefault();
     if (highlights.length <= 0) {
       enqueueSnackbar("Add Highlights", { variant: "warning" });
-      return;
-    }
-    if (!logo) {
-      enqueueSnackbar("Add Brand Logo", { variant: "warning" });
       return;
     }
     if (specs.length <= 1) {
@@ -318,8 +311,6 @@ const NewProduct = () => {
     formData.set("subCategory", subCategory);
     formData.set("stock", stock);
     formData.set("warranty", warranty);
-    formData.set("brandname", brand);
-    formData.set("logo", logo);
     images.forEach((image) => formData.append("images", image));
     highlights.forEach((h) => formData.append("highlights", h));
     specs.forEach((s) => formData.append("specifications", JSON.stringify(s)));
@@ -370,14 +361,6 @@ const NewProduct = () => {
               setHighlights={setHighlights}
               highlightInput={highlightInput}
               setHighlightInput={setHighlightInput}
-            />
-            <BrandSection
-              brand={brand}
-              setBrand={setBrand}
-              logo={logo}
-              setLogo={setLogo}
-              logoPreview={logoPreview}
-              setLogoPreview={setLogoPreview}
             />
           </div>
           <div className="flex flex-col gap-6">

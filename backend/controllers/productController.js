@@ -205,18 +205,54 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     let imagesLink = [...product.images];
     
     // Handle removed images
+    console.log('=== IMAGE DELETION DEBUG ===');
     console.log('Request body:', req.body);
-    console.log('Current images:', imagesLink);
+    console.log('Request files:', req.files);
+    console.log('Current product images:', JSON.stringify(product.images, null, 2));
     
+    // Check if removedImages exists in the request
     if (req.body.removedImages) {
+        console.log('Processing removedImages...');
         let removedPublicIds = [];
         
         try {
-            // Parse the removedImages as an array of public_ids
-            removedPublicIds = JSON.parse(req.body.removedImages);
-            if (!Array.isArray(removedPublicIds)) {
-                removedPublicIds = [removedPublicIds];
+            // Handle both string and array formats for removedImages
+            if (Array.isArray(req.body.removedImages)) {
+                // If it's already an array
+                removedPublicIds = [...new Set(req.body.removedImages)]; // Remove duplicates
+            } else if (typeof req.body.removedImages === 'string') {
+                // If it's a single string, convert to array
+                removedPublicIds = [req.body.removedImages];
             }
+            
+            console.log('Removed public IDs:', removedPublicIds);
+            // Log the raw removedImages value
+            console.log('=== NEW REQUEST ===');
+            console.log('Raw removedImages type:', typeof req.body.removedImages);
+            
+            // Handle different types of removedImages
+            if (Array.isArray(req.body.removedImages)) {
+                // Direct array
+                removedPublicIds = req.body.removedImages;
+                console.log('removedImages is an array:', removedPublicIds);
+            } else if (typeof req.body.removedImages === 'string') {
+                // String that might be JSON
+                try {
+                    console.log('Attempting to parse removedImages as JSON...');
+                    const parsed = JSON.parse(req.body.removedImages);
+                    console.log('Parsed removedImages:', parsed);
+                    removedPublicIds = Array.isArray(parsed) ? parsed : [parsed];
+                } catch (parseError) {
+                    console.error('Error parsing removedImages as JSON, treating as string:', parseError);
+                    removedPublicIds = [req.body.removedImages];
+                }
+            } else if (req.body.removedImages) {
+                // Single value
+                console.log('removedImages is a single value:', req.body.removedImages);
+                removedPublicIds = [req.body.removedImages];
+            }
+            
+            console.log('Final removedPublicIds to process:', removedPublicIds);
             console.log('Removing images with public_ids:', removedPublicIds);
             
             // Delete from Cloudinary
@@ -241,11 +277,51 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
             const deleteResults = await Promise.all(deletePromises);
             console.log('Cloudinary deletion results:', deleteResults);
             
-            // Remove from images array
-            const beforeCount = imagesLink.length;
-            imagesLink = imagesLink.filter(img => !removedPublicIds.includes(img.public_id));
+            // Log the current product images before removal
+            console.log('Current product images before removal:', JSON.stringify(product.images, null, 2));
+            console.log('Public IDs to remove:', removedPublicIds);
             
-            console.log(`Filtered ${beforeCount - imagesLink.length} images from product`);
+            // Update the product's images array
+            const beforeCount = product.images.length;
+            const removedImages = [];
+            
+            product.images = product.images.filter(img => {
+                const shouldKeep = !removedPublicIds.includes(img.public_id);
+                if (!shouldKeep) {
+                    console.log('Removing image from product:', img.public_id);
+                    removedImages.push(img.public_id);
+                } else {
+                    console.log('Keeping image:', img.public_id);
+                }
+                return shouldKeep;
+            });
+            
+            console.log(`Removed ${removedImages.length} images from product`);
+            console.log('Removed images:', removedImages);
+            console.log('Updated product.images:', JSON.stringify(product.images, null, 2));
+            
+            if (removedImages.length === 0) {
+                console.warn('No images were actually removed!');
+                console.warn('Check if public_ids match between removedPublicIds and product.images');
+                console.warn('removedPublicIds:', removedPublicIds);
+                console.warn('product.images public_ids:', product.images.map(img => img.public_id));
+            }
+            
+            // Mark as modified to ensure the change is saved
+            product.markModified('images');
+            
+            // Force a save to ensure changes are persisted
+            try {
+                await product.save();
+                console.log('Product saved successfully after image removal');
+                
+                // Verify the change was applied by refetching
+                const updatedProduct = await Product.findById(product._id);
+                console.log('Updated product from DB:', JSON.stringify(updatedProduct.images, null, 2));
+            } catch (saveError) {
+                console.error('Error saving product after image removal:', saveError);
+                throw saveError;
+            }
             
         } catch (error) {
             console.error('Error processing removed images:', error);
@@ -342,24 +418,20 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
 
     // Update the product
     try {
-        console.log('Updating product with data:', updateData);
+        // Update the product document directly
+        Object.assign(product, updateData);
         
-        // Find and update the product
-        product = await Product.findByIdAndUpdate(
-            req.params.id, 
-            { $set: updateData },  // Use $set operator to ensure only specified fields are updated
-            {
-                new: true,
-                runValidators: true,
-                useFindAndModify: false
-            }
-        );
-
-        console.log('Product after update:', product);
+        // Save the updated product
+        await product.save();
+        
+        // Fetch the updated product to include all fields
+        const updatedProduct = await Product.findById(req.params.id);
+        
+        console.log('Product after update:', updatedProduct);
         
         res.status(200).json({
             success: true,
-            product
+            product: updatedProduct
         });
     } catch (error) {
         console.error('Error updating product:', error);

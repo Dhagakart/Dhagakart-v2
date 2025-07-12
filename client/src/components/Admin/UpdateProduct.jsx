@@ -75,10 +75,10 @@ const UpdateProduct = () => {
                 const productSpecs = product.specifications || [];
                 const formattedSpecs = productSpecs.length > 0
                     ? productSpecs.map(spec => ({
-                        name: spec.name || '',
-                        value: spec.value || ''
+                        title: spec.title || '',
+                        description: spec.description || ''
                     }))
-                    : [{ name: '', value: '' }];
+                    : [{ title: '', description: '' }];
                 setSpecifications(formattedSpecs);
                 setOldImages(product.images || []);
                 setLogoPreview(product.brand?.logo?.url || "");
@@ -174,7 +174,10 @@ const UpdateProduct = () => {
 
         // Add specifications as JSON strings
         specifications.forEach((spec) => {
-            formData.append("specifications", JSON.stringify(spec));
+            formData.append("specifications", JSON.stringify({
+                title: spec.title,
+                description: spec.description
+            }));
         });
 
         // Add new images
@@ -186,6 +189,11 @@ const UpdateProduct = () => {
         const removedFromRedux = currentProduct.removedImages || [];
         const allRemovedImages = [...removedImages, ...removedFromRedux];
         
+        console.log('=== IMAGE DELETION DEBUG - CLIENT ===');
+        console.log('removedImages from state:', removedImages);
+        console.log('removedImages from Redux:', removedFromRedux);
+        console.log('All removed images:', allRemovedImages);
+        
         // Add removed images to form data if any exist
         if (allRemovedImages.length > 0) {
             // Collect unique public_ids of images to remove
@@ -193,16 +201,36 @@ const UpdateProduct = () => {
             const seen = new Set();
             
             allRemovedImages.forEach(img => {
-                if (img && img.public_id && !seen.has(img.public_id)) {
-                    seen.add(img.public_id);
-                    removedPublicIds.push(img.public_id);
+                if (img && img.public_id) {
+                    if (!seen.has(img.public_id)) {
+                        seen.add(img.public_id);
+                        removedPublicIds.push(img.public_id);
+                        console.log('Marking image for removal:', img.public_id);
+                    }
+                } else {
+                    console.warn('Invalid image object in removedImages:', img);
                 }
             });
             
-            console.log('Removing images with public_ids:', removedPublicIds);
+            console.log('Final list of public_ids to remove:', removedPublicIds);
             
-            // Add as a JSON string of public_ids
-            formData.append('removedImages', JSON.stringify(removedPublicIds));
+            // Add each public_id as a separate field
+            removedPublicIds.forEach(id => {
+                formData.append('removedImages', id);
+            });
+            
+            // Log the form data for debugging
+            const formDataObj = {};
+            for (let [key, value] of formData.entries()) {
+                if (!formDataObj[key]) {
+                    formDataObj[key] = [];
+                }
+                formDataObj[key].push(value);
+            }
+            console.log('FormData being sent:', formDataObj);
+        } else {
+            // Even if no images to remove, send an empty array
+            formData.append('removedImages', '[]');
         }
 
         // Add logo if updated

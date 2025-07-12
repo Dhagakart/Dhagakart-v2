@@ -35,7 +35,7 @@ import {
 
 // Get All Products --- Filter/Search/Sort
 export const getProducts =
-    (keyword = "", category, price = [0, 200000], ratings = 0, currentPage = 1, subcategory = "") => async (dispatch) => {
+    (keyword = "", category, price = [0, 20000000], ratings = 0, currentPage = 1, subcategory = "") => async (dispatch) => {
         try {
             dispatch({ type: ALL_PRODUCTS_REQUEST });
 
@@ -204,18 +204,30 @@ export const updateProduct = (id, productData) => async (dispatch) => {
         
         // Append all product data to formData
         Object.keys(productData).forEach(key => {
-            if (key === 'images') {
+            if (key === 'images' && productData.images) {
                 // Handle multiple image files
                 for (let i = 0; i < productData.images.length; i++) {
-                    formData.append('images', productData.images[i]);
+                    // Only append if it's a File object (new image)
+                    if (productData.images[i] instanceof File) {
+                        formData.append('images', productData.images[i]);
+                    }
                 }
             } else if (key === 'removedImages' && productData.removedImages) {
-                // Stringify removed images array
-                formData.append('removedImages', JSON.stringify(productData.removedImages));
+                // Handle removed images
+                productData.removedImages.forEach(id => {
+                    formData.append('removedImages', id);
+                });
             } else if (key !== 'images') {
-                formData.append(key, productData[key]);
+                // Handle other fields
+                formData.set(key, productData[key]);
             }
         });
+        
+        // Log the form data being sent
+        console.log('Sending form data:');
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
         
         const config = {
             headers: {

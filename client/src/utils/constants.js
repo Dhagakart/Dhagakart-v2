@@ -8,30 +8,6 @@ import Tussar from './tussar_raw_silk_yarn.jpg';
 // Categories with Subcategories
 export const categories = [
     {
-        name: "Electronics",
-        subcategories: ["Smartphones", "Headphones", "Speakers", "Smart Watches", "Cameras"]
-    },
-    {
-        name: "Mobiles",
-        subcategories: ["Smartphones", "Feature Phones", "Refurbished Phones", "Accessories"]
-    },
-    {
-        name: "Laptops",
-        subcategories: ["Gaming Laptops", "Ultrabooks", "Business Laptops", "2-in-1 Laptops"]
-    },
-    {
-        name: "Fashion",
-        subcategories: ["Men's Fashion", "Women's Fashion", "Kid's Fashion", "Footwear", "Watches"]
-    },
-    {
-        name: "Appliances",
-        subcategories: ["Televisions", "Refrigerators", "Washing Machines", "Air Conditioners"]
-    },
-    {
-        name: "Home",
-        subcategories: ["Furniture", "Kitchen & Dining", "Home Decor", "Lighting", "Bath"]
-    },
-    {
       name: "Yarn",
       subcategories: ["Silk Yarn", "Cotton Yarn", "Polyester Yarn", "Viscous Yarn", "Zari Thread"]
     },

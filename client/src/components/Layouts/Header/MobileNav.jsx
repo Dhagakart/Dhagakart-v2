@@ -27,6 +27,8 @@ import {
   Settings as SettingsIcon
 } from '@mui/icons-material';
 
+import Logo from './logo.png';
+
 // Styled components for better organization
 const StyledListItemButton = styled(ListItemButton)({
   '&:hover': {
@@ -88,7 +90,7 @@ const MobileNav = ({
         </Box>
       ) : (
         <Box sx={{ p: 2, bgcolor: '#003366', color: 'white' }}>
-          DhagaKart
+          <img src={Logo} className='h-6 w-auto' />
         </Box>
       )}
       <Divider />

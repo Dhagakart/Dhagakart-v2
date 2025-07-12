@@ -661,7 +661,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                         
                         {activeTab === 'orders' && <OrderHistory />}
                         {activeTab === 'rfqs' && <RFQsAndQuotes />}
-                        {activeTab === 'track-orders' && <TrackOrder />}
+                        {activeTab === 'track-order' && <TrackOrder />}
                     </main>
                 </div>
             </div>
