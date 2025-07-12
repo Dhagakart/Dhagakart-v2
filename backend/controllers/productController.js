@@ -209,41 +209,31 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     console.log('Current images:', imagesLink);
     
     if (req.body.removedImages) {
-        let removedImages = [];
+        let removedPublicIds = [];
         
-        // Parse removedImages if it's a string (from form-data)
-        if (typeof req.body.removedImages === 'string') {
-            try {
-                console.log('removedImages string:', req.body.removedImages);
-                removedImages = JSON.parse(req.body.removedImages);
-                console.log('Parsed removedImages:', removedImages);
-                if (!Array.isArray(removedImages)) {
-                    removedImages = [removedImages];
-                }
-            } catch (error) {
-                console.error('Error parsing removedImages:', error);
-                return next(new ErrorHandler('Invalid removedImages format: ' + error.message, 400));
+        try {
+            // Parse the removedImages as an array of public_ids
+            removedPublicIds = JSON.parse(req.body.removedImages);
+            if (!Array.isArray(removedPublicIds)) {
+                removedPublicIds = [removedPublicIds];
             }
-        } else if (Array.isArray(req.body.removedImages)) {
-            removedImages = req.body.removedImages;
-        }
-        
-        console.log('Processing removed images:', removedImages);
-        
-        // Delete images from Cloudinary and filter them out
-        if (removedImages.length > 0) {
-            const deletePromises = removedImages.map(img => {
-                if (img && img.public_id) {
-                    console.log('Deleting image from Cloudinary:', img.public_id);
-                    return cloudinary.v2.uploader.destroy(img.public_id)
-                        .then(result => {
-                            console.log('Cloudinary deletion result for', img.public_id, ':', result);
-                            return result;
-                        })
-                        .catch(error => {
-                            console.error('Error deleting image from Cloudinary:', error);
-                            return { error: true, message: error.message };
-                        });
+            console.log('Removing images with public_ids:', removedPublicIds);
+            
+            // Delete from Cloudinary
+            const deletePromises = removedPublicIds.map(publicId => {
+                if (publicId) {
+                    console.log('Deleting image from Cloudinary:', publicId);
+                    return cloudinary.v2.uploader.destroy(publicId)
+                        .then(result => ({
+                            publicId,
+                            result,
+                            success: true
+                        }))
+                        .catch(error => ({
+                            publicId,
+                            error: error.message,
+                            success: false
+                        }));
                 }
                 return Promise.resolve({ skipped: 'No public_id' });
             });
@@ -251,21 +241,15 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
             const deleteResults = await Promise.all(deletePromises);
             console.log('Cloudinary deletion results:', deleteResults);
             
-            // Remove deleted images from the images array
-            const removedIds = removedImages.map(img => img.public_id).filter(Boolean);
-            console.log('Removing image IDs from product:', removedIds);
+            // Remove from images array
+            const beforeCount = imagesLink.length;
+            imagesLink = imagesLink.filter(img => !removedPublicIds.includes(img.public_id));
             
-            if (removedIds.length > 0) {
-                const beforeCount = imagesLink.length;
-                imagesLink = imagesLink.filter(img => {
-                    const shouldKeep = !removedIds.includes(img.public_id);
-                    if (!shouldKeep) {
-                        console.log('Removing image from product:', img.public_id);
-                    }
-                    return shouldKeep;
-                });
-                console.log(`Filtered ${beforeCount - imagesLink.length} images from product`);
-            }
+            console.log(`Filtered ${beforeCount - imagesLink.length} images from product`);
+            
+        } catch (error) {
+            console.error('Error processing removed images:', error);
+            return next(new ErrorHandler('Error processing removed images: ' + error.message, 400));
         }
     }
     

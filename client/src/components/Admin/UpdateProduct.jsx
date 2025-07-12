@@ -188,32 +188,21 @@ const UpdateProduct = () => {
         
         // Add removed images to form data if any exist
         if (allRemovedImages.length > 0) {
-            // Ensure we only have unique images to remove
-            const uniqueRemovedImages = [];
+            // Collect unique public_ids of images to remove
+            const removedPublicIds = [];
             const seen = new Set();
             
             allRemovedImages.forEach(img => {
                 if (img && img.public_id && !seen.has(img.public_id)) {
                     seen.add(img.public_id);
-                    uniqueRemovedImages.push({
-                        public_id: img.public_id,
-                        url: img.url || ''
-                    });
+                    removedPublicIds.push(img.public_id);
                 }
             });
             
-            console.log('Removing images:', uniqueRemovedImages);
+            console.log('Removing images with public_ids:', removedPublicIds);
             
-            // Add each removed image as a separate form field
-            uniqueRemovedImages.forEach((img, index) => {
-                formData.append(`removedImages[${index}][public_id]`, img.public_id);
-                if (img.url) {
-                    formData.append(`removedImages[${index}][url]`, img.url);
-                }
-            });
-            
-            // Also add as a JSON string for backward compatibility
-            formData.append('removedImagesJson', JSON.stringify(uniqueRemovedImages));
+            // Add as a JSON string of public_ids
+            formData.append('removedImages', JSON.stringify(removedPublicIds));
         }
 
         // Add logo if updated
