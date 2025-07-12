@@ -352,18 +352,18 @@ const Banner = () => {
       <div className="w-full lg:w-2/5 h-full flex flex-col gap-2 sm:gap-4">
         {/* TOP CARD */}
         <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
-          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded">
+          {/* <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded">
             29% OFF
-          </div>
+          </div> */}
           <div className="flex flex-row h-full w-full">
             <div className="flex-1 px-4 py-2 sm:px-6 sm:py-4 flex flex-col justify-center text-left">
-              <p className="text-xs sm:text-sm text-yellow-500 font-medium">SUMMER SALES</p>
-              <h3 className="mt-1 text-lg sm:text-xl lg:text-2xl font-bold text-white">Flora Zari Thread</h3>
-              <button className="mt-2 sm:mt-3 w-max bg-orange-500 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded hover:cursor-pointer">
+              <p className="text-white text-xs sm:text-sm font-medium ">High-Speed Rapier Power Loom - 48</p>
+              <h3 className="mt-1 text-lg sm:text-xl lg:text-2xl font-bold text-yellow-500">DEAL FOR WEAVING HIGH-QUALITY SILK SAREES.</h3>
+              <button className="mt-2 sm:mt-3 w-max bg-[#003366] text-white text-xs sm:text-sm text-white font-medium  px-3 sm:px-4 py-1.5 sm:py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>
-            <div className="w-[120px] sm:w-[150px] lg:w-auto flex-shrink-0 flex items-center justify-center p-2 sm:pr-4">
+            <div className="w-[120px] sm:w-[150px] lg:w-[250px] flex-shrink-0 flex items-center justify-center p-2 sm:pr-4">
               <img
                 draggable="false"
                 className="h-full max-h-[120px] sm:max-h-[150px] lg:max-h-none w-auto object-contain"
@@ -377,7 +377,7 @@ const Banner = () => {
         {/* BOTTOM CARD */}
         <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
           <div className="flex flex-row h-full w-full">
-            <div className="w-[120px] sm:w-[150px] lg:w-auto flex-shrink-0 flex items-center justify-center p-2 sm:pl-4">
+            <div className="w-[120px] sm:w-[150px] lg:w-[250px] flex-shrink-0 flex items-center justify-center p-2 sm:pl-4">
               <img
                 draggable="false"
                 className="h-full max-h-[120px] sm:max-h-[150px] lg:max-h-none w-auto object-contain"
@@ -386,9 +386,9 @@ const Banner = () => {
               />
             </div>
             <div className="flex-1 px-4 py-2 sm:px-6 sm:py-4 flex flex-col justify-center text-center sm:text-left">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Flora Zari Thread</h3>
-              <p className="mt-1 sm:mt-2 text-xl sm:text-2xl font-bold text-blue-500">Rs 299</p>
-              <button className="mt-2 sm:mt-4 mx-auto sm:mx-0 w-max bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-800">SHINE SEWING THREAD MULTICOLOR THREAD</h3>
+              {/* <p className="mt-1 sm:mt-2 text-xl sm:text-2xl font-bold text-blue-500">Rs 299</p> */}
+              <button className="mt-2 sm:mt-4 mx-auto sm:mx-0 w-max bg-[#003366] text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>

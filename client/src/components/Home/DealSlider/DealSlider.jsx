@@ -145,7 +145,7 @@ const DealSlider = ({ title }) => {
                       currentPrice={currentPrice}
                       originalPrice={originalPrice}
                       discount={item.discount}
-                      link='/product/6862c4bb5235d86a799dc67d'
+                      link='/product/6870dd3b1022eca9beb2a645'
                     />
                   </div>
                 );
@@ -170,7 +170,7 @@ const DealSlider = ({ title }) => {
                       currentPrice={currentPrice}
                       originalPrice={originalPrice}
                       discount={item.discount}
-                      link='/product/6862c4bb5235d86a799dc67d'
+                      link='/product/6870dd3b1022eca9beb2a645'
                     />
                   </div>
                 );
