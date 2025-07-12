@@ -205,43 +205,66 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     let imagesLink = [...product.images];
     
     // Handle removed images
+    console.log('Request body:', req.body);
+    console.log('Current images:', imagesLink);
+    
     if (req.body.removedImages) {
         let removedImages = [];
         
         // Parse removedImages if it's a string (from form-data)
         if (typeof req.body.removedImages === 'string') {
             try {
+                console.log('removedImages string:', req.body.removedImages);
                 removedImages = JSON.parse(req.body.removedImages);
+                console.log('Parsed removedImages:', removedImages);
                 if (!Array.isArray(removedImages)) {
                     removedImages = [removedImages];
                 }
             } catch (error) {
                 console.error('Error parsing removedImages:', error);
-                return next(new ErrorHandler('Invalid removedImages format', 400));
+                return next(new ErrorHandler('Invalid removedImages format: ' + error.message, 400));
             }
         } else if (Array.isArray(req.body.removedImages)) {
             removedImages = req.body.removedImages;
         }
         
+        console.log('Processing removed images:', removedImages);
+        
         // Delete images from Cloudinary and filter them out
         if (removedImages.length > 0) {
             const deletePromises = removedImages.map(img => {
                 if (img && img.public_id) {
+                    console.log('Deleting image from Cloudinary:', img.public_id);
                     return cloudinary.v2.uploader.destroy(img.public_id)
+                        .then(result => {
+                            console.log('Cloudinary deletion result for', img.public_id, ':', result);
+                            return result;
+                        })
                         .catch(error => {
                             console.error('Error deleting image from Cloudinary:', error);
-                            return null;
+                            return { error: true, message: error.message };
                         });
                 }
-                return Promise.resolve();
+                return Promise.resolve({ skipped: 'No public_id' });
             });
             
-            await Promise.all(deletePromises);
+            const deleteResults = await Promise.all(deletePromises);
+            console.log('Cloudinary deletion results:', deleteResults);
             
             // Remove deleted images from the images array
             const removedIds = removedImages.map(img => img.public_id).filter(Boolean);
+            console.log('Removing image IDs from product:', removedIds);
+            
             if (removedIds.length > 0) {
-                imagesLink = imagesLink.filter(img => !removedIds.includes(img.public_id));
+                const beforeCount = imagesLink.length;
+                imagesLink = imagesLink.filter(img => {
+                    const shouldKeep = !removedIds.includes(img.public_id);
+                    if (!shouldKeep) {
+                        console.log('Removing image from product:', img.public_id);
+                    }
+                    return shouldKeep;
+                });
+                console.log(`Filtered ${beforeCount - imagesLink.length} images from product`);
             }
         }
     }
@@ -335,13 +358,21 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
 
     // Update the product
     try {
+        console.log('Updating product with data:', updateData);
+        
         // Find and update the product
-        product = await Product.findByIdAndUpdate(req.params.id, updateData, {
-            new: true,
-            runValidators: true,
-            useFindAndModify: false
-        });
+        product = await Product.findByIdAndUpdate(
+            req.params.id, 
+            { $set: updateData },  // Use $set operator to ensure only specified fields are updated
+            {
+                new: true,
+                runValidators: true,
+                useFindAndModify: false
+            }
+        );
 
+        console.log('Product after update:', product);
+        
         res.status(200).json({
             success: true,
             product

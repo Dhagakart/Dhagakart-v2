@@ -184,19 +184,36 @@ const UpdateProduct = () => {
 
         // Combine removed images from local state and Redux
         const removedFromRedux = currentProduct.removedImages || [];
-        const allRemovedImages = [...new Set([...removedImages, ...removedFromRedux])];
+        const allRemovedImages = [...removedImages, ...removedFromRedux];
         
         // Add removed images to form data if any exist
         if (allRemovedImages.length > 0) {
             // Ensure we only have unique images to remove
-            const uniqueRemovedImages = allRemovedImages.filter((img, index, self) => 
-                index === self.findIndex((i) => (
-                    i.public_id === img.public_id
-                ))
-            );
+            const uniqueRemovedImages = [];
+            const seen = new Set();
+            
+            allRemovedImages.forEach(img => {
+                if (img && img.public_id && !seen.has(img.public_id)) {
+                    seen.add(img.public_id);
+                    uniqueRemovedImages.push({
+                        public_id: img.public_id,
+                        url: img.url || ''
+                    });
+                }
+            });
             
             console.log('Removing images:', uniqueRemovedImages);
-            formData.append("removedImages", JSON.stringify(uniqueRemovedImages));
+            
+            // Add each removed image as a separate form field
+            uniqueRemovedImages.forEach((img, index) => {
+                formData.append(`removedImages[${index}][public_id]`, img.public_id);
+                if (img.url) {
+                    formData.append(`removedImages[${index}][url]`, img.url);
+                }
+            });
+            
+            // Also add as a JSON string for backward compatibility
+            formData.append('removedImagesJson', JSON.stringify(uniqueRemovedImages));
         }
 
         // Add logo if updated
