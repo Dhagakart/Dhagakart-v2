@@ -1,24 +1,23 @@
 export const topCategories = [
-  { label: 'Computer & Laptop', href: '/products' },
-  { label: 'SmartPhone', href: '/products' },
-  { label: 'Headphone', href: '/products' },
-  { label: 'Accessories', href: '/products' },
-  { label: 'Camera & Photo', href: '/products' },
-  { label: 'TV & Homes', href: '/products' },
+  { label: 'Yarn', href: '/products/yarn' },
+  { label: 'Zari', href: '/products/zari' },
+  { label: 'Machinery', href: '/products/machinery' },
+  { label: 'All Products', href: '/products/all' },
+  
 ];
 
 export const quickLinks = [
-  { label: 'Shop Product', href: '/products' },
-  { label: 'Shopping Cart', href: '/cart' },
-  { label: 'Wishlist', href: '/wishlist' },
-  { label: 'Compare', href: '/compare' },
-  { label: 'Track Order', href: '/account/track-order' },
-  { label: 'Customer Help', href: '/support' },
-  { label: 'About Us', href: '/about' },
+  { label: 'Silk Yarn', href: '/products/silk%20yarn' },
+  { label: 'Cotton Yarn', href: '/products/cotton%20yarn' },
+  { label: 'Polyester Yarn', href: '/products/polyester%20yarn' },
+  { label: 'Flora Zari', href: '/products/flora%20zari' },
+  { label: 'Pure Zari', href: '/products/pure%20zari' },
+  { label: 'Sewing Machine', href: '/products/sewing%20machine' },
+  { label: 'Powerloom', href: '/products/powerloom' },
 ];
 
 export const popularTags = [
-  'Game', 'iPhone', 'TV', 'Asus Laptops', 'Macbook', 'SSD',
-  'Graphics Card', 'Power Bank', 'Smart TV', 'Speaker', 'Tablet',
-  'Microwave', 'Samsung'
+  'Silk Yarn', 'Cotton Yarn', 'Polyester Yarn', 'Flora Zari',
+   'Pure Zari', 'Sewing Machine', 'Powerloom',
+  'Yarn', 'Zari', 'Machinery', 'All Products',
 ];
