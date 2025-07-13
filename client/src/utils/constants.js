@@ -27,6 +27,7 @@ export const offerProducts = [
         image: Tex,
         name: "2 ply Purani Tex",
         // description: "Bose Sport Earbuds - Wireless Earphones with Bluetooth 5.1",
+        link: '/product/6870df2b1022eca9beb2ab2c',
         currentPrice: "2,300",
         originalPrice: "4,000",
         discount: 43, // Calculated: Math.round((1 - 2300 / 4000) * 100)
@@ -36,6 +37,7 @@ export const offerProducts = [
         image: Flora,
         name: "Flora Zari Thread",
         // description: "Apple AirPods Pro (2nd Gen) with MagSafe Case",
+        link: '/product/6870e4071022eca9beb2bbd6',
         currentPrice: "19,999",
         originalPrice: "24,900",
         discount: 20, // Matches original data, close to calculated 19.68%
@@ -45,6 +47,7 @@ export const offerProducts = [
         image: Jack,
         name: "Jack A2B",
         // description: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
+        link: '/product/68722597378bce74bc0a5301',
         currentPrice: "22,990",
         originalPrice: "29,990",
         discount: 23, // Matches original data, close to calculated 23.34%
@@ -54,6 +57,7 @@ export const offerProducts = [
         image: Mulberry,
         name: "Mulberry Raw Silk Yarn",
         // description: "Samsung Galaxy Buds2 Pro True Wireless Earbuds",
+        link: '/product/6870dd3b1022eca9beb2a645',
         currentPrice: "14,990",
         originalPrice: "19,990",
         discount: 25, // Matches original data, close to calculated 25.01%
@@ -63,6 +67,7 @@ export const offerProducts = [
         image: Golden,
         name: "Pure Golden Zari Thread",
         // description: "Samsung Galaxy Watch 5",
+        link: '/product/6870e56e1022eca9beb2c501',
         currentPrice: "17,999",
         originalPrice: "29,998",
         discount: 40, // Reflects original "Min 40% Off"
@@ -72,6 +77,7 @@ export const offerProducts = [
         image: Tussar,
         name: "Tussar Raw Silk Yarn",
         // description: "Manfrotto Compact Action Tripod",
+        link: '/product/6870dd3b1022eca9beb2a645',
         currentPrice: "2,499",
         originalPrice: "4,998",
         discount: 50, // Reflects original "Min 50% Off"

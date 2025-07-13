@@ -170,7 +170,7 @@ const DealSlider = ({ title }) => {
                       currentPrice={currentPrice}
                       originalPrice={originalPrice}
                       discount={item.discount}
-                      link='/product/6870dd3b1022eca9beb2a645'
+                      link={item.link}
                     />
                   </div>
                 );
