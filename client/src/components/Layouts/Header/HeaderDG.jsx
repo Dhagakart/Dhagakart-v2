@@ -762,7 +762,7 @@ const HeaderDG = () => {
                             <ul className="space-y-1">
                               <li>
                                 <a
-                                  href="/products/sewing%20machine"
+                                  href="/products/jack"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
                                   Sewing Machine
@@ -770,7 +770,7 @@ const HeaderDG = () => {
                               </li>
                               <li>
                                 <a
-                                  href="/products/powerloom"
+                                  href="/products/power%20loom"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
                                   Powerloom

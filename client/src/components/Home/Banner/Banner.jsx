@@ -333,7 +333,7 @@ const Banner = () => {
   return (
     <div className="w-full h-auto lg:h-[600px] bg-white py-4 lg:py-8 flex flex-col lg:flex-row gap-4">
       {/* LEFT COLUMN: Carousel */}
-      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer p-3" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
+      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer md:p-10" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
         <Slider {...settings} className="h-full">
           {banners.map((src, idx) => (
             <div key={idx} className="h-full w-full">

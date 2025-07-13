@@ -9,7 +9,7 @@ import Tussar from './tussar_raw_silk_yarn.jpg';
 export const categories = [
     {
       name: "Yarn",
-      subcategories: ["Silk Yarn", "Cotton Yarn", "Polyester Yarn", "Viscous Yarn", "Zari Thread"]
+      subcategories: ["Silk Yarn", "Cotton Yarn", "Polyester Yarn", "Viscous Yarn"]
     },
     {
       name: "Zari",
