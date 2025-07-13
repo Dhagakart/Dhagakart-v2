@@ -173,10 +173,10 @@ const OrderDetails = () => {
                                                 <span>Subtotal</span>
                                                 <span>{formatPrice(totals.subtotal)}</span>
                                             </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-red-600">- Discount</span>
-                                                <span className="text-red-600">{formatPrice(totals.discount)}</span>
-                                            </div>
+                                            {/* <div className="flex justify-between"> */}
+                                                {/* <span className="text-red-600">- Discount</span> */}
+                                                {/* <span className="text-red-600">{formatPrice(totals.discount)}</span> */}
+                                            {/* </div> */}
                                             <div className="flex justify-between">
                                                 <span>SGST (5%)</span>
                                                 <span>{formatPrice(totals.sgst)}</span>
@@ -262,14 +262,14 @@ const OrderDetails = () => {
                                                     {formatPrice(totals.subtotal)}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            {/* <tr>
                                                 <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
                                                     Discount
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-sm font-medium text-green-600">
                                                     -{formatPrice(totals.discount)}
                                                 </td>
-                                            </tr>
+                                            </tr> */}
                                             <tr>
                                                 <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
                                                     SGST (5%)
