@@ -333,13 +333,13 @@ const Banner = () => {
   return (
     <div className="w-full h-auto lg:h-[600px] bg-white py-4 lg:py-8 flex flex-col lg:flex-row gap-4">
       {/* LEFT COLUMN: Carousel */}
-      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer md:p-10" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
+      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer md:p-4" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
         <Slider {...settings} className="h-full">
           {banners.map((src, idx) => (
-            <div key={idx} className="h-full w-full">
+            <div key={idx} className="h-full w-full relative">
               <img
                 draggable="false"
-                className="h-full w-full object-cover focus:outline-none focus:ring-0 rounded-lg"
+                className="w-full h-full object-cover focus:outline-none focus:ring-0 rounded-lg"
                 src={src}
                 alt={`banner-slide-${idx}`}
               />
