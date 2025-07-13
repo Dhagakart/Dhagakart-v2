@@ -24,7 +24,7 @@
 //     profile: useRef(null)
 //   };
 //   const dropdownTimeout = useRef(null);
-  
+
 //   // Close all other dropdowns when one is opened
 //   const openDropdown = (dropdownName) => {
 //     setActiveDropdown(dropdownName);
@@ -32,7 +32,7 @@
 //       clearTimeout(dropdownTimeout.current);
 //     }
 //   };
-  
+
 //   const closeDropdown = () => {
 //     if (dropdownTimeout.current) {
 //       clearTimeout(dropdownTimeout.current);
@@ -41,7 +41,7 @@
 //       setActiveDropdown(null);
 //     }, 100); // 100ms delay before closing
 //   };
-  
+
 //   const isDropdownOpen = (dropdownName) => activeDropdown === dropdownName;
 
 //   const dispatch = useDispatch();
@@ -73,13 +73,13 @@
 //               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
 //             );
 //             const locationData = await locationResponse.json();
-            
+
 //             // Extract relevant location information
 //             const address = locationData.address;
 //             const location = address.city || address.town || address.village || address.county || '';
 //             const locationText = location || 'Location not available';
 //             const pincode = address.postcode || 'NA';
-            
+
 //             // Update state and localStorage
 //             setUserLocation(locationText);
 //             setUserPincode(pincode);
@@ -126,7 +126,7 @@
 //       const isOutsideAll = Object.values(dropdownRefs).every(
 //         ref => !ref.current?.contains(event.target)
 //       );
-      
+
 //       if (isOutsideAll) {
 //         closeDropdown();
 //       }
@@ -175,7 +175,7 @@
 //               <Link to="/" className="text-2xl font-bold text-white whitespace-nowrap mr-4">
 //                 <img src={Logo} alt='logo' className='w-[133.3px]' />
 //               </Link>
-              
+
 //               { isAuthenticated ? (
 //                 <div className="hidden md:flex items-center rounded px-2 py-1 w-40">
 //                   <div className="text-white font-medium text-sm flex items-center gap-1">
@@ -394,7 +394,7 @@
 //           </div>
 //         </div>
 //       </header>
-      
+
 //       <LogoutConfirmationModal 
 //         isOpen={showLogoutConfirm}
 //         onCancel={() => setShowLogoutConfirm(false)}
@@ -409,6 +409,7 @@
 // export default HeaderDG;
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
@@ -425,16 +426,27 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Headroom from 'react-headroom';
 import MobileNav from './MobileNav';
 import MobileSearchBar from './MobileSearchbar';
+import axios from 'axios';
 
 const HeaderDG = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
+  const { isAuthenticated, user } = useSelector((state) => state.user);
   const { cartItems } = useSelector((state) => state.cart);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const searchTimeout = useRef(null);
+  const searchRef = useRef(null);
   const [userLocation, setUserLocation] = useState('Loading location...');
   const [userPincode, setUserPincode] = useState('');
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);
+  const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const dropdownRefs = {
     category: useRef(null),
     bulkOrder: useRef(null),
@@ -458,11 +470,56 @@ const HeaderDG = () => {
 
   const isDropdownOpen = (dropdownName) => activeDropdown === dropdownName;
 
-  const dispatch = useDispatch();
-  const { enqueueSnackbar } = useSnackbar();
-  const { isAuthenticated, user } = useSelector((state) => state.user);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
+  const fetchSuggestions = useCallback(async (keyword) => {
+    if (keyword.trim()) {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`http://localhost:4000/api/v1/search/suggestions?keyword=${keyword}`);
+        setSearchSuggestions(response.data.suggestions);
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error('Error fetching search suggestions:', error);
+        enqueueSnackbar('Failed to fetch search suggestions', {
+          variant: 'error',
+          autoHideDuration: 2000,
+          anchorOrigin: { vertical: 'top', horizontal: 'right' },
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [enqueueSnackbar]);
+
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    searchTimeout.current = setTimeout(() => {
+      fetchSuggestions(value);
+    }, 300);
+  }, [fetchSuggestions]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      navigate(`/products/${trimmedQuery}`);
+      setShowSuggestions(false);
+    } else {
+      enqueueSnackbar('Please enter a search term', {
+        variant: 'warning',
+        autoHideDuration: 2000,
+        anchorOrigin: { vertical: 'top', horizontal: 'right' },
+      });
+    }
+  };
 
   useEffect(() => {
     const savedLocation = localStorage.getItem('userLocation');
@@ -516,26 +573,14 @@ const HeaderDG = () => {
     }
   }, [hasFetchedLocation]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const trimmedQuery = searchQuery.trim();
-    if (trimmedQuery) {
-      navigate(`/products/${trimmedQuery}`);
-    } else {
-      enqueueSnackbar('Please enter a search term', {
-        variant: 'warning',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'right' },
-      });
-    }
-  };
-
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const isOutsideAll = Object.values(dropdownRefs).every(
+      const isOutsideDropdowns = Object.values(dropdownRefs).every(
         (ref) => !ref.current?.contains(event.target)
       );
-      if (isOutsideAll) closeDropdown();
+      const isOutsideSearch = searchRef.current && !searchRef.current.contains(event.target);
+      if (isOutsideDropdowns) closeDropdown();
+      if (isOutsideSearch && showSuggestions) setShowSuggestions(false);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -543,7 +588,7 @@ const HeaderDG = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
     };
-  }, [dropdownRefs]);
+  }, [dropdownRefs, showSuggestions]);
 
   const handleMouseEnter = (dropdownName) => {
     if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
@@ -574,11 +619,10 @@ const HeaderDG = () => {
       <Headroom
         onUnpin={() => {
           setIsNavbarHidden(true);
-          // Add a small delay to ensure the header is fully hidden before showing the search bar
           setTimeout(() => setIsNavbarHidden(true), 100);
         }}
         onPin={() => setIsNavbarHidden(false)}
-        style={{ 
+        style={{
           zIndex: 1300,
           position: 'fixed',
           width: '100%',
@@ -629,17 +673,17 @@ const HeaderDG = () => {
               </div>
 
               {/* CENTER: Search Bar */}
-              <div className="hidden md:block w-[470px] shrink-0">
+              <div className="hidden md:block w-[470px] shrink-0 relative" ref={searchRef}>
                 <form
                   onSubmit={handleSearch}
-                  className="w-full flex bg-white rounded-sm overflow-hidden shadow-md"
+                  className="w-full flex bg-white rounded-md overflow-hidden shadow-md"
                 >
                   <input
                     type="text"
                     placeholder="Search for products, brands and more"
-                    className="text-sm w-full outline-none border-none px-4 py-2 placeholder-gray-500"
+                    className="text-sm w-full outline-none border-none px-4 py-2.5 placeholder-gray-400"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchChange}
                   />
                   <button
                     type="submit"
@@ -648,6 +692,49 @@ const HeaderDG = () => {
                     <SearchIcon />
                   </button>
                 </form>
+                {showSuggestions && (
+                  <div className="absolute top-full left-0 w-full mt-1 bg-white rounded-md shadow-lg z-50 max-h-80 overflow-y-auto border border-gray-200">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center py-6">
+                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-600"></div>
+                      </div>
+                    ) : searchSuggestions?.length > 0 ? (
+                      <ul className="divide-y divide-gray-100">
+                        {searchSuggestions.map((suggestion) => (
+                          <li
+                            key={suggestion._id}
+                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                          >
+                            <Link
+                              to={`/product/${suggestion._id}`}
+                              className="flex items-center space-x-4 focus:outline-none rounded-md"
+                              onClick={() => setShowSuggestions(false)}
+                            >
+                              {suggestion.image && (
+                                <img
+                                  src={suggestion.image}
+                                  alt={suggestion.name}
+                                  className="w-12 h-12 object-cover rounded-md border border-gray-200"
+                                />
+                              )}
+                              <div className="flex-1 flex flex-col">
+                                <span className="text-base font-medium text-gray-900 line-clamp-1">
+                                  {suggestion.name}
+                                </span>
+                                <span className="text-sm text-gray-500 line-clamp-1">{suggestion.category}</span>
+                                <span className="text-sm font-semibold text-gray-700">₹{suggestion.price}</span>
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="px-4 py-4 text-gray-500 text-sm font-medium text-center">
+                        No suggestions found
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* RIGHT: Navigation Links + Cart + Profile */}
@@ -671,9 +758,8 @@ const HeaderDG = () => {
                     >
                       <span>Category</span>
                       <FaChevronDown
-                        className={`ml-1 text-xs text-gray-100 transition-transform ${
-                          isDropdownOpen('category') ? 'transform rotate-180' : ''
-                        }`}
+                        className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('category') ? 'transform rotate-180' : ''
+                          }`}
                       />
                     </button>
                     {isDropdownOpen('category') && (
@@ -774,10 +860,8 @@ const HeaderDG = () => {
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
                                   Powerloom
-
                                 </a>
                               </li>
-                             
                             </ul>
                           </div>
                         </div>
@@ -802,9 +886,8 @@ const HeaderDG = () => {
                     >
                       <span>Bulk Order</span>
                       <FaChevronDown
-                        className={`ml-1 text-xs text-gray-100 transition-transform ${
-                          isDropdownOpen('bulkOrder') ? 'transform rotate-180' : ''
-                        }`}
+                        className={`ml-1 text-xs text-gray-100 transition-transform ${isDropdownOpen('bulkOrder') ? 'transform rotate-180' : ''
+                          }`}
                       />
                     </button>
                     {isDropdownOpen('bulkOrder') && (
@@ -843,12 +926,14 @@ const HeaderDG = () => {
                 <div className="flex items-center">
                   <Link
                     to="/cart"
-                    className="relative text-white hover:text-gray-200 transition-colors"
+                    className="relative flex items-center text-gray-100 hover:text-white transition-colors"
                   >
-                    <ShoppingCartOutlinedIcon style={{ fontSize: 24 }} />
-                    <span className="absolute -top-1 -right-2 bg-white text-[#003366] text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                      {cartItems.length || 0}
-                    </span>
+                    <ShoppingCartOutlinedIcon className="text-2xl" />
+                    {cartItems?.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        {cartItems?.length}
+                      </span>
+                    )}
                   </Link>
                 </div>
 
@@ -871,7 +956,7 @@ const HeaderDG = () => {
                       <img
                         src={ProfileIcon}
                         alt="Profile"
-                        className="w-8 h8 rounded-full"
+                        className="w-8 h-8 rounded-full"
                       />
                       <span
                         className="text-sm font-medium whitespace-nowrap overflow-hidden"
@@ -938,7 +1023,7 @@ const HeaderDG = () => {
         variant="temporary"
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        ModalProps={{ 
+        ModalProps={{
           keepMounted: true,
           BackdropProps: {
             style: { backgroundColor: 'rgba(0, 0, 0, 0.5)' },
@@ -951,13 +1036,13 @@ const HeaderDG = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 1500, // Higher than header's zIndex
+          zIndex: 1500,
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: 250,
             position: 'absolute',
             height: '100vh',
-            zIndex: 1501, // Higher than the backdrop
+            zIndex: 1501,
           },
         }}
       >

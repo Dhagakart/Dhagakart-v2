@@ -98,6 +98,7 @@ const product = require('./routes/productRoute');
 const order = require('./routes/orderRoute');
 const payment = require('./routes/paymentRoute');
 const quote = require('./routes/quoteRoute');
+const search = require('./routes/searchRoute');
 
 // API Route
 app.use('/api/v1/auth', authRoutes);
@@ -106,6 +107,7 @@ app.use('/api/v1/quote', quote);
 app.use('/api/v1/', product);
 app.use('/api/v1/', order);
 app.use('/api/v1/', payment);
+app.use('/api/v1/search', search);
 
 function printRoutes(stack, parentPath = '') {
   return stack.flatMap(layer => {
