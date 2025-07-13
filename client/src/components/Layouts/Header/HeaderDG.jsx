@@ -704,18 +704,18 @@ const HeaderDG = () => {
                               </li>
                               <li>
                                 <a
-                                  href="/products/polyster%20yarn"
+                                  href="/products/polyester%20yarn"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
-                                  Polyster Yarn
+                                  Polyester Yarn
                                 </a>
                               </li>
                               <li>
                                 <a
-                                  href="/products/viscous%20yarn"
+                                  href="/products/viscose%20yarn"
                                   className="text-sm text-gray-600 hover:text-blue-600 block py-1"
                                 >
-                                  Viscous Yarn
+                                  Viscose Yarn
                                 </a>
                               </li>
                             </ul>
