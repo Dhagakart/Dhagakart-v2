@@ -60,8 +60,7 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
                 id: `mock_pay_${Date.now()}`,
                 status: "succeeded"
             },
-            itemsPrice: orderData.itemsPrice,
-            taxPrice: orderData.taxPrice || 0,
+            discount: orderData.discount || 0,
             shippingPrice: orderData.shippingPrice || 0,
             totalPrice: orderData.totalPrice
         };

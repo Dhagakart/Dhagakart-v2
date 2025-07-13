@@ -1105,15 +1105,39 @@ const Shipping = () => {
 
     // Calculate cart totals
     const calculateCartTotals = () => {
-        const subtotal = cartItems.reduce((sum, item) => sum + (item.cuttedPrice * item.quantity), 0);
-        const discount = cartItems.reduce((sum, item) => sum + ((item.cuttedPrice * item.quantity) - (item.price * item.quantity)), 0);
-        const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const tax = total * 0.1; // 10% tax
-        const finalTotal = total + tax;
-        return { subtotal, discount, total, tax, finalTotal };
+        // Calculate subtotal (sum of all item prices)
+        const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        // Calculate total discount on subtotal
+        const discount = cartItems.reduce((sum, item) => sum + ((item.price - item.cuttedPrice) * item.quantity), 0);
+        
+        // Calculate discounted subtotal
+        // const discountedSubtotal = subtotal + discount;
+        
+        // Calculate SGST (5%) and CGST (5%) on discounted subtotal
+        const sgst = subtotal * 0.05;
+        const cgst = subtotal * 0.05;
+        const totalGst = sgst + cgst;
+        
+        // Fixed shipping charges
+        const shippingCharges = 100; // You can make this configurable
+        
+        // Calculate final total
+        const finalTotal = subtotal + totalGst + shippingCharges;
+        
+        return { 
+            subtotal, 
+            discount, 
+            //   discountedSubtotal,
+            sgst,
+            cgst,
+            totalGst,
+            shippingCharges,
+            finalTotal 
+        };
     };
 
-    const { subtotal, discount, total, tax, finalTotal } = calculateCartTotals();
+    const { subtotal, discount, sgst, cgst, totalGst, shippingCharges, finalTotal } = calculateCartTotals();
 
     const PriceRow = ({ label, value, isDiscount = false, isTotal = false }) => (
         <div className={`flex justify-between ${isTotal ? 'pt-3 mt-3 border-t border-gray-200' : ''}`}>
@@ -1152,9 +1176,10 @@ const Shipping = () => {
             <h2 className="text-xl font-semibold mb-5 text-gray-800">Order Summary</h2>
             <div className="space-y-4 pt-4">
                 <PriceRow label="Sub-total" value={formatPrice(subtotal)} />
-                <PriceRow label="Shipping" value="Free" isDiscount />
                 <PriceRow label="Discount" value={`-${formatPrice(discount)}`} isDiscount />
-                <PriceRow label="Tax (10%)" value={formatPrice(tax)} />
+                <PriceRow label="SGST (5%)" value={formatPrice(sgst)} />
+                <PriceRow label="CGST (5%)" value={formatPrice(cgst)} />
+                <PriceRow label="Shipping Charges" value={formatPrice(shippingCharges)} />
                 <PriceRow label="Total" value={formatPrice(finalTotal)} isTotal />
             </div>
             <button

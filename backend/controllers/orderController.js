@@ -12,12 +12,11 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
       orderItems,
       paymentInfo,
       itemsPrice,
-      taxPrice,
+      discount,
       shippingPrice,
       totalPrice,
       orderStatus,
-      paidAt,
-      createdAt
+      paidAt
     } = req.body;
   
     // Remove the duplicate check if you want to allow multiple mock orders
@@ -26,12 +25,11 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
       orderItems,
       paymentInfo,
       itemsPrice,
-      taxPrice,
+      discount,
       shippingPrice,
       totalPrice,
       paidAt: paidAt || Date.now(),
       orderStatus: orderStatus || 'Processing',
-      createdAt: createdAt || Date.now(),
       user: req.user._id,
     });
   

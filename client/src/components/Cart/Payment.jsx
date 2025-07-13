@@ -68,13 +68,13 @@
   
 //     try {
 //       // Calculate cart totals
-//       const { total, tax, finalTotal } = calculateCartTotals();
+//       const { subtotal, discount, discountedSubtotal, sgst, cgst, totalGst, shippingCharges, finalTotal } = calculateCartTotals();
       
 //       // Prepare order data
 //       const orderData = {
-//         itemsPrice: total,
-//         taxPrice: tax,
-//         shippingPrice: 0, // Assuming free shipping
+//         itemsPrice: discountedSubtotal,
+//         taxPrice: totalGst,
+//         shippingPrice: shippingCharges,
 //         totalPrice: finalTotal,
 //         paymentInfo: {
 //           id: `mock_pay_${Date.now()}`,
@@ -107,15 +107,39 @@
 //   };
 
 //   const calculateCartTotals = () => {
-//     const subtotal = cartItems.reduce((sum, item) => sum + (item.cuttedPrice * item.quantity), 0);
-//     const discount = cartItems.reduce((sum, item) => sum + ((item.cuttedPrice * item.quantity) - (item.price * item.quantity)), 0);
-//     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-//     const tax = total * 0.1; // 10% tax
-//     const finalTotal = total + tax;
-//     return { subtotal, discount, total, tax, finalTotal };
+//     // Calculate subtotal (sum of all item prices)
+//     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+//     // Calculate total discount on subtotal
+//     const discount = cartItems.reduce((sum, item) => sum + ((item.price - item.cuttedPrice) * item.quantity), 0);
+    
+//     // Calculate discounted subtotal
+//     const discountedSubtotal = subtotal - discount;
+    
+//     // Calculate SGST (5%) and CGST (5%) on discounted subtotal
+//     const sgst = discountedSubtotal * 0.05;
+//     const cgst = discountedSubtotal * 0.05;
+//     const totalGst = sgst + cgst;
+    
+//     // Fixed shipping charges
+//     const shippingCharges = 100; // You can make this configurable
+    
+//     // Calculate final total
+//     const finalTotal = discountedSubtotal + totalGst + shippingCharges;
+    
+//     return { 
+//         subtotal, 
+//         discount, 
+//         discountedSubtotal,
+//         sgst,
+//         cgst,
+//         totalGst,
+//         shippingCharges,
+//         finalTotal 
+//     };
 //   };
 
-//   const { subtotal, discount, total, tax, finalTotal } = calculateCartTotals();
+//   const { subtotal, discount, discountedSubtotal, sgst, cgst, totalGst, shippingCharges, finalTotal } = calculateCartTotals();
 
 //   const PriceRow = ({ label, value, isDiscount = false, isTotal = false }) => (
 //     <div className={`flex justify-between ${isTotal ? 'pt-3 mt-3 border-t border-gray-200' : ''}`}>
@@ -148,16 +172,12 @@
 //   const renderPriceSidebar = () => (
 //     <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
 //       <h2 className="text-xl font-semibold mb-5 text-gray-800">Order Summary</h2>
-//       {/* <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-//         {cartItems.map((item) => (
-//           <CartItemCard key={item.product} item={item} />
-//         ))}
-//       </div> */}
 //       <div className="space-y-4 pt-4">
 //         <PriceRow label="Sub-total" value={formatPrice(subtotal)} />
-//         <PriceRow label="Shipping" value="Free" isDiscount />
 //         <PriceRow label="Discount" value={`-${formatPrice(discount)}`} isDiscount />
-//         <PriceRow label="Tax (10%)" value={formatPrice(tax)} />
+//         <PriceRow label="SGST (5%)" value={formatPrice(sgst)} />
+//         <PriceRow label="CGST (5%)" value={formatPrice(cgst)} />
+//         <PriceRow label="Shipping Charges" value={formatPrice(shippingCharges)} />
 //         <PriceRow label="Total" value={formatPrice(finalTotal)} isTotal />
 //       </div>
 //     </div>
@@ -364,13 +384,13 @@ const Payment = () => {
   
     try {
       // Calculate cart totals
-      const { total, tax, finalTotal } = calculateCartTotals();
+      const { subtotal, discount, discountedSubtotal, sgst, cgst, totalGst, shippingCharges, finalTotal } = calculateCartTotals();
       
       // Prepare order data
       const orderData = {
-        itemsPrice: total,
-        taxPrice: tax,
-        shippingPrice: 0, // Assuming free shipping
+        itemsPrice: discountedSubtotal,
+        taxPrice: totalGst,
+        shippingPrice: shippingCharges,
         totalPrice: finalTotal,
         paymentInfo: {
           id: `mock_pay_${Date.now()}`,
@@ -403,15 +423,39 @@ const Payment = () => {
   };
 
   const calculateCartTotals = () => {
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.cuttedPrice * item.quantity), 0);
-    const discount = cartItems.reduce((sum, item) => sum + ((item.cuttedPrice * item.quantity) - (item.price * item.quantity)), 0);
-    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = total * 0.1; // 10% tax
-    const finalTotal = total + tax;
-    return { subtotal, discount, total, tax, finalTotal };
+    // Calculate subtotal (sum of all item prices)
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Calculate total discount on subtotal
+    const discount = cartItems.reduce((sum, item) => sum + ((item.price - item.cuttedPrice) * item.quantity), 0);
+    
+    // Calculate discounted subtotal
+    // const discountedSubtotal = subtotal + discount;
+    
+    // Calculate SGST (5%) and CGST (5%) on discounted subtotal
+    const sgst = subtotal * 0.05;
+    const cgst = subtotal * 0.05;
+    const totalGst = sgst + cgst;
+    
+    // Fixed shipping charges
+    const shippingCharges = 100; // You can make this configurable
+    
+    // Calculate final total
+    const finalTotal = subtotal + totalGst + shippingCharges;
+    
+    return { 
+        subtotal, 
+        discount, 
+        // discountedSubtotal,
+        sgst,
+        cgst,
+        totalGst,
+        shippingCharges,
+        finalTotal 
+    };
   };
 
-  const { subtotal, discount, total, tax, finalTotal } = calculateCartTotals();
+  const { subtotal, discount, sgst, cgst, totalGst, shippingCharges, finalTotal } = calculateCartTotals();
 
   const PriceRow = ({ label, value, isDiscount = false, isTotal = false }) => (
     <div className={`flex justify-between ${isTotal ? 'pt-3 mt-3 border-t border-gray-200' : ''}`}>
@@ -444,16 +488,12 @@ const Payment = () => {
   const renderPriceSidebar = () => (
     <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-100">
       <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-gray-800">Order Summary</h2>
-      {/* <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-        {cartItems.map((item) => (
-          <CartItemCard key={item.product} item={item} />
-        ))}
-      </div> */}
-      <div className="space-y-3 sm:space-y-4 pt-4">
+      <div className="space-y-4 pt-4">
         <PriceRow label="Sub-total" value={formatPrice(subtotal)} />
-        <PriceRow label="Shipping" value="Free" isDiscount />
         <PriceRow label="Discount" value={`-${formatPrice(discount)}`} isDiscount />
-        <PriceRow label="Tax (10%)" value={formatPrice(tax)} />
+        <PriceRow label="SGST (5%)" value={formatPrice(sgst)} />
+        <PriceRow label="CGST (5%)" value={formatPrice(cgst)} />
+        <PriceRow label="Shipping Charges" value={formatPrice(shippingCharges)} />
         <PriceRow label="Total" value={formatPrice(finalTotal)} isTotal />
       </div>
     </div>

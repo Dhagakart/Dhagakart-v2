@@ -88,8 +88,6 @@ const router = express.Router();
  *         - orderItems
  *         - shippingInfo
  *         - paymentInfo
- *         - itemsPrice
- *         - taxPrice
  *         - shippingPrice
  *         - totalPrice
  *       properties:

@@ -39,24 +39,54 @@ const OrderDetails = () => {
 
     if (loading) return <Loader />;
 
-    // Calculate subtotal from order items if itemsPrice is not available
-    const calculateSubtotal = () => {
-        if (order?.itemsPrice !== undefined && order.itemsPrice !== null) {
-            return order.itemsPrice;
+    // Calculate order totals from order items if itemsPrice is not available
+    const calculateOrderTotals = () => {
+        if (!order?.orderItems?.length) {
+            return {
+                subtotal: 0,
+                discount: 0,
+                sgst: 0,
+                cgst: 0,
+                shippingCharges: 0,
+                finalTotal: 0
+            };
         }
-        
-        if (order?.orderItems?.length) {
-            return order.orderItems.reduce((sum, item) => {
-                const price = Number(item.price) || 0;
-                const qty = Number(item.quantity) || 0;
-                return sum + (price * qty);
-            }, 0);
-        }
-        
-        return 0;
+
+        // Calculate subtotal (sum of all item prices)
+        const subtotal = order.orderItems.reduce((sum, item) => {
+            const originalPrice = Number(item.price) || 0;
+            const qty = Number(item.quantity) || 0;
+            return sum + (originalPrice * qty);
+        }, 0);
+
+        // Calculate discount (difference between original and cutted prices)
+        const discount = order.orderItems.reduce((sum, item) => sum + ((item.price - item.cuttedPrice) * item.quantity), 0);
+
+        // Calculate discounted subtotal (subtract discount from subtotal)
+        // const discountedSubtotal = subtotal - discount;
+
+        // Calculate SGST (5%) and CGST (5%) on discounted subtotal
+        const sgst = subtotal * 0.05;
+        const cgst = subtotal * 0.05;
+        const totalGst = sgst + cgst;
+
+        // Use shipping price from order data if available, otherwise default to 100
+        const shippingCharges = order.shippingPrice || 100;
+
+        // Calculate final total
+        const finalTotal = subtotal + totalGst + shippingCharges;
+
+        return {
+            subtotal,
+            discount,
+            sgst,
+            cgst,
+            shippingCharges,
+            finalTotal
+        };
     };
     
-    const subtotal = calculateSubtotal();
+    const totals = calculateOrderTotals();
 
     return (
         <>
@@ -133,6 +163,41 @@ const OrderDetails = () => {
                                 </div>
                             </div>
 
+                            {/* Order Totals */}
+                            <div className="border-b border-gray-200">
+                                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt className="text-sm font-medium text-gray-500">Order Totals</dt>
+                                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between">
+                                                <span>Subtotal</span>
+                                                <span>{formatPrice(totals.subtotal)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-red-600">- Discount</span>
+                                                <span className="text-red-600">{formatPrice(totals.discount)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>SGST (5%)</span>
+                                                <span>{formatPrice(totals.sgst)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>CGST (5%)</span>
+                                                <span>{formatPrice(totals.cgst)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Shipping Charges</span>
+                                                <span>{formatPrice(totals.shippingCharges)}</span>
+                                            </div>
+                                            <div className="border-t border-gray-300 pt-2 flex justify-between font-medium">
+                                                <span>Total</span>
+                                                <span>{formatPrice(totals.finalTotal)}</span>
+                                            </div>
+                                        </div>
+                                    </dd>
+                                </div>
+                            </div>
+
                             {/* Order Items */}
                             <div className="px-4 py-5 sm:px-6">
                                 <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
@@ -188,29 +253,45 @@ const OrderDetails = () => {
                                                 </tr>
                                             ))}
                                         </tbody>
-                                        <tfoot className="bg-gray-50">
+                                         <tfoot className="bg-gray-50">
                                             <tr>
                                                 <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    Subtotal
+                                                    Sub-total
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatPrice(subtotal)}
+                                                    {formatPrice(totals.subtotal)}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    Shipping
+                                                    Discount
                                                 </td>
-                                                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {order.shippingPrice > 0 ? formatPrice(order.shippingPrice) : 'Free'}
+                                                <td className="px-6 py-3 text-right text-sm font-medium text-green-600">
+                                                    -{formatPrice(totals.discount)}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    Tax
+                                                    SGST (5%)
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatPrice(order.taxPrice || 0)}
+                                                    {formatPrice(totals.sgst)}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
+                                                    CGST (5%)
+                                                </td>
+                                                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                                                    {formatPrice(totals.cgst)}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
+                                                    Shipping Charges
+                                                </td>
+                                                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                                                    {formatPrice(totals.shippingCharges)}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -218,7 +299,7 @@ const OrderDetails = () => {
                                                     Total
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-lg font-bold text-gray-900">
-                                                    {formatPrice(order.totalPrice)}
+                                                    {formatPrice(totals.finalTotal)}
                                                 </td>
                                             </tr>
                                         </tfoot>
