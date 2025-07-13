@@ -84,7 +84,7 @@ const Home = () => {
     <>
       <MetaData title="Online Shopping Site for Mobiles, Electronics, Furniture, Grocery, Lifestyle, Books & More. Best Offers!" />
       {/* <Categories /> */}
-      <main className="flex flex-col gap-3 px-4 sm:px-6 lg:px-[65px] mt-8 sm:mt-10">
+      <main className="flex flex-col gap-3 px-4 sm:px-6 lg:px-[48px] mt-8 sm:mt-10">
         <Banner />
         <DealSlider title={"Best Deals"} />
         <Posters />
