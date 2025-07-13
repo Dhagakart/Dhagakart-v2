@@ -339,7 +339,7 @@ const Banner = () => {
             <div key={idx} className="h-full w-full">
               <img
                 draggable="false"
-                className="h-full w-full object-cover focus:outline-none focus:ring-0"
+                className="h-full w-full object-cover focus:outline-none focus:ring-0 rounded-lg"
                 src={src}
                 alt={`banner-slide-${idx}`}
               />
