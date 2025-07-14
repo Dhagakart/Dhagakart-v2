@@ -711,9 +711,9 @@ const HeaderDG = () => {
                               className="flex items-center space-x-4 focus:outline-none rounded-md"
                               onClick={() => setShowSuggestions(false)}
                             >
-                              {suggestion.image && (
+                              {suggestion.images && suggestion.images.length > 0 && (
                                 <img
-                                  src={suggestion.image}
+                                  src={suggestion.images[0].url}
                                   alt={suggestion.name}
                                   className="w-12 h-12 object-cover rounded-md border border-gray-200"
                                 />
