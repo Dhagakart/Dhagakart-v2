@@ -474,7 +474,8 @@ const HeaderDG = () => {
     if (keyword.trim()) {
       try {
         setIsLoading(true);
-        const response = await axios.get(`http://localhost:4000/api/v1/search/suggestions?keyword=${keyword}`);
+        // const response = await axios.get(`http://localhost:4000/api/v1/search/suggestions?keyword=${keyword}`);
+        const response = await axios.get(`https://dhagakart.onrender.com/api/v1/search/suggestions?keyword=${keyword}`);
         setSearchSuggestions(response.data.suggestions);
         setShowSuggestions(true);
       } catch (error) {
