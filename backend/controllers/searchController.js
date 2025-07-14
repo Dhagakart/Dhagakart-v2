@@ -17,8 +17,15 @@ exports.searchProducts = async (req, res) => {
                 { name: { $regex: keyword, $options: 'i' } },
                 { category: { $regex: keyword, $options: 'i' } }
             ]
-        }).select('name category price image')
+        }).select('name category price images')
         .limit(5);
+
+        // Add the first image URL to each suggestion
+        suggestions.forEach(product => {
+            if (product.images && product.images.length > 0) {
+                product.image = product.images[0].url;
+            }
+        });
 
         return res.status(200).json({
             success: true,
