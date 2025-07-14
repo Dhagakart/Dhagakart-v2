@@ -24,10 +24,33 @@ import {
   ExpandMore,
   Category as CategoryIcon,
   LocalOffer as OfferIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 
 import Logo from './logo.png';
+import { categories } from '../../../utils/constants';
+
+// Styled components for better organization
+// const StyledListItemButton = styled(ListItemButton)({
+//   '&.Mui-selected': {
+//     backgroundColor: '#003366',
+//     color: 'white',
+//     '&:hover': {
+//       backgroundColor: '#00264d',
+//     },
+//   },
+// });
+
+const StyledNestedListItem = styled(ListItemButton)({
+  padding: '8px 16px',
+  '&.Mui-selected': {
+    backgroundColor: '#f5f5f5',
+    '&:hover': {
+      backgroundColor: '#e0e0e0',
+    },
+  },
+});
 
 // Styled components for better organization
 const StyledListItemButton = styled(ListItemButton)({
@@ -36,12 +59,12 @@ const StyledListItemButton = styled(ListItemButton)({
   },
 });
 
-const StyledNestedListItem = styled(ListItemButton)({
-  paddingLeft: '32px',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
-});
+// const StyledNestedListItem = styled(ListItemButton)({
+//   paddingLeft: '32px',
+//   '&:hover': {
+//     backgroundColor: 'rgba(0, 0, 0, 0.04)',
+//   },
+// });
 
 const MobileNav = ({ 
   handleDrawerToggle, 
@@ -51,6 +74,7 @@ const MobileNav = ({
 }) => {
   const [openProducts, setOpenProducts] = useState(false);
   const [openBulkOrder, setOpenBulkOrder] = useState(false);
+  const [openCategory, setOpenCategory] = useState(null);
 
   const handleProductsClick = (e) => {
     e.stopPropagation(); // Prevent event from bubbling up to the drawer
@@ -64,6 +88,10 @@ const MobileNav = ({
     if (openProducts) setOpenProducts(false);
   };
 
+  const handleCategoryClick = (catName) => {
+    setOpenCategory(catName === openCategory ? null : catName);
+  };
+
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
     handleDrawerToggle(); // Close the drawer
@@ -72,11 +100,13 @@ const MobileNav = ({
   return (
     <Box
       sx={{
-        width: 250,
+        width: { xs: '100vw', sm: '100vw', md: 250 },
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: 'white',
+        bgcolor: 'background.paper',
+        borderRight: 1,
+        borderColor: 'divider',
         overflowY: 'auto',
       }}
       role="presentation"
@@ -84,13 +114,25 @@ const MobileNav = ({
       onKeyDown={handleDrawerToggle}
     >
       {isAuthenticated && user ? (
-        <Box sx={{ p: 2, bgcolor: '#003366', color: 'white' }}>
-          <AccountCircleIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-          Hey, {user.name.split(' ')[0]}
+        <Box sx={{ p: 2, bgcolor: '#003366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <AccountCircleIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
+            Hey, {user.name.split(' ')[0]}
+          </Box>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+            <button onClick={handleDrawerToggle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }} aria-label="Close Menu">
+              <CloseIcon sx={{ fontSize: 28 }} />
+            </button>
+          </Box>
         </Box>
       ) : (
-        <Box sx={{ p: 2, bgcolor: '#003366', color: 'white' }}>
+        <Box sx={{ p: 2, bgcolor: '#003366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <img src={Logo} className='h-6 w-auto' />
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+            <button onClick={handleDrawerToggle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }} aria-label="Close Menu">
+              <CloseIcon sx={{ fontSize: 28 }} />
+            </button>
+          </Box>
         </Box>
       )}
       <Divider />
@@ -125,30 +167,43 @@ const MobileNav = ({
         </ListItem>
         <Collapse in={openProducts} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem disablePadding>
-              <StyledNestedListItem component={Link} to="/products/silk%20yarn" onClick={handleDrawerToggle}>
-                <ListItemIcon>
-                  <OfferIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Silk Yarn" />
-              </StyledNestedListItem>
-            </ListItem>
-            <ListItem disablePadding>
-              <StyledNestedListItem component={Link} to="/products/cotton%20yarn" onClick={handleDrawerToggle}>
-                <ListItemIcon>
-                  <OfferIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Cotton Yarn" />
-              </StyledNestedListItem>
-            </ListItem>
-            <ListItem disablePadding>
-              <StyledNestedListItem component={Link} to="/products/polyster%20yarn" onClick={handleDrawerToggle}>
-                <ListItemIcon>
-                  <OfferIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Polyster Yarn" />
-              </StyledNestedListItem>
-            </ListItem>
+            {categories.map((cat, idx) => (
+              <React.Fragment key={cat.name}>
+                <ListItem disablePadding>
+                  <StyledNestedListItem
+                    onClick={() => handleCategoryClick(cat.name)}
+                    selected={openCategory === cat.name}
+                  >
+                    <ListItemText primary={cat.name} primaryTypographyProps={{ fontWeight: 600 }} />
+                    {openCategory === cat.name ? <ExpandLess /> : <ExpandMore />}
+                  </StyledNestedListItem>
+                </ListItem>
+                <Collapse in={openCategory === cat.name} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {cat.subcategories.map((sub, subIdx) => (
+                      <ListItem disablePadding key={sub}>
+                        <StyledNestedListItem
+                          component={Link}
+                          
+                          to={
+                            sub.toLowerCase() === 'sewing machine' ? '/products/jack' :
+                            sub.toLowerCase() === 'powerloom' ? '/products/power%20loom' :
+                            `/products/${encodeURIComponent(sub.toLowerCase().replace(/ /g, '%20'))}`
+                          }
+                          onClick={handleDrawerToggle}
+                          selected={window.location.pathname === `/products/${encodeURIComponent(sub.toLowerCase().replace(/ /g, '%20'))}`}
+                        >
+                          <ListItemIcon>
+                            <OfferIcon fontSize="small" />
+                          </ListItemIcon>
+                          <ListItemText primary={sub} />
+                        </StyledNestedListItem>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Collapse>
+              </React.Fragment>
+            ))}
           </List>
         </Collapse>
 

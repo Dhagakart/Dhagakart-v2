@@ -256,17 +256,17 @@ const Login = () => {
                 <div className="flex flex-col lg:flex-row rounded-xl w-full max-w-6xl bg-white shadow-lg overflow-hidden">
                     {/* Left Side - Blue Background (Hidden on mobile, visible on desktop) */}
                     <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-[#00264d] to-[#003366] p-8 flex-col justify-center">
-                        <Typography variant="h4" component="h1" sx={{ color: 'white', fontWeight: 700, mb: 2 }}>
-                            A–Z Textile Hub
+                        <Typography variant="h4" component="h1" sx={{ color: 'white', fontWeight: 700, mb: 2, fontSize: '2.2rem', letterSpacing: 0 }}>
+                            DhagaKart
                         </Typography>
-                        <Typography variant="body1" sx={{ color: 'white', opacity: 0.9, mb: 3 }}>
-                            Join DhagaKart today and discover a world of premium textile products.
+                        <Typography sx={{ color: 'white', fontWeight: 400, mb: 3, fontSize: '1.08rem', lineHeight: 1.5 }}>
+                            Your OneStop Solution for Textile Manufacturing
                         </Typography>
-                        <Box>
-                            {['Secure Business Account', 'Premium Textile Selection', 'Dedicated Account Manager', '24/7 Business Support'].map((t, i) => (
-                                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                    <CheckCircleOutlineIcon sx={{ color: 'warning.main' }} />
-                                    <Typography sx={{ color: 'white' }}>{t}</Typography>
+                        <Box component="ul" sx={{ color: 'white', pl: 0, mb: 0, mt: 1, listStyle: 'none' }}>
+                            {["Best Market Pricing", "Reliable On-Time Delivery", "Flexible Credit & Financing Options", "Bulk Order Benefits"].map((t, i) => (
+                                <Box key={i} component="li" sx={{ display: 'flex', alignItems: 'center', mb: 1.2, fontSize: '1.08rem', fontWeight: 400, pl: 0 }}>
+                                    <CheckCircleOutlineIcon sx={{ color: 'orange', fontSize: '1.2rem', mr: 1 }} />
+                                    <span>{t}</span>
                                 </Box>
                             ))}
                         </Box>
@@ -275,7 +275,7 @@ const Login = () => {
                     {/* Right Side - Login Form */}
                     <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-12 lg:w-3/5 flex flex-col justify-center mt-8 lg:mt-0">
                         <div className="max-w-md w-full mx-auto">
-                            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 text-center lg:text-left">Login</h2>
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 text-center lg:text-left">Sign In</h2>
 
                             <div className="space-y-4 sm:space-y-5">
                                 <div className="space-y-2">
