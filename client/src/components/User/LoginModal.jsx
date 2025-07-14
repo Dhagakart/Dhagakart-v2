@@ -82,10 +82,7 @@ const LoginModal = ({ isOpen, onClose }) => {
           <p className="text-base opacity-90 mb-6">Sign in to continue your premium shopping experience</p>
           <div className="space-y-3">
             {[
-              'Secure Business Account',
-              'Premium Textile Selection',
-              'Dedicated Account Manager',
-              '24/7 Business Support',
+              "Best Market Pricing", "Reliable On-Time Delivery", "Flexible Credit & Financing Options", "Bulk Order Benefits",
             ].map((text, index) => (
               <div key={index} className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
