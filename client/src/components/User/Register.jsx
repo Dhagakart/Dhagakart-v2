@@ -773,13 +773,13 @@ const Register = () => {
           {!isMobile && (
             <Grid item xs={12} md={5} sx={{ background: 'linear-gradient(135deg, #00264d 0%, #003366 100%)', p: 4, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <Typography variant="h4" component="h1" sx={{ color: 'white', fontWeight: 700, mb: 2 }}>
-                A–Z Textile Hub
+                DhagaKart
               </Typography>
               <Typography variant="body1" sx={{ color: 'white', opacity: 0.9, mb: 3 }}>
-                Join DhagaKart today and discover a world of premium textile products.
+                Your OneStop Solution for Textile Manufacturing
               </Typography>
               <Box>
-                {['Secure Business Account', 'Premium Textile Selection', 'Dedicated Account Manager', '24/7 Business Support'].map((t, i) => (
+                {["Best Market Pricing", "Reliable On-Time Delivery", "Flexible Credit & Financing Options", "Bulk Order Benefits"].map((t, i) => (
                   <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <CheckCircleOutlineIcon sx={{ color: 'warning.main' }} />
                     <Typography sx={{ color: 'white' }}>{t}</Typography>
