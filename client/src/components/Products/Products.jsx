@@ -775,7 +775,7 @@ const Products = () => {
             <MetaData title="All Products | DhagaKart" />
 
             {/* <MinCategory /> */}
-            <main className="w-full min-h-[90vh] mt-10 px-1.5 md:px-16">
+            <main className="w-full min-h-[90vh] mt-10 md:mb-24 mb-10 px-1.5 md:px-16">
                 {/* <!-- row --> */}
                 <div className="min-h-[90vh] flex gap-3 mt-4 m-auto mb-7">
                     {/* Mobile Filter Button */}
