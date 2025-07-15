@@ -63,7 +63,7 @@ import MetaData from '../Layouts/MetaData';
 import Posters from './Posters/Posters';
 import CategorySlider from './CategorySlider/CategorySlider';
 import Poster from './Poster/Poster';
-import BrowsingHistory from './BrowsingHistory/BrowsingHistory';
+import BrowsingHistorySlider from './CategorySlider/BrowsingHistorySlider';
 
 const Home = () => {
 
@@ -82,7 +82,7 @@ const Home = () => {
 
   return (
     <>
-      <MetaData title="Online Shopping Site for Mobiles, Electronics, Furniture, Grocery, Lifestyle, Books & More. Best Offers!" />
+      <MetaData title="Online Shopping Site for all your textile needs!" />
       {/* <Categories /> */}
       <main className="flex flex-col gap-3 px-4 sm:px-6 lg:px-[48px] mt-8 sm:mt-10">
         <Banner />
@@ -91,7 +91,7 @@ const Home = () => {
         <CategorySlider />
         <Poster />
         {/* <BrowsingHistory /> */}
-        <CategorySlider />
+        <BrowsingHistorySlider />
         {/* {!loading && <ProductSlider title={"Suggested for You"} tagline={"Based on Your Activity"} />}
         <DealSlider title={"Top Brands, Best Price"} />
         {!loading && <ProductSlider title={"You May Also Like..."} tagline={"Based on Your Interest"} />}

@@ -1531,9 +1531,9 @@ const ProductDetailsDG = () => {
           <div className="md:hidden w-full px-4 py-3 bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg mt-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <span className="text-lg font-bold text-gray-900 mr-2">₹{product.cuttedPrice?.toLocaleString()}</span>
-                <span className="text-sm text-gray-500 line-through">₹{product.price?.toLocaleString()}</span>
-                <span className="ml-2 text-sm text-green-600">{getDiscount(product.price, product.cuttedPrice)}% off</span>
+                <span className="text-lg font-bold text-gray-900 mr-2">₹{product.price?.toLocaleString()}</span>
+                <span className="text-sm text-gray-500 line-through">₹{product.cuttedPrice?.toLocaleString()}</span>
+                <span className="ml-2 text-sm text-green-600">{getDiscount(product.cuttedPrice, product.price)}% off</span>
               </div>
               <div className="flex items-center space-x-2">
                 <button

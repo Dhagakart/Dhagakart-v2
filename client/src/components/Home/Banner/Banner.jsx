@@ -200,7 +200,7 @@
 // export default Banner
 
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import Slider from "react-slick"
@@ -295,6 +295,25 @@ export const NextBtn = ({ className, onClick }) => (
 
 const Banner = () => {
   const navigate = useNavigate();
+  const [startX, setStartX] = useState(0);
+  const [isValidClick, setIsValidClick] = useState(true);
+
+  const handleMouseDown = (e) => {
+    setStartX(e.clientX);
+    setIsValidClick(true);
+  };
+
+  const handleMouseMove = (e) => {
+    const distance = Math.abs(e.clientX - startX);
+    // If user moved more than 10 pixels, consider it a drag, not a click
+    if (distance > 10) {
+      setIsValidClick(false);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setStartX(0);
+  };
 
   // Inject Slick overrides on mount
   useEffect(() => {
@@ -329,14 +348,27 @@ const Banner = () => {
 
   // Use Banner1 for all slides (replace or extend as needed)
   const banners = [Banner1, Banner2, Banner3]
+  const slidePaths = [
+    '/products',  // First slide
+    '/product/68722597378bce74bc0a5301',  // Second slide
+    '/product/6870e1e11022eca9beb2b1c6'  // Third slide
+  ]
 
   return (
     <div className="w-full h-auto lg:h-[600px] bg-white py-4 lg:py-8 flex flex-col lg:flex-row gap-4">
       {/* LEFT COLUMN: Carousel */}
-      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer md:p-4" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
+      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer">
         <Slider {...settings} className="h-full">
           {banners.map((src, idx) => (
-            <div key={idx} className="h-full w-full relative">
+            <div 
+              key={idx} 
+              className="h-full w-full relative hover:cursor-pointer"
+              onClick={(e) => isValidClick && navigate(slidePaths[idx])}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
               <img
                 draggable="false"
                 className="w-full h-full object-cover focus:outline-none focus:ring-0 rounded-lg"
@@ -351,14 +383,14 @@ const Banner = () => {
       {/* RIGHT COLUMN: Two "Cards" Stacked */}
       <div className="w-full lg:w-2/5 h-full flex flex-col gap-2 sm:gap-4">
         {/* TOP CARD */}
-        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
+        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/687229f7378bce74bc0a70bd')}>
           {/* <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded">
             29% OFF
           </div> */}
           <div className="flex flex-row h-full w-full">
             <div className="flex-1 px-4 py-2 sm:px-6 sm:py-4 flex flex-col justify-center text-left">
-              <p className="text-white text-xs sm:text-sm font-medium ">High-Speed Rapier Power Loom - 48</p>
-              <h3 className="mt-1 text-lg sm:text-xl lg:text-2xl font-bold text-yellow-500">DEAL FOR WEAVING HIGH-QUALITY SILK SAREES.</h3>
+              <p className="text-white text-2xl sm:text-2xl font-medium ">High-Speed Rapier Power Loom - 48</p>
+              <h3 className="mt-1 text-xs sm:text-sm font-bold text-yellow-500">DEAL FOR WEAVING HIGH-QUALITY SILK SAREES.</h3>
               <button className="mt-2 sm:mt-3 w-max bg-[#003366] text-white text-xs sm:text-sm text-white font-medium  px-3 sm:px-4 py-1.5 sm:py-2 rounded hover:cursor-pointer">
                 SHOP NOW →
               </button>
