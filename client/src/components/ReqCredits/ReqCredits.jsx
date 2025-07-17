@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import Poster from './Poster.png';
 import Poster1 from './Poster1.png';
+import Image from './image.png'
 import LoginModal from '../User/LoginModal';
 import CreditApplicationModal from './CreditApplicationModal';
 import {
@@ -134,11 +135,11 @@ const ReqCredits = () => {
             </div>
           </div>
         </div>
-        <div className="flex justify-end">
+        <div className="flex min-h-[90vh] items-end justify-end">
           <img
-            src={Poster}
+            src={Image}
             alt="Credit Illustration"
-            className="w-full max-w-3xl object-contain"
+            className="w-full max-w-4xl object-contain"
             style={{ objectPosition: 'right' }}
           />
         </div>
