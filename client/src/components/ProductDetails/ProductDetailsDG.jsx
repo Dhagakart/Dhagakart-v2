@@ -1112,6 +1112,65 @@ const ProductDetailsDG = () => {
   };
 
   // style the toast like a normal react hot toast for success
+  const increaseQuantity = () => {
+    if (product.stock <= quantity) return;
+    const newQty = product.orderConfig?.increment 
+      ? Math.min(
+          quantity + (product.orderConfig.increment || 1),
+          product.stock,
+          // Ensure we don't exceed the maximum possible quantity based on minQty and increment
+          product.orderConfig.minQty + 
+            Math.floor((product.stock - product.orderConfig.minQty) / (product.orderConfig.increment || 1)) * (product.orderConfig.increment || 1)
+        )
+      : quantity + 1;
+    setQuantity(newQty);
+    validateQuantity(newQty);
+  };
+
+  const decreaseQuantity = () => {
+    const newQty = product.orderConfig?.increment
+      ? Math.max(
+          quantity - (product.orderConfig.increment || 1),
+          product.orderConfig?.minQty || 1
+        )
+      : Math.max(1, quantity - 1);
+    setQuantity(newQty);
+    validateQuantity(newQty);
+  };
+  
+  const handleQuantityChange = (e) => {
+    const value = parseInt(e.target.value) || 0;
+    setQuantity(value);
+    validateQuantity(value);
+  };
+  
+  const validateQuantity = (value) => {
+    if (!product?.orderConfig) {
+      setQuantityError('');
+      return;
+    }
+    
+    const { minQty, increment } = product.orderConfig;
+    
+    if (value < minQty) {
+      setQuantityError(`Minimum quantity is ${minQty}`);
+    } else if (value > product.stock) {
+      setQuantityError(`Maximum quantity is ${product.stock}`);
+    } else if (increment > 1 && (value - minQty) % increment !== 0) {
+      const nextValidQty = Math.ceil((value - minQty) / increment) * increment + minQty;
+      setQuantityError(`Please order in multiples of ${increment} (e.g., ${nextValidQty})`);
+    } else {
+      setQuantityError('');
+    }
+  };
+  
+  // Set initial quantity to minQty when product loads
+  useEffect(() => {
+    if (product?.orderConfig?.minQty) {
+      setQuantity(product.orderConfig.minQty);
+    }
+  }, [product]);
+
   const handleAddToCart = () => {
     dispatch(addItemsToCart(id, quantity));
     toast.success(
@@ -1537,7 +1596,7 @@ const ProductDetailsDG = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                  onClick={() => decreaseQuantity()}
                   className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full"
                 >
                   <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1546,7 +1605,7 @@ const ProductDetailsDG = () => {
                 </button>
                 <span className="w-8 text-center">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(prev => prev + 1)}
+                  onClick={() => increaseQuantity()}
                   className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full"
                 >
                   <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1614,8 +1673,8 @@ const ProductDetailsDG = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex items-center border-2 border-gray-200 rounded-lg w-40">
                   <button
-                    onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                    disabled={quantity <= 1}
+                    onClick={() => decreaseQuantity()}
+                    disabled={quantity <= (product.orderConfig?.minQty || 1)}
                     className="px-3 text-black font-bold disabled:opacity-80 disabled:cursor-not-allowed w-12 h-10 flex items-center justify-center hover:bg-gray-100 rounded-l transition-colors hover:cursor-pointer"
                   >
                     <svg
@@ -1631,7 +1690,7 @@ const ProductDetailsDG = () => {
                     {quantity}
                   </span>
                   <button
-                    onClick={() => setQuantity((prev) => prev + 1)}
+                    onClick={() => increaseQuantity()}
                     className="px-3 text-black font-bold w-12 h-10 flex items-center justify-center hover:bg-gray-100 rounded-r transition-colors hover:cursor-pointer"
                   >
                     <svg
@@ -1645,6 +1704,11 @@ const ProductDetailsDG = () => {
                     </svg>
                   </button>
                 </div>
+                {product.orderConfig?.unit && (
+                  <span className="text-gray-600 text-sm flex items-center font-medium ml-2">
+                    {product.orderConfig.unit}
+                  </span>
+                )}
               </div>
                 <div className="flex gap-3 w-full sm:w-auto mt-6">
                   <button
@@ -1763,7 +1827,8 @@ const ProductDetailsDG = () => {
                   onClick={handleQuoteOpen}
                   className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2 text-blue-700 font-medium bg-white hover:bg-blue-50 transition"
                 >
-                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M5 8h14M5 8V6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2v-2"/></svg>
+                  <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6M9 16h6M5 8h14M5 8V6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2v-2"/></svg>
                   Get quote
                 </button>
               </div>
@@ -1936,7 +2001,7 @@ const ProductDetailsDG = () => {
                   {[1,2,3,4,5].map(star => (
                     <button key={star} type="button" onClick={() => setRating(star)} className="focus:outline-none">
                       <svg className={`w-7 h-7 ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                       </svg>
                     </button>
                   ))}
@@ -1958,7 +2023,7 @@ const ProductDetailsDG = () => {
                 product.reviews
                   .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
                   .map((review, idx) => (
-                    <div key={review._id || idx} className="bg-gray-50 p-4 rounded-lg shadow border border-gray-100 flex gap-3">
+                    <div key={review._id || idx} className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100 flex gap-3">
                       <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
                         {review.name?.[0]?.toUpperCase() || 'U'}
                       </div>
@@ -2001,7 +2066,7 @@ const ProductDetailsDG = () => {
                             viewBox="0 0 20 20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
                         </button>
                       ))}

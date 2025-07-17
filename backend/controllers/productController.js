@@ -4,22 +4,12 @@ const SearchFeatures = require('../utils/searchFeatures');
 const ErrorHandler = require('../utils/errorHandler');
 const cloudinary = require('cloudinary');
 
-// Get All Products
+// Get All Products (with filters, search, and pagination)
 exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
-
     const resultPerPage = 12;
     const productsCount = await Product.countDocuments();
-    // console.log(req.query);
 
-    // Create base query
-    const query = Product.find();
-    
-    // If subcategory is provided, filter by it
-    if (req.query.subCategory) {
-        query.where('subCategory').equals(req.query.subCategory);
-    }
-    
-    const searchFeature = new SearchFeatures(query, req.query)
+    const searchFeature = new SearchFeatures(Product.find(), req.query)
         .search()
         .filter();
 
@@ -27,7 +17,6 @@ exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
     let filteredProductsCount = products.length;
 
     searchFeature.pagination(resultPerPage);
-
     products = await searchFeature.query.clone();
 
     res.status(200).json({
@@ -39,577 +28,146 @@ exports.getAllProducts = asyncErrorHandler(async (req, res, next) => {
     });
 });
 
-// Get All Products ---Product Sliders
-exports.getProducts = asyncErrorHandler(async (req, res, next) => {
-    const products = await Product.find();
-
-    res.status(200).json({
-        success: true,
-        products,
-    });
-});
-
 // Get Product Details
 exports.getProductDetails = asyncErrorHandler(async (req, res, next) => {
-
     const product = await Product.findById(req.params.id);
-
     if (!product) {
         return next(new ErrorHandler("Product Not Found", 404));
     }
-
     res.status(200).json({
         success: true,
         product,
     });
 });
 
-// Get All Products ---ADMIN
+// Get All Products --- ADMIN
 exports.getAdminProducts = asyncErrorHandler(async (req, res, next) => {
     const products = await Product.find();
-
     res.status(200).json({
         success: true,
         products,
     });
 });
 
-// Create Product ---ADMIN
+// Create Product --- ADMIN
 exports.createProduct = asyncErrorHandler(async (req, res, next) => {
-    // Helper function to flatten nested arrays
-    const flattenArray = (arr) => {
-        return arr.reduce((flat, item) => {
-            return flat.concat(Array.isArray(item) ? flattenArray(item) : item);
-        }, []);
-    };
+    const productData = { ...req.body, user: req.user.id };
 
-    // Process images
-    let images = [];
+    if (req.body.orderConfig) productData.orderConfig = JSON.parse(req.body.orderConfig);
+    if (req.body.specifications) productData.specifications = JSON.parse(req.body.specifications);
+
     if (req.body.images) {
-        if (typeof req.body.images === 'string') {
-            images.push(req.body.images);
-        } else if (Array.isArray(req.body.images)) {
-            // Flatten the nested arrays and filter out any empty values
-            images = flattenArray(req.body.images).filter(img => img && typeof img === 'string');
+        const imagesToUpload = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+        const imagesLink = [];
+        for (const image of imagesToUpload) {
+            const result = await cloudinary.v2.uploader.upload(image, { folder: "products" });
+            imagesLink.push({ public_id: result.public_id, url: result.secure_url });
         }
+        productData.images = imagesLink;
     }
 
-    // Upload images to Cloudinary
-    const imagesLink = [];
-    try {
-        for (let i = 0; i < images.length; i++) {
-            if (typeof images[i] !== 'string') continue;
-            
-            const result = await cloudinary.v2.uploader.upload(images[i], {
-                folder: "products",
-            });
-
-            imagesLink.push({
-                public_id: result.public_id,
-                url: result.secure_url,
-            });
-        }
-    } catch (error) {
-        console.error('Error uploading images to Cloudinary:', error);
-        return next(new ErrorHandler('Error uploading product images', 500));
-    }
-
-    // Process highlights - ensure it's a flat array of strings
-    let highlights = [];
-    if (req.body.highlights) {
-        if (Array.isArray(req.body.highlights)) {
-            highlights = flattenArray(req.body.highlights)
-                .filter(h => typeof h === 'string' && h.trim() !== '')
-                .map(h => h.trim());
-        } else if (typeof req.body.highlights === 'string') {
-            highlights = [req.body.highlights.trim()];
-        }
-    }
-
-    // Process specifications
-    let specifications = [];
-    if (req.body.specifications && Array.isArray(req.body.specifications)) {
-        const flattenedSpecs = flattenArray(req.body.specifications);
-        for (const spec of flattenedSpecs) {
-            try {
-                let specObj;
-                if (typeof spec === 'string') {
-                    specObj = JSON.parse(spec);
-                } else if (typeof spec === 'object') {
-                    specObj = spec;
-                } else {
-                    continue;
-                }
-
-                // Ensure required fields exist
-                if (specObj.title && specObj.description) {
-                    specifications.push({
-                        title: specObj.title,
-                        description: specObj.description
-                    });
-                }
-            } catch (e) {
-                console.error('Error parsing specification:', e);
-                continue;
-            }
-        }
-    }
-
-    // Prepare product data
-    const productData = {
-        ...req.body,
-        images: imagesLink,
-        highlights: highlights,
-        specifications: specifications,
-        user: req.user.id,
-        // Ensure category and subcategory are properly set
-        category: req.body.category,
-        subCategory: req.body.subCategory,
-        // Convert string numbers to numbers
-        price: parseFloat(req.body.price) || 0,
-        cuttedPrice: parseFloat(req.body.cuttedPrice) || 0,
-        stock: parseInt(req.body.stock) || 0,
-        warranty: parseInt(req.body.warranty) || 0
-    };
-
-    // Create the product
-    try {
-        const product = await Product.create(productData);
-        
-        res.status(201).json({
-            success: true,
-            product
-        });
-    } catch (error) {
-        console.error('Error creating product:', error);
-        return next(new ErrorHandler('Error creating product: ' + error.message, 500));
-    }
+    const product = await Product.create(productData);
+    res.status(201).json({ success: true, product });
 });
 
-// Update Product ---ADMIN
+// Update Product --- ADMIN
 exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     let product = await Product.findById(req.params.id);
+    if (!product) return next(new ErrorHandler("Product Not Found", 404));
 
-    if (!product) {
-        return next(new ErrorHandler("Product Not Found", 404));
-    }
+    const updateData = { ...req.body };
+    let finalImages = [...product.images];
 
-    // Helper function to flatten nested arrays
-    const flattenArray = (arr) => {
-        return arr.reduce((flat, item) => {
-            return flat.concat(Array.isArray(item) ? flattenArray(item) : item);
-        }, []);
-    };
-
-    // Process new images    // Process images
-    let imagesLink = [...product.images];
-    
-    // Handle removed images
-    console.log('=== IMAGE DELETION DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-    console.log('Current product images:', JSON.stringify(product.images, null, 2));
-    
-    // Check if removedImages exists in the request
     if (req.body.removedImages) {
-        console.log('Processing removedImages...');
-        let removedPublicIds = [];
-        
-        try {
-            // Handle both string and array formats for removedImages
-            if (Array.isArray(req.body.removedImages)) {
-                // If it's already an array
-                removedPublicIds = [...new Set(req.body.removedImages)]; // Remove duplicates
-            } else if (typeof req.body.removedImages === 'string') {
-                // If it's a single string, convert to array
-                removedPublicIds = [req.body.removedImages];
-            }
-            
-            console.log('Removed public IDs:', removedPublicIds);
-            // Log the raw removedImages value
-            console.log('=== NEW REQUEST ===');
-            console.log('Raw removedImages type:', typeof req.body.removedImages);
-            
-            // Handle different types of removedImages
-            if (Array.isArray(req.body.removedImages)) {
-                // Direct array
-                removedPublicIds = req.body.removedImages;
-                console.log('removedImages is an array:', removedPublicIds);
-            } else if (typeof req.body.removedImages === 'string') {
-                // String that might be JSON
-                try {
-                    console.log('Attempting to parse removedImages as JSON...');
-                    const parsed = JSON.parse(req.body.removedImages);
-                    console.log('Parsed removedImages:', parsed);
-                    removedPublicIds = Array.isArray(parsed) ? parsed : [parsed];
-                } catch (parseError) {
-                    console.error('Error parsing removedImages as JSON, treating as string:', parseError);
-                    removedPublicIds = [req.body.removedImages];
-                }
-            } else if (req.body.removedImages) {
-                // Single value
-                console.log('removedImages is a single value:', req.body.removedImages);
-                removedPublicIds = [req.body.removedImages];
-            }
-            
-            console.log('Final removedPublicIds to process:', removedPublicIds);
-            console.log('Removing images with public_ids:', removedPublicIds);
-            
-            // Delete from Cloudinary
-            const deletePromises = removedPublicIds.map(publicId => {
-                if (publicId) {
-                    console.log('Deleting image from Cloudinary:', publicId);
-                    return cloudinary.v2.uploader.destroy(publicId)
-                        .then(result => ({
-                            publicId,
-                            result,
-                            success: true
-                        }))
-                        .catch(error => ({
-                            publicId,
-                            error: error.message,
-                            success: false
-                        }));
-                }
-                return Promise.resolve({ skipped: 'No public_id' });
-            });
-            
-            const deleteResults = await Promise.all(deletePromises);
-            console.log('Cloudinary deletion results:', deleteResults);
-            
-            // Log the current product images before removal
-            console.log('Current product images before removal:', JSON.stringify(product.images, null, 2));
-            console.log('Public IDs to remove:', removedPublicIds);
-            
-            // Update the product's images array
-            const beforeCount = product.images.length;
-            const removedImages = [];
-            
-            product.images = product.images.filter(img => {
-                const shouldKeep = !removedPublicIds.includes(img.public_id);
-                if (!shouldKeep) {
-                    console.log('Removing image from product:', img.public_id);
-                    removedImages.push(img.public_id);
-                } else {
-                    console.log('Keeping image:', img.public_id);
-                }
-                return shouldKeep;
-            });
-            
-            console.log(`Removed ${removedImages.length} images from product`);
-            console.log('Removed images:', removedImages);
-            console.log('Updated product.images:', JSON.stringify(product.images, null, 2));
-            
-            if (removedImages.length === 0) {
-                console.warn('No images were actually removed!');
-                console.warn('Check if public_ids match between removedPublicIds and product.images');
-                console.warn('removedPublicIds:', removedPublicIds);
-                console.warn('product.images public_ids:', product.images.map(img => img.public_id));
-            }
-            
-            // Mark as modified to ensure the change is saved
-            product.markModified('images');
-            
-            // Force a save to ensure changes are persisted
-            try {
-                await product.save();
-                console.log('Product saved successfully after image removal');
-                
-                // Verify the change was applied by refetching
-                const updatedProduct = await Product.findById(product._id);
-                console.log('Updated product from DB:', JSON.stringify(updatedProduct.images, null, 2));
-            } catch (saveError) {
-                console.error('Error saving product after image removal:', saveError);
-                throw saveError;
-            }
-            
-        } catch (error) {
-            console.error('Error processing removed images:', error);
-            return next(new ErrorHandler('Error processing removed images: ' + error.message, 400));
+        const publicIdsToRemove = Array.isArray(req.body.removedImages) ? req.body.removedImages : [req.body.removedImages];
+        for (const publicId of publicIdsToRemove) {
+            await cloudinary.v2.uploader.destroy(publicId);
+        }
+        finalImages = finalImages.filter(img => !publicIdsToRemove.includes(img.public_id));
+    }
+
+    if (req.body.images) {
+        const newImagesToUpload = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+        for (const image of newImagesToUpload) {
+            const result = await cloudinary.v2.uploader.upload(image, { folder: "products" });
+            finalImages.push({ public_id: result.public_id, url: result.secure_url });
         }
     }
+    updateData.images = finalImages;
+
+    if (req.body.orderConfig) updateData.orderConfig = JSON.parse(req.body.orderConfig);
+    if (req.body.specifications) updateData.specifications = JSON.parse(req.body.specifications);
     
-    // Add new images
-    if (req.body.images && req.body.images.length > 0) {
-        let newImages = [];
-        if (typeof req.body.images === 'string') {
-            newImages.push(req.body.images);
-        } else if (Array.isArray(req.body.images)) {
-            newImages = flattenArray(req.body.images).filter(img => img && typeof img === 'string');
-        }
+    delete updateData.removedImages;
 
-        // Upload new images to Cloudinary
-        for (let i = 0; i < newImages.length; i++) {
-            if (typeof newImages[i] !== 'string') continue;
-            
-            try {
-                const result = await cloudinary.v2.uploader.upload(newImages[i], {
-                    folder: "products",
-                });
+    product = await Product.findByIdAndUpdate(req.params.id, updateData, {
+        new: true, runValidators: true, useFindAndModify: false,
+    });
 
-                imagesLink.push({
-                    public_id: result.public_id,
-                    url: result.secure_url,
-                });
-            } catch (error) {
-                console.error('Error uploading new images to Cloudinary:', error);
-                // Continue with other images if one fails
-            }
-        }
-    }
-
-    // Process highlights
-    let highlights = product.highlights || [];
-    if (req.body.highlights) {
-        if (Array.isArray(req.body.highlights)) {
-            highlights = flattenArray(req.body.highlights)
-                .filter(h => typeof h === 'string' && h.trim() !== '')
-                .map(h => h.trim());
-        } else if (typeof req.body.highlights === 'string') {
-            highlights = [req.body.highlights.trim()];
-        }
-    }
-
-    // Process specifications
-    let specifications = product.specifications || [];
-    if (req.body.specifications && Array.isArray(req.body.specifications)) {
-        const flattenedSpecs = flattenArray(req.body.specifications);
-        specifications = [];
-        
-        for (const spec of flattenedSpecs) {
-            try {
-                let specObj;
-                if (typeof spec === 'string') {
-                    specObj = JSON.parse(spec);
-                } else if (typeof spec === 'object') {
-                    specObj = spec;
-                } else {
-                    continue;
-                }
-
-                if (specObj.title && specObj.description) {
-                    specifications.push({
-                        title: specObj.title,
-                        description: specObj.description
-                    });
-                }
-            } catch (e) {
-                console.error('Error parsing specification:', e);
-                continue;
-            }
-        }
-    }
-
-    // Prepare update data
-    const updateData = {
-        ...req.body,
-        images: imagesLink,
-        highlights: highlights,
-        specifications: specifications,
-        // Convert string numbers to numbers if provided, otherwise keep existing values
-        price: req.body.price ? parseFloat(req.body.price) : product.price,
-        cuttedPrice: req.body.cuttedPrice ? parseFloat(req.body.cuttedPrice) : product.cuttedPrice,
-        stock: req.body.stock ? parseInt(req.body.stock) : product.stock,
-        warranty: req.body.warranty ? parseInt(req.body.warranty) : product.warranty
-    };
-
-    // Remove fields that shouldn't be updated
-    delete updateData.logo; // Already handled separately
-
-    // Update the product
-    try {
-        // Update the product document directly
-        Object.assign(product, updateData);
-        
-        // Save the updated product
-        await product.save();
-        
-        // Fetch the updated product to include all fields
-        const updatedProduct = await Product.findById(req.params.id);
-        
-        console.log('Product after update:', updatedProduct);
-        
-        res.status(200).json({
-            success: true,
-            product: updatedProduct
-        });
-    } catch (error) {
-        console.error('Error updating product:', error);
-        return next(new ErrorHandler('Error updating product: ' + error.message, 500));
-    }
+    res.status(200).json({ success: true, product });
 });
 
-// Delete Product ---ADMIN
+// Delete Product --- ADMIN
 exports.deleteProduct = asyncErrorHandler(async (req, res, next) => {
     const product = await Product.findById(req.params.id);
+    if (!product) return next(new ErrorHandler("Product Not Found", 404));
 
-    if (!product) {
-        return next(new ErrorHandler("Product Not Found", 404));
-    }
-
-    for (let i = 0; i < product.images.length; i++) {
-        await cloudinary.v2.uploader.destroy(product.images[i].public_id);
+    for (const image of product.images) {
+        await cloudinary.v2.uploader.destroy(image.public_id);
     }
 
     await product.remove();
-    
-    res.status(200).json({
-        success: true,
-        message: 'Product deleted successfully'
-    });
+    res.status(200).json({ success: true, message: 'Product deleted successfully' });
 });
 
-// Create OR Update Reviews
+// Create or Update a Review
 exports.createProductReview = asyncErrorHandler(async (req, res, next) => {
     const { rating, comment, productId } = req.body;
+    const review = { user: req.user._id, name: req.user.name, rating: Number(rating), comment };
 
-    const review = {
-        user: req.user._id,
-        name: req.user.name,
-        rating: Number(rating),
-        comment,
-        createdAt: Date.now()
-    };
+    const product = await Product.findById(productId);
+    if (!product) return next(new ErrorHandler("Product Not Found", 404));
 
-    // Start a session for transaction
-    const session = await Product.startSession();
-    session.startTransaction();
+    const isReviewed = product.reviews.find(rev => rev.user.toString() === req.user._id.toString());
 
-    try {
-        const product = await Product.findById(productId).session(session);
-
-        if (!product) {
-            await session.abortTransaction();
-            session.endSession();
-            return next(new ErrorHandler("Product Not Found", 404));
-        }
-
-
-        // Check if user has already reviewed the product
-        const reviewIndex = product.reviews.findIndex(
-            (rev) => rev.user.toString() === req.user._id.toString()
-        );
-
-        // Create a new array to avoid mutating the original reviews directly
-        const updatedReviews = [...product.reviews];
-        
-        if (reviewIndex >= 0) {
-            // Update existing review while preserving its _id and createdAt
-            const existingReview = updatedReviews[reviewIndex];
-            updatedReviews[reviewIndex] = {
-                ...existingReview,
-                rating: review.rating,
-                comment: review.comment,
-                // Keep the original createdAt date
-            };
-        } else {
-            // Add new review
-            updatedReviews.push(review);
-        }
-
-
-        // Calculate average rating
-        const totalRatings = updatedReviews.reduce(
-            (sum, item) => sum + item.rating,
-            0
-        );
-        
-        const ratings = updatedReviews.length > 0 ? totalRatings / updatedReviews.length : 0;
-        const numOfReviews = updatedReviews.length;
-
-        // Update the product with the new reviews and ratings
-        await Product.findByIdAndUpdate(
-            productId, 
-            {
-                $set: {
-                    reviews: updatedReviews,
-                    ratings,
-                    numOfReviews
-                }
-            },
-            {
-                new: true,
-                runValidators: true,
-                useFindAndModify: false,
-                session
+    if (isReviewed) {
+        product.reviews.forEach(rev => {
+            if (rev.user.toString() === req.user._id.toString()) {
+                rev.rating = rating;
+                rev.comment = comment;
             }
-        );
-
-        await session.commitTransaction();
-        
-        // Fetch the updated product with populated reviews
-        const updatedProduct = await Product.findById(productId)
-            .populate('reviews.user', 'name')
-            .lean();
-            
-        session.endSession();
-
-        res.status(200).json({
-            success: true,
-            message: 'Review submitted successfully',
-            product: updatedProduct
         });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.error('Review submission error:', error);
-        return next(new ErrorHandler(error.message || 'Failed to submit review', 500));
-    }
-});
-
-// Get All Reviews of Product
-exports.getProductReviews = asyncErrorHandler(async (req, res, next) => {
-
-// ... (rest of the code remains the same)
-
-    if (!product) {
-        return next(new ErrorHandler("Product Not Found", 404));
-    }
-
-    res.status(200).json({
-        success: true,
-        reviews: product.reviews
-    });
-});
-
-// Delete Reveiws
-exports.deleteReview = asyncErrorHandler(async (req, res, next) => {
-
-    const product = await Product.findById(req.query.productId);
-
-    if (!product) {
-        return next(new ErrorHandler("Product Not Found", 404));
-    }
-
-    const reviews = product.reviews.filter((rev) => rev._id.toString() !== req.query.id.toString());
-
-    let avg = 0;
-
-    reviews.forEach((rev) => {
-        avg += rev.rating;
-    });
-
-    let ratings = 0;
-
-    if (reviews.length === 0) {
-        ratings = 0;
     } else {
-        ratings = avg / reviews.length;
+        product.reviews.push(review);
     }
 
+    product.numOfReviews = product.reviews.length;
+    product.ratings = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+
+    await product.save({ validateBeforeSave: false });
+    res.status(200).json({ success: true });
+});
+
+// Get All Reviews of a Product --- ADMIN
+exports.getProductReviews = asyncErrorHandler(async (req, res, next) => {
+    const product = await Product.findById(req.query.id);
+    if (!product) return next(new ErrorHandler("Product Not Found", 404));
+
+    res.status(200).json({ success: true, reviews: product.reviews });
+});
+
+// Delete a Review --- ADMIN
+exports.deleteReview = asyncErrorHandler(async (req, res, next) => {
+    const product = await Product.findById(req.query.productId);
+    if (!product) return next(new ErrorHandler("Product Not Found", 404));
+
+    const reviews = product.reviews.filter(rev => rev._id.toString() !== req.query.id.toString());
     const numOfReviews = reviews.length;
+    const ratings = numOfReviews === 0 ? 0 : reviews.reduce((acc, item) => item.rating + acc, 0) / numOfReviews;
 
-    await Product.findByIdAndUpdate(req.query.productId, {
-        reviews,
-        ratings: Number(ratings),
-        numOfReviews,
-    }, {
-        new: true,
-        runValidators: true,
-        useFindAndModify: false,
+    await Product.findByIdAndUpdate(req.query.productId, { reviews, ratings, numOfReviews }, {
+        new: true, runValidators: true, useFindAndModify: false,
     });
 
-    res.status(200).json({
-        success: true,
-    });
+    res.status(200).json({ success: true });
 });

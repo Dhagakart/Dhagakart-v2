@@ -152,32 +152,32 @@ const BrowsingHistorySlider = () => {
     { 
       img: Tex, 
       label: '2 Ply Purani Tex',
-      link: '/products/2%20ply%20purani%20tex' // Update this with your actual route
+      link: '/product/6870df2b1022eca9beb2ab2c'
     },
     { 
       img: Flora, 
       label: 'Flora Zari Thread',
-      link: '/products/flora%20zari%20thread' // Update this with your actual route
+      link: '/product/6870e4071022eca9beb2bbd6'
     },
     { 
       img: Jack, 
       label: 'Jack A2B',
-      link: '/products/jack%20a2b' // Update this with your actual route
+      link: '/product/68722597378bce74bc0a5301'
     },
     { 
       img: Mulberry, 
-      label: 'Mulberry Raw Silk',
-      link: '/products/mulberry%20raw%20silk' // Update this with your actual route
+      label: 'Mulberry Raw Silk Yarn',
+      link: '/product/6870dd3b1022eca9beb2a645'
     },
     { 
       img: Golden, 
-      label: 'Pure Golden Zari',
-      link: '/products/pure%20golden%20zari' // Update this with your actual route
+      label: 'Pure Golden Zari Thread',
+      link: '/product/6870e56e1022eca9beb2c501'
     },
     { 
       img: Tussar, 
-      label: 'Tussar Raw Silk',
-      link: '/products/tussar%20raw%20silk' // Update this with your actual route
+      label: 'Tussar Raw Silk Yarn',
+      link: '/product/6870dd3b1022eca9beb2a645'
     },
     { 
       img: Tex, 

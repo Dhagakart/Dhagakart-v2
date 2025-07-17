@@ -198,44 +198,13 @@ export const removeProductImage = (image) => ({
 export const updateProduct = (id, productData) => async (dispatch) => {
     try {
         dispatch({ type: UPDATE_PRODUCT_REQUEST });
-        
-        // Create FormData for file uploads
-        const formData = new FormData();
-        
-        // Append all product data to formData
-        Object.keys(productData).forEach(key => {
-            if (key === 'images' && productData.images) {
-                // Handle multiple image files
-                for (let i = 0; i < productData.images.length; i++) {
-                    // Only append if it's a File object (new image)
-                    if (productData.images[i] instanceof File) {
-                        formData.append('images', productData.images[i]);
-                    }
-                }
-            } else if (key === 'removedImages' && productData.removedImages) {
-                // Handle removed images
-                productData.removedImages.forEach(id => {
-                    formData.append('removedImages', id);
-                });
-            } else if (key !== 'images') {
-                // Handle other fields
-                formData.set(key, productData[key]);
-            }
-        });
-        
-        // Log the form data being sent
-        console.log('Sending form data:');
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
-        }
-        
-        const config = {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        };
-        
-        const { data } = await api.put(`/admin/product/${id}`, formData, config);
+
+        // The 'productData' argument IS the FormData object from your component.
+        // We do NOT need to set the 'Content-Type' header.
+        // The browser will automatically set it to 'multipart/form-data'
+        // with the correct boundary when it sees you're sending a FormData object.
+
+        const { data } = await api.put(`/admin/product/${id}`, productData);
 
         dispatch({
             type: UPDATE_PRODUCT_SUCCESS,
@@ -247,7 +216,7 @@ export const updateProduct = (id, productData) => async (dispatch) => {
             payload: error.response.data.message,
         });
     }
-}
+};
 
 // Delete Product ---ADMIN
 export const deleteProduct = (id) => async (dispatch) => {
@@ -265,7 +234,7 @@ export const deleteProduct = (id) => async (dispatch) => {
             payload: error.response.data.message,
         });
     }
-}
+};
 
 // Get Product Reviews ---ADMIN
 export const getAllReviews = (id) => async (dispatch) => {

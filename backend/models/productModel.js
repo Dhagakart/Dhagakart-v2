@@ -1,6 +1,23 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+    orderConfig: {
+        unit: {
+            type: String,
+            required: true,
+            default: "unit"
+        },
+        minQty: {
+            type: Number,
+            required: true,
+            default: 1
+        },
+        increment: {
+            type: Number,
+            required: true,
+            default: 1
+        }
+    },
     name: {
         type: String,
         required: [true, "Please enter product name"],
@@ -52,18 +69,6 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: [true, "Please enter product category"]
     },
-    removedImages: [
-        {
-            public_id: {
-                type: String,
-                required: true
-            },
-            url: {
-                type: String,
-                required: true
-            }
-        }
-    ],
     subCategory: {
         type: String,
         required: [true, "Please enter product sub category"]
@@ -107,7 +112,6 @@ const productSchema = new mongoose.Schema({
             }
         }
     ],
-
     user: {
         type: mongoose.Schema.ObjectId,
         ref: "User",

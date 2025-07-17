@@ -12,7 +12,18 @@ import { categories } from '../../utils/constants';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 
-const ProductDetails = ({ name, setName, description, setDescription, price, setPrice, cuttedPrice, setCuttedPrice, category, setCategory, subCategory, setSubCategory, availableSubcategories, stock, setStock, warranty, setWarranty }) => (
+const ProductDetails = ({ 
+  name, setName, 
+  description, setDescription, 
+  price, setPrice, 
+  cuttedPrice, setCuttedPrice, 
+  category, setCategory, 
+  subCategory, setSubCategory, 
+  availableSubcategories, 
+  stock, setStock, 
+  warranty, setWarranty,
+  orderConfig, setOrderConfig 
+}) => (
   <div className="flex flex-col gap-4">
     <TextField
       label="Name"
@@ -106,7 +117,7 @@ const ProductDetails = ({ name, setName, description, setDescription, price, set
         sx={{ '& .MuiOutlinedInput-root': { '&:hover fieldset': { borderColor: '#003366' }, '&.Mui-focused fieldset': { borderColor: '#003366' } } }}
       />
       <TextField
-        label="Warranty"
+        label="Warranty (Years)"
         type="number"
         variant="outlined"
         size="small"
@@ -116,6 +127,42 @@ const ProductDetails = ({ name, setName, description, setDescription, price, set
         onChange={(e) => setWarranty(e.target.value)}
         sx={{ '& .MuiOutlinedInput-root': { '&:hover fieldset': { borderColor: '#003366' }, '&.Mui-focused fieldset': { borderColor: '#003366' } } }}
       />
+    </div>
+    <div className="mt-4">
+      <h3 className="text-lg font-medium text-gray-800 mb-3">Order Configuration</h3>
+      <div className="grid grid-cols-3 gap-4">
+        <TextField
+          label="Unit"
+          variant="outlined"
+          size="small"
+          name="unit"
+          value={orderConfig.unit}
+          onChange={(e) => setOrderConfig(prev => ({ ...prev, unit: e.target.value }))}
+          sx={{ '& .MuiOutlinedInput-root': { '&:hover fieldset': { borderColor: '#003366' }, '&.Mui-focused fieldset': { borderColor: '#003366' } } }}
+        />
+        <TextField
+          label="Minimum Quantity"
+          type="number"
+          variant="outlined"
+          size="small"
+          name="minQty"
+          InputProps={{ inputProps: { min: 1 } }}
+          value={orderConfig.minQty}
+          onChange={(e) => setOrderConfig(prev => ({ ...prev, minQty: Number(e.target.value) || 1 }))}
+          sx={{ '& .MuiOutlinedInput-root': { '&:hover fieldset': { borderColor: '#003366' }, '&.Mui-focused fieldset': { borderColor: '#003366' } } }}
+        />
+        <TextField
+          label="Increment"
+          type="number"
+          variant="outlined"
+          size="small"
+          name="increment"
+          InputProps={{ inputProps: { min: 1 } }}
+          value={orderConfig.increment}
+          onChange={(e) => setOrderConfig(prev => ({ ...prev, increment: Number(e.target.value) || 1 }))}
+          sx={{ '& .MuiOutlinedInput-root': { '&:hover fieldset': { borderColor: '#003366' }, '&.Mui-focused fieldset': { borderColor: '#003366' } } }}
+        />
+      </div>
     </div>
   </div>
 );
@@ -272,9 +319,22 @@ const NewProduct = () => {
   const [subCategory, setSubCategory] = useState("");
   const [availableSubcategories, setAvailableSubcategories] = useState([]);
   const [stock, setStock] = useState(0);
-  const [warranty, setWarranty] = useState(0);
+  const [warranty, setWarranty] = useState(1);
   const [images, setImages] = useState([]);
   const [imagesPreview, setImagesPreview] = useState([]);
+  const [orderConfig, setOrderConfig] = useState({
+    unit: 'unit',
+    minQty: 1,
+    increment: 1
+  });
+
+  const handleOrderConfigChange = (e) => {
+    const { name, value } = e.target;
+    setOrderConfig(prev => ({
+      ...prev,
+      [name]: name === 'unit' ? value : Number(value) || 1
+    }));
+  };
 
   useEffect(() => {
     if (category) {
@@ -287,8 +347,9 @@ const NewProduct = () => {
     }
   }, [category]);
 
-  const newProductSubmitHandler = (e) => {
+  const createProductSubmitHandler = (e) => {
     e.preventDefault();
+
     if (highlights.length <= 0) {
       enqueueSnackbar("Add Highlights", { variant: "warning" });
       return;
@@ -303,17 +364,27 @@ const NewProduct = () => {
     }
 
     const formData = new FormData();
-    formData.set("name", name);
-    formData.set("description", description);
-    formData.set("price", price);
-    formData.set("cuttedPrice", cuttedPrice);
-    formData.set("category", category);
-    formData.set("subCategory", subCategory);
-    formData.set("stock", stock);
-    formData.set("warranty", warranty);
-    images.forEach((image) => formData.append("images", image));
-    highlights.forEach((h) => formData.append("highlights", h));
-    specs.forEach((s) => formData.append("specifications", JSON.stringify(s)));
+    formData.set('name', name);
+    formData.set('description', description);
+    formData.set('price', price);
+    formData.set('cuttedPrice', cuttedPrice);
+    formData.set('category', category);
+    formData.set('subCategory', subCategory);
+    formData.set('stock', stock);
+    formData.set('warranty', warranty);
+    formData.set('orderConfig', JSON.stringify(orderConfig));
+    
+    highlights.forEach((highlight) => {
+      formData.append('highlights', highlight);
+    });
+    
+    specs.forEach((spec) => {
+      formData.append('specifications', JSON.stringify(spec));
+    });
+    
+    images.forEach((image) => {
+      formData.append('images', image);
+    });
 
     dispatch(createProduct(formData));
   };
@@ -335,7 +406,7 @@ const NewProduct = () => {
       <MetaData title="Admin: New Product | DhagaKart" />
       {loading && <BackdropLoader />}
       <div className="w-full mx-auto max-lg:mt-8">
-        <form onSubmit={newProductSubmitHandler} encType="multipart/form-data" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <form onSubmit={createProductSubmitHandler} encType="multipart/form-data" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col gap-6">
             <ProductDetails
               name={name}
@@ -355,6 +426,8 @@ const NewProduct = () => {
               setStock={setStock}
               warranty={warranty}
               setWarranty={setWarranty}
+              orderConfig={orderConfig}
+              setOrderConfig={setOrderConfig}
             />
             <HighlightsSection
               highlights={highlights}

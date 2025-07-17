@@ -54,21 +54,21 @@ const docs = [
 
 const faqItems = [
   {
-    question: 'Suspendisse ultrices pharetra libero sed interdum.',
+    question: 'What is the "Procure Now, Pay Later" program?',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis.'
+      'It is a credit facility that allows you to purchase construction materials now and pay for them later, with up to 45 days of interest-free credit.'
   },
   {
-    question: 'Quisque quis nunc quis urna tempor lobortis vel non orci.',
-    answer: 'Nulla vel sapien maximus, faucibus massa vitae.'
+    question: 'Who is eligible to apply for credit?',
+    answer: 'Businesses with at least 1 year of operations, a valid GST, and a good credit score are eligible to apply.'
   },
   {
-    question: 'Donec rutrum ultrices ante nec malesuada.',
-    answer: 'In accumsan eget nisi a rhoncus.'
+    question: 'What documents are required for the credit application?',
+    answer: 'You will need your PAN card, GST number, Aadhar card, and recent bank statements.'
   },
   {
-    question: 'Nulla sed sapien maximus, faucibus massa vitae.',
-    answer: 'Morbi hendrerit lectus sed.'
+    question: 'How long does it take to get credit approval?',
+    answer: 'Once you submit all required documents, approval can be granted within 24-48 hours.'
   }
 ];
 
@@ -155,8 +155,8 @@ const ReqCredits = () => {
             <p className="text-gray-500 mt-1">Get Credit In Easy Steps</p>
             <ul className="mt-6 space-y-4">
               {steps.map((step, idx) => (
-                <li key={idx} className={
-                  `flex items-center gap-4 p-4 ${idx === 0 ? 'border border-gray-300 rounded-lg' : ''}`
+                <li key={idx} className={`
+                  flex items-center gap-4 p-4 ${idx === 0 ? 'border border-gray-300 rounded-lg' : ''}`
                 }>
                   <div className="p-2 bg-gray-50 rounded">
                     {step.icon}
@@ -246,11 +246,10 @@ const ReqCredits = () => {
         </div>
         <div className="bg-gray-100 p-6 rounded-xl shadow-sm">
           <h3 className="font-semibold text-gray-900">
-            Don’t find your answer, ask for support.
+            Still have questions? Contact our support team.
           </h3>
           <p className="text-gray-800 text-sm mt-2">
-            Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed
-            molestie accumsan dui, non iaculis primis in faucibus eget sem purus.
+            If you can’t find the answer you’re looking for, please reach out to our support team. We’re here to help you with any questions about our credit program or your application.
           </p>
           <form className="mt-4 space-y-4">
             <input
