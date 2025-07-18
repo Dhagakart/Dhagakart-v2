@@ -287,7 +287,7 @@ const Quotes = () => {
         </div>
       )}
 
-      <div className="w-full sm:w-4/5 sm:ml-72 min-h-screen">
+      <div className="w-full sm:ml-72 min-h-screen">
         <div className="flex flex-col gap-6 sm:m-8 p-2 pb-6 overflow-hidden">
           {/* <Typography variant="h5" gutterBottom>
             All Quotes
