@@ -1119,8 +1119,8 @@ const Shipping = () => {
         const cgst = subtotal * 0.05;
         const totalGst = sgst + cgst;
         
-        // Fixed shipping charges
-        const shippingCharges = 100; // You can make this configurable
+        // Calculate shipping charges - free for orders over ₹500
+        const shippingCharges = subtotal > 500 ? 0 : 100;
         
         // Calculate final total
         const finalTotal = subtotal + totalGst + shippingCharges;
