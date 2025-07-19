@@ -35,7 +35,15 @@ const UpdateProduct = () => {
     const [images, setImages] = useState([]);
     const [imagesPreview, setImagesPreview] = useState([]);
     const [removedImages, setRemovedImages] = useState([]);
-    const [orderConfig, setOrderConfig] = useState({ unit: '', minQty: 1, increment: 1 });
+    const [orderConfig, setOrderConfig] = useState({
+        units: [{
+            unit: 'unit',
+            minQty: 1,
+            increment: 1,
+            maxQty: 25,
+            isDefault: true
+        }]
+    });
     const [subcategories, setSubcategories] = useState([]);
 
     const categoryNames = categoriesData.map((cat) => cat.name);
@@ -56,7 +64,15 @@ const UpdateProduct = () => {
             setHighlights(product.highlights || []);
             setOldImages(product.images || []);
             setSpecifications(product.specifications?.length > 0 ? product.specifications : [{ title: '', description: '' }]);
-            setOrderConfig(product.orderConfig || { unit: '', minQty: 1, increment: 1 });
+            setOrderConfig(product.orderConfig || {
+                units: [{
+                    unit: 'unit',
+                    minQty: 1,
+                    increment: 1,
+                    maxQty: 25,
+                    isDefault: true
+                }]
+            });
         }
 
         if (error) {
@@ -88,6 +104,108 @@ const UpdateProduct = () => {
     }, [category, subCategory]);
     
     // Handler Functions
+    const handleUnitChange = (index, field, value) => {
+        if (!orderConfig?.units) return;
+
+        const updatedUnits = [...orderConfig.units];
+        if (index >= updatedUnits.length) return;
+
+        // Handle price fields specially
+        if (field === 'price' || field === 'cuttedPrice') {
+            // Convert to number only if it's a valid number
+            const numValue = Number(value);
+            if (!isNaN(numValue) && numValue >= 0.01) {
+                // Only convert to number if it's valid
+                value = numValue;
+            } else if (value === '') {
+                // Allow empty string for clearing
+                value = '';
+            } else {
+                enqueueSnackbar('Price must be at least 0.01 or empty', { variant: 'error' });
+                return;
+            }
+        }
+
+        updatedUnits[index] = {
+            ...updatedUnits[index],
+            [field]: value
+        };
+        
+        // Ensure only one unit is default
+        if (field === 'isDefault' && value) {
+            updatedUnits.forEach((unit, i) => {
+                if (i !== index) {
+                    unit.isDefault = false;
+                }
+            });
+        }
+        
+        // Validate price relationship after setting
+        if (field === 'price' || field === 'cuttedPrice') {
+            const unit = updatedUnits[index];
+            if (unit.price && unit.cuttedPrice) {
+                const priceNum = Number(unit.price);
+                const cuttedPriceNum = Number(unit.cuttedPrice);
+                if (!isNaN(priceNum) && !isNaN(cuttedPriceNum) && priceNum > cuttedPriceNum) {
+                    enqueueSnackbar('Current price must be less than or equal to cutted price', { variant: 'error' });
+                    // Don't revert the change, just show the error
+                }
+            }
+        }
+        
+        setOrderConfig({ units: updatedUnits });
+    };
+
+    const addUnit = () => {
+        // Initialize units array if it doesn't exist
+        if (!orderConfig || !Array.isArray(orderConfig.units)) {
+            setOrderConfig({
+                units: [{
+                    unit: 'unit',
+                    minQty: 1,
+                    increment: 1,
+                    maxQty: 25,
+                    isDefault: true
+                }]
+            });
+            return;
+        }
+
+        setOrderConfig({
+            units: [...orderConfig.units, {
+                unit: 'unit',
+                minQty: 1,
+                increment: 1,
+                maxQty: 25,
+                isDefault: false
+            }]
+        });
+    };
+
+    const removeUnit = (index) => {
+        if (!orderConfig?.units) return;
+
+        const updatedUnits = [...orderConfig.units];
+        if (index >= updatedUnits.length) return;
+
+        updatedUnits.splice(index, 1);
+        
+        // Ensure at least one unit exists and is default
+        if (updatedUnits.length === 0) {
+            updatedUnits.push({
+                unit: 'unit',
+                minQty: 1,
+                increment: 1,
+                maxQty: 25,
+                isDefault: true
+            });
+        } else if (!updatedUnits.some(unit => unit.isDefault)) {
+            updatedUnits[0].isDefault = true;
+        }
+        
+        setOrderConfig({ units: updatedUnits });
+    };
+
     const handleProductImageChange = (e) => {
         const files = Array.from(e.target.files);
         setImages([]);
@@ -155,17 +273,39 @@ const UpdateProduct = () => {
         formData.set("warranty", warranty);
         formData.set("cuttedPrice", cuttedPrice);
 
+        // Handle images
         images.forEach(image => formData.append("images", image));
-        
         if (removedImages.length > 0) {
             removedImages.forEach(id => formData.append("removedImages", id));
         }
 
-        formData.set("orderConfig", JSON.stringify(orderConfig));
+        // Prepare orderConfig data
+        const updatedOrderConfig = { ...orderConfig };
+        if (updatedOrderConfig?.units) {
+            updatedOrderConfig.units.forEach(unit => {
+                // Ensure prices are valid numbers
+                unit.price = Number(unit.price) || 0;
+                unit.cuttedPrice = Number(unit.cuttedPrice) || 0;
+                // Ensure price is less than or equal to cuttedPrice
+                if (unit.price > unit.cuttedPrice) {
+                    unit.cuttedPrice = unit.price;
+                }
+                // Ensure required fields are present
+                unit.unit = unit.unit || 'unit';
+                unit.minQty = Number(unit.minQty) || 1;
+                unit.increment = Number(unit.increment) || 1;
+                unit.maxQty = Number(unit.maxQty) || 25;
+                unit.isDefault = Boolean(unit.isDefault);
+            });
+        }
+
+        formData.set("orderConfig", JSON.stringify(updatedOrderConfig));
         
+        // Handle specifications
         const validSpecs = specifications.filter(spec => spec.title && spec.description);
         formData.set("specifications", JSON.stringify(validSpecs));
 
+        // Handle highlights
         highlights.forEach(h => formData.append("highlights", h));
 
         dispatch(updateProduct(id, formData));
@@ -199,10 +339,8 @@ const UpdateProduct = () => {
                                 </div>
                             </div>
 
-                            {/* Section: Pricing & Stock */}
+                            {/* Section: Stock & Warranty */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-6 border-t border-slate-200">
-                                <div><label className="block text-sm font-medium text-slate-600 mb-1">Price (₹)</label><input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} required className="w-full px-4 py-2.5 rounded-lg border border-slate-300"/></div>
-                                <div><label className="block text-sm font-medium text-slate-600 mb-1">Discounted Price (₹)</label><input type="number" value={cuttedPrice} onChange={(e) => setCuttedPrice(Number(e.target.value))} required className="w-full px-4 py-2.5 rounded-lg border border-slate-300"/></div>
                                 <div><label className="block text-sm font-medium text-slate-600 mb-1">Stock</label><input type="number" value={stock} onChange={(e) => setStock(Number(e.target.value))} required className="w-full px-4 py-2.5 rounded-lg border border-slate-300"/></div>
                                 <div><label className="block text-sm font-medium text-slate-600 mb-1">Warranty (Months)</label><input type="number" value={warranty} onChange={(e) => setWarranty(Number(e.target.value))} min="0" required className="w-full px-4 py-2.5 rounded-lg border border-slate-300"/></div>
                             </div>
@@ -214,12 +352,130 @@ const UpdateProduct = () => {
                             </div>
                             
                             {/* Section: Order Configuration */}
-                            <div className="pt-6 border-t border-slate-200">
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4">Order Configuration</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-                                    <div><label className="block text-sm font-medium text-slate-600 mb-1">Unit (e.g., kg)</label><input type="text" value={orderConfig.unit} onChange={(e) => setOrderConfig({...orderConfig, unit: e.target.value})} className="w-full px-4 py-2.5 rounded-lg border border-slate-300"/></div>
-                                    <div><label className="block text-sm font-medium text-slate-600 mb-1">Min. Quantity</label><input type="number" value={orderConfig.minQty} onChange={(e) => setOrderConfig({...orderConfig, minQty: Number(e.target.value)})} min="1" className="w-full px-4 py-2.5 rounded-lg border border-slate-300"/></div>
-                                    <div><label className="block text-sm font-medium text-slate-600 mb-1">Increment Step</label><input type="number" value={orderConfig.increment} onChange={(e) => setOrderConfig({...orderConfig, increment: Number(e.target.value)})} min="1" className="w-full px-4 py-2.5 rounded-lg border border-slate-300"/></div>
+                            <div className="space-y-6">
+                                <h2 className="text-xl font-semibold text-slate-800 mb-4">Order Configuration</h2>
+                                <div className="space-y-4">
+                                    {orderConfig?.units?.length ? (
+                                        orderConfig.units.map((unit, index) => (
+                                            <div key={index} className="border rounded-lg p-4 bg-white shadow-sm">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h3 className="text-lg font-medium text-slate-700">Unit {index + 1}</h3>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => removeUnit(index)}
+                                                        className="text-red-500 hover:text-red-600"
+                                                    >
+                                                        <FiX className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-600 mb-1">Unit Name</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={unit.unit || ''}
+                                                                onChange={(e) => handleUnitChange(index, 'unit', e.target.value)}
+                                                                placeholder="e.g., kg, box, cones"
+                                                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-600 mb-1">Default Unit</label>
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={unit.isDefault}
+                                                                onChange={(e) => handleUnitChange(index, 'isDefault', e.target.checked)}
+                                                                className="w-4 h-4 rounded border-slate-300 focus:ring-[#003366]"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-600 mb-1">Price (₹)</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={unit.price || ''}
+                                                                onChange={(e) => handleUnitChange(index, 'price', e.target.value)}
+                                                                min="0.01"
+                                                                step="0.01"
+                                                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                                                            />
+                                                            <p className="text-xs text-red-500 mt-1">
+                                                                {unit.price && unit.cuttedPrice && unit.price > unit.cuttedPrice
+                                                                    ? 'Current price must be less than or equal to cutted price'
+                                                                    : ''}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-600 mb-1">Cutted Price (₹)</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={unit.cuttedPrice || ''}
+                                                                onChange={(e) => handleUnitChange(index, 'cuttedPrice', e.target.value)}
+                                                                min="0.01"
+                                                                step="0.01"
+                                                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                                                            />
+                                                            <p className="text-xs text-red-500 mt-1">
+                                                                {unit.price && unit.cuttedPrice && unit.price > unit.cuttedPrice
+                                                                    ? 'Current price must be less than or equal to cutted price'
+                                                                    : ''}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-600 mb-1">Minimum Quantity</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={unit.minQty || ''}
+                                                                onChange={(e) => handleUnitChange(index, 'minQty', e.target.value)}
+                                                                min="0.01"
+                                                                step="0.01"
+                                                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-600 mb-1">Increment</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={unit.increment || ''}
+                                                                onChange={(e) => handleUnitChange(index, 'increment', e.target.value)}
+                                                                min="0.01"
+                                                                step="0.01"
+                                                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-600 mb-1">Maximum Quantity</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={unit.maxQty || ''}
+                                                                onChange={(e) => handleUnitChange(index, 'maxQty', e.target.value)}
+                                                                min={unit.minQty || "1"}
+                                                                step="1"
+                                                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                                                                required
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-6 text-slate-500">
+                                            No units configured yet
+                                        </div>
+                                    )}
+                                    <button 
+                                        type="button" 
+                                        onClick={addUnit}
+                                        className="flex items-center gap-2 text-sm text-[#003366] hover:text-[#003366]/80"
+                                    >
+                                        <FiPlus className="w-5 h-5" />
+                                        Add New Unit
+                                    </button>
                                 </div>
                             </div>
                             

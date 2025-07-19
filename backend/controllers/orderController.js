@@ -5,52 +5,56 @@ const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
 
 // Create New Order
-// In orderController.js
 exports.newOrder = asyncErrorHandler(async (req, res, next) => {
     const {
       shippingInfo,
       orderItems,
       paymentInfo,
       itemsPrice,
-      discount,
       shippingPrice,
       totalPrice,
-      orderStatus,
-      paidAt
     } = req.body;
   
-    // Remove the duplicate check if you want to allow multiple mock orders
+    // FIX: Map over the incoming orderItems to ensure all required fields,
+    // including the 'unit' object, are explicitly defined and saved.
+    const sanitizedOrderItems = orderItems.map(item => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        product: item.product,
+        unit: item.unit, // This line ensures the unit object is saved
+    }));
+  
     const order = await Order.create({
       shippingInfo,
-      orderItems,
+      orderItems: sanitizedOrderItems, // Use the new sanitized array
       paymentInfo,
       itemsPrice,
-      discount,
       shippingPrice,
       totalPrice,
-      paidAt: paidAt || Date.now(),
-      orderStatus: orderStatus || 'Processing',
+      paidAt: Date.now(),
       user: req.user._id,
     });
   
-    // Optional: Keep or remove the email sending logic
+    // The email logic can remain the same
     await sendEmail({
-      email: req.user.email,
-      templateId: process.env.SENDGRID_ORDER_TEMPLATEID,
-      data: {
-        name: req.user.name,
-        shippingInfo,
-        orderItems,
-        totalPrice,
-        oid: order._id,
-      }
+        email: req.user.email,
+        templateId: process.env.SENDGRID_ORDER_TEMPLATEID,
+        data: {
+            name: req.user.name,
+            shippingInfo,
+            orderItems, // You can still send the original items in the email
+            totalPrice,
+            oid: order._id,
+        }
     });
   
     res.status(201).json({
       success: true,
       order,
     });
-  });
+});
 
 // Get Single Order Details
 exports.getSingleOrderDetails = asyncErrorHandler(async (req, res, next) => {

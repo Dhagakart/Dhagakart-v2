@@ -49,6 +49,7 @@
 //   // All state hooks
 //   const [selectedImage, setSelectedImage] = useState(0);
 //   const [quantity, setQuantity] = useState(1);
+//   const [selectedUnit, setSelectedUnit] = useState('');
 //   const [activeTab, setActiveTab] = useState('description');
 //   const [quoteOpen, setQuoteOpen] = useState(false);
 //   const [quoteData, setQuoteData] = useState({
@@ -520,7 +521,7 @@
 //         </div>
 
 //         {/* Product Info */}
-//         <div className="md:w-[40%] ml-6">
+//         <div className="hidden md:block md:w-[40%] ml-6">
 //           <div className="flex items-center gap-2 mb-3">
 //             <StarRating rating={product.ratings || 0} starSize="w-4 h-4" showText={false} />
 //             <span className="text-black text-sm font-medium">
@@ -546,10 +547,26 @@
 //           </div>
 //           <div className="mb-6">
 //             <div className="flex flex-col sm:flex-row gap-4">
+//               {/* Unit Selection */}
+//               <div className="flex items-center gap-2">
+//                 <select
+//                   value={selectedUnit}
+//                   onChange={(e) => handleUnitChange(e.target.value)}
+//                   className="w-40 border border-gray-200 rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#003366]"
+//                 >
+//                   {product?.orderConfig?.units?.map((unit) => (
+//                     <option key={unit.unit} value={unit.unit}>
+//                       {unit.unit} (min: {unit.minQty}, max: {unit.maxQty})
+//                     </option>
+//                   ))}
+//                 </select>
+//               </div>
+
+//               {/* Quantity Selection with Validation */}
 //               <div className="flex items-center border-2 border-gray-200 rounded-lg w-40">
 //                 <button
-//                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-//                   disabled={quantity <= 1}
+//                   onClick={handleDecrement}
+//                   disabled={quantity <= product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.minQty}
 //                   className="px-3 text-black font-bold disabled:opacity-80 disabled:cursor-not-allowed w-12 h-10 flex items-center justify-center hover:bg-gray-100 rounded-l transition-colors hover:cursor-pointer"
 //                 >
 //                   <svg
@@ -566,7 +583,8 @@
 //                   {quantity}
 //                 </span>
 //                 <button
-//                   onClick={() => setQuantity((prev) => prev + 1)}
+//                   onClick={handleIncrement}
+//                   disabled={quantity >= product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.maxQty}
 //                   className="px-3 text-black font-bold w-12 h-10 flex items-center justify-center hover:bg-gray-100 rounded-r transition-colors hover:cursor-pointer"
 //                 >
 //                   <svg
@@ -962,6 +980,7 @@ const ProductDetailsDG = () => {
   // All state hooks
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [selectedUnit, setSelectedUnit] = useState('');
   const [activeTab, setActiveTab] = useState('description');
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteData, setQuoteData] = useState({
@@ -973,11 +992,7 @@ const ProductDetailsDG = () => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [open, setOpen] = useState(false);
-  
-  // Refs
-  const mainSlider = useRef(null);
-  const sliderRef = useRef(null);
-  
+
   // All selectors
   const { product, loading, error: productError } = useSelector((state) => state.productDetails);
   const { products: similarProducts = [], loading: similarLoading } = useSelector((state) => state.products);
@@ -986,6 +1001,91 @@ const ProductDetailsDG = () => {
   const { wishlistItems = [] } = useSelector((state) => state.wishlist);
   const { success, error: reviewError } = useSelector((state) => state.newReview);
   const { isAuthenticated, user } = useSelector((state) => state.user);
+
+  // Initialize with the default unit when product loads
+  useEffect(() => {
+    if (product?.orderConfig?.units?.length > 0) {
+      const defaultUnit = product.orderConfig.units.find(unit => unit.isDefault);
+      setSelectedUnit(defaultUnit?.unit || product.orderConfig.units[0].unit);
+    }
+  }, [product]);
+
+  // Handle unit change
+  const handleUnitChange = (unit) => {
+    setSelectedUnit(unit);
+    // Reset quantity to min when unit changes
+    if (product?.orderConfig?.units) {
+      const unitData = product.orderConfig.units.find(u => u.unit === unit);
+      if (unitData) {
+        setQuantity(Math.ceil(unitData.minQty));
+      }
+    }
+  };
+
+  // Handle increment with step
+  const handleIncrement = () => {
+    if (product?.orderConfig?.units) {
+      const unitData = product.orderConfig.units.find(u => u.unit === selectedUnit);
+      if (unitData) {
+        const newQuantity = Math.min(
+          unitData.maxQty,
+          Math.ceil((quantity + unitData.increment) / unitData.increment) * unitData.increment
+        );
+        setQuantity(newQuantity);
+      }
+    }
+  };
+
+  // Handle decrement with step
+  const handleDecrement = () => {
+    if (product?.orderConfig?.units) {
+      const unitData = product.orderConfig.units.find(u => u.unit === selectedUnit);
+      if (unitData && quantity > unitData.minQty) {
+        const newQuantity = Math.max(
+          unitData.minQty,
+          Math.floor((quantity - unitData.increment) / unitData.increment) * unitData.increment
+        );
+        setQuantity(newQuantity);
+      }
+    }
+  };
+  
+  // Refs
+  const mainSlider = useRef(null);
+  const sliderRef = useRef(null);
+
+  useEffect(() => {
+    // Only run if the product data is available.
+    if (product && product.orderConfig) {
+        const units = product.orderConfig.units;
+        const cartItem = cartItems.find(item => item.product === product._id);
+
+        if (cartItem) {
+            // If the item is already in the cart, use its data.
+            setSelectedUnit(cartItem.unit?.name || cartItem.unit?.unit);
+            setQuantity(cartItem.quantity);
+        } else if (units && units.length > 0) {
+            // If not in cart, set the default unit and its minimum quantity.
+            const defaultUnit = units.find(u => u.isDefault) || units[0];
+            if (defaultUnit) {
+                setSelectedUnit(defaultUnit.unit);
+                setQuantity(defaultUnit.minQty || 1);
+            }
+        } else {
+            // For products with no units, use the base minQty.
+            setQuantity(product.orderConfig.minQty || 1);
+        }
+    }
+}, [product, cartItems]);
+  
+  // All selectors
+  // const { product, loading, error: productError } = useSelector((state) => state.productDetails);
+  // const { products: similarProducts = [], loading: similarLoading } = useSelector((state) => state.products);
+  // const { products: allProducts = [], loading: allProductsLoading } = useSelector((state) => state.allProducts || {});
+  // const { cartItems = [] } = useSelector((state) => state.cart);
+  // const { wishlistItems = [] } = useSelector((state) => state.wishlist);
+  // const { success, error: reviewError } = useSelector((state) => state.newReview);
+  // const { isAuthenticated, user } = useSelector((state) => state.user);
   
   // Debug log the products data
   useEffect(() => {
@@ -1172,9 +1272,39 @@ const ProductDetailsDG = () => {
   }, [product]);
 
   const handleAddToCart = () => {
-    dispatch(addItemsToCart(id, quantity));
+    if (!selectedUnit && product?.orderConfig?.units?.length > 0) {
+      toast.error('Please select a unit before adding to cart', {
+        position: 'top-right',
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Get the full unit details
+    const unitDetails = product?.orderConfig?.units?.find(u => u.unit === selectedUnit);
+    
+    // Validate quantity against unit constraints
+    let validatedQuantity = quantity;
+    if (unitDetails) {
+      validatedQuantity = Math.max(validatedQuantity, unitDetails.minQty || 1);
+      if (unitDetails.maxQty) {
+        validatedQuantity = Math.min(validatedQuantity, unitDetails.maxQty);
+      }
+      if (unitDetails.increment > 1) {
+        validatedQuantity = Math.ceil(validatedQuantity / unitDetails.increment) * unitDetails.increment;
+      }
+    }
+
+    // Only update quantity if it was adjusted
+    if (validatedQuantity !== quantity) {
+      setQuantity(validatedQuantity);
+    }
+
+    // Dispatch with unit information
+    dispatch(addItemsToCart(id, validatedQuantity, unitDetails || null));
+    
     toast.success(
-      quantity > 1 ? `${quantity} items added to cart!` : '1 item added to cart!',
+      validatedQuantity > 1 ? `${validatedQuantity} items added to cart!` : '1 item added to cart!',
       {
         position: 'top-right',
         duration: 3000,
@@ -1183,8 +1313,12 @@ const ProductDetailsDG = () => {
   };
 
   const handleBuyNow = () => {
+    // Call handleAddToCart first to validate and add to cart
     handleAddToCart();
-    navigate('/cart');
+    // Only navigate if we successfully added to cart (no validation errors)
+    if (selectedUnit || !product?.orderConfig?.units?.length) {
+      navigate('/cart');
+    }
   };
 
   const handleQuoteOpen = () => setQuoteOpen(true);
@@ -1590,28 +1724,55 @@ const ProductDetailsDG = () => {
           <div className="md:hidden w-full px-4 py-3 bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg mt-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <span className="text-lg font-bold text-gray-900 mr-2">₹{product.price?.toLocaleString()}</span>
-                <span className="text-sm text-gray-500 line-through">₹{product.cuttedPrice?.toLocaleString()}</span>
-                <span className="ml-2 text-sm text-green-600">{getDiscount(product.cuttedPrice, product.price)}% off</span>
+                <span className="text-lg font-bold text-gray-900 mr-2">
+                  ₹{(product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.price || 0).toLocaleString()}
+                  {selectedUnit && (
+                    <span className="text-lg font-normal text-gray-600"> / {selectedUnit}</span>
+                  )}
+                </span>
+                <span className="text-sm text-gray-500 line-through">
+                  ₹{(product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.cuttedPrice || 0).toLocaleString()}
+                </span>
+                <span className="ml-2 text-sm text-green-600">
+                  {getDiscount(
+                    product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.cuttedPrice || 0,
+                    product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.price || 0
+                  )}% off
+                </span>
               </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => decreaseQuantity()}
-                  className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full"
+              <div className="flex flex-col space-y-2">
+                <select
+                  value={selectedUnit}
+                  onChange={(e) => handleUnitChange(e.target.value)}
+                  className="w-24 border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-[#003366] text-sm"
                 >
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                  </svg>
-                </button>
-                <span className="w-8 text-center">{quantity}</span>
-                <button
-                  onClick={() => increaseQuantity()}
-                  className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full"
-                >
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </button>
+                  {product?.orderConfig?.units?.map((unit) => (
+                    <option key={unit.unit} value={unit.unit}>
+                      {unit.unit}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleDecrement}
+                    disabled={quantity <= product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.minQty}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <span className="w-8 text-center">{quantity}</span>
+                  <button
+                    onClick={handleIncrement}
+                    disabled={quantity >= product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.maxQty}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex space-x-3 mt-3">
@@ -1645,14 +1806,21 @@ const ProductDetailsDG = () => {
             <div className="mb-3">
               <div className="flex items-baseline gap-3 mb-4">
                 <span className="text-2xl font-bold text-blue-800">
-                  ₹{product.price?.toLocaleString()}{' '}
-                  {product.cuttedPrice > product.price && (
+                  ₹{(product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.price || 0).toLocaleString()}{' '}
+                  {selectedUnit && (
+                    <span className="text-lg font-normal text-gray-600"> / {selectedUnit}</span>
+                  )}
+                  {product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.cuttedPrice > 
+                    product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.price && (
                     <>
                       <span className="text-gray-500 font-normal line-through text-lg ml-2">
-                        ₹{product.cuttedPrice?.toLocaleString()}
+                        ₹{(product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.cuttedPrice || 0).toLocaleString()}
                       </span>
                       <span className="text-green-700 text-lg ml-2">
-                        {getDiscount(product.cuttedPrice, product.price)}% off
+                        {getDiscount(
+                          product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.cuttedPrice || 0,
+                          product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.price || 0
+                        )}% off
                       </span>
                     </>
                   )}
@@ -1671,10 +1839,26 @@ const ProductDetailsDG = () => {
             </div>
             <div className="mb-6">
               <div className="flex flex-col sm:flex-row gap-4">
+                {/* Unit Selection */}
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedUnit}
+                    onChange={(e) => handleUnitChange(e.target.value)}
+                    className="w-32 border border-gray-200 rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                  >
+                    {product?.orderConfig?.units?.map((unit) => (
+                      <option key={unit.unit} value={unit.unit}>
+                        {unit.unit}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Quantity Selection with Validation */}
                 <div className="flex items-center border-2 border-gray-200 rounded-lg w-40">
                   <button
-                    onClick={() => decreaseQuantity()}
-                    disabled={quantity <= (product.orderConfig?.minQty || 1)}
+                    onClick={handleDecrement}
+                    disabled={quantity <= product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.minQty}
                     className="px-3 text-black font-bold disabled:opacity-80 disabled:cursor-not-allowed w-12 h-10 flex items-center justify-center hover:bg-gray-100 rounded-l transition-colors hover:cursor-pointer"
                   >
                     <svg
@@ -1683,14 +1867,16 @@ const ProductDetailsDG = () => {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
-                    ><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 12H4" />
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 12H4" />
                     </svg>
                   </button>
                   <span className="flex-1 text-center font-medium" data-testid="quantity-display">
                     {quantity}
                   </span>
                   <button
-                    onClick={() => increaseQuantity()}
+                    onClick={handleIncrement}
+                    disabled={quantity >= product?.orderConfig?.units?.find(u => u.unit === selectedUnit)?.maxQty}
                     className="px-3 text-black font-bold w-12 h-10 flex items-center justify-center hover:bg-gray-100 rounded-r transition-colors hover:cursor-pointer"
                   >
                     <svg
@@ -1704,11 +1890,6 @@ const ProductDetailsDG = () => {
                     </svg>
                   </button>
                 </div>
-                {product.orderConfig?.unit && (
-                  <span className="text-gray-600 text-sm flex items-center font-medium ml-2">
-                    {product.orderConfig.unit}
-                  </span>
-                )}
               </div>
                 <div className="flex gap-3 w-full sm:w-auto mt-6">
                   <button

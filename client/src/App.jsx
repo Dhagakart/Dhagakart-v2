@@ -16,7 +16,7 @@ import ResetPassword from './components/User/ResetPassword';
 import AccountDG from './components/User/AccountDG';
 import ProtectedRoute from './Routes/ProtectedRoute.jsx';
 import Home from './components/Home/Home';
-import ProductDetails from './components/ProductDetails/ProductDetails';
+// import ProductDetails from './components/ProductDetails/ProductDetails';
 import Products from './components/Products/Products';
 import Cart from './components/Cart/Cart';
 import Shipping from './components/Cart/Shipping';

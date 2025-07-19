@@ -105,14 +105,23 @@
 //                                                     <tr className="text-left">
 //                                                         <th className="py-3 pl-6 font-medium text-gray-600 w-2/5">PRODUCTS</th>
 //                                                         <th className="py-3 pl-6 font-medium text-gray-600 text-center">PRICE</th>
-//                                                         <th className="py-3 pl-6 font-medium text-gray-600 text-center">QUANTITY</th>
+//                                                         <th className="py-3 pl-6 font-medium text-gray-600 text-center">UNIT</th>
 //                                                         <th className="py-3 pr-6 font-medium text-gray-600 text-right">SUB-TOTAL</th>
 //                                                     </tr>
 //                                                 </thead>
 //                                                 <tbody>
-//                                                     {cartItems.map((item) => (
-//                                                         <CartItem key={item.product} {...item} inCart={true} />
-//                                                     ))}
+//                                                     {cartItems.map((item) => {
+//                                                         const { unit, availableUnits, ...itemProps } = item;
+//                                                         return (
+//                                                             <CartItem 
+//                                                                 key={item.product} 
+//                                                                 {...itemProps} 
+//                                                                 unit={unit}
+//                                                                 availableUnits={availableUnits || []}
+//                                                                 inCart={true} 
+//                                                             />
+//                                                         );
+//                                                     })}
 //                                                 </tbody>
 //                                             </table>
 //                                         </div>
@@ -152,16 +161,16 @@
 // export default Cart;
 
 
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaMinus, FaPlus } from 'react-icons/fa';
+import { addItemsToCart, removeItemsFromCart } from '../../actions/cartAction';
 import MetaData from '../Layouts/MetaData';
 import CartItem from './CartItem';
 import EmptyCart from './EmptyCart';
 import LoginModal from '../User/LoginModal';
 import { formatPrice } from '../../utils/formatPrice';
-import { useEffect } from 'react';
 
 // Add a hook to detect mobile
 function useIsMobile() {
@@ -175,6 +184,7 @@ function useIsMobile() {
 }
 
 const Cart = () => {
+    const dispatch = useDispatch();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const navigate = useNavigate();
     const { cartItems } = useSelector((state) => state.cart);
@@ -190,32 +200,35 @@ const Cart = () => {
         navigate('/shipping');
     }
 
-    // Calculate cart totals
+    // Calculate cart totals with unit pricing support
     const calculateCartTotals = () => {
-        // Calculate subtotal (sum of all item prices)
-        const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const subtotal = cartItems.reduce((sum, item) => {
+            const unitPrice = item.unit?.price || item.price;
+            return sum + (unitPrice * item.quantity);
+        }, 0);
         
-        // Calculate total discount on subtotal
-        const discount = cartItems.reduce((sum, item) => sum + ((item.price - item.cuttedPrice) * item.quantity), 0);
+        const discount = cartItems.reduce((sum, item) => {
+            const unitPrice = item.unit?.price || item.price;
+            const unitCuttedPrice = item.unit?.cuttedPrice || item.cuttedPrice || item.price;
+            if (unitCuttedPrice < unitPrice) {
+                return sum + ((unitPrice - unitCuttedPrice) * item.quantity);
+            }
+            return sum;
+        }, 0);
         
-        // Calculate discounted subtotal
-        // const discountedSubtotal = subtotal + discount;
-        
-        // Calculate SGST (5%) and CGST (5%) on discounted subtotal
-        const sgst = subtotal * 0.05;
-        const cgst = subtotal * 0.05;
+        const discountedSubtotal = subtotal - discount;
+        const sgst = discountedSubtotal * 0.05;
+        const cgst = discountedSubtotal * 0.05;
         const totalGst = sgst + cgst;
         
-        // Fixed shipping charges
-        const shippingCharges = 100; // You can make this configurable
+        const shippingCharges = discountedSubtotal >= 499 ? 0 : 100;
         
-        // Calculate final total
-        const finalTotal = subtotal + totalGst + shippingCharges;
+        const finalTotal = discountedSubtotal + totalGst + shippingCharges;
         
         return { 
             subtotal, 
-            discount, 
-            // discountedSubtotal,
+            discount,
+            discountedSubtotal,
             sgst,
             cgst,
             totalGst,
@@ -242,12 +255,50 @@ const Cart = () => {
             <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 border border-gray-100">
                 <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-5 text-gray-800">Order Summary</h2>
                 <div className="space-y-3 md:space-y-4">
-                    <PriceRow label="Sub-total" value={formatPrice(subtotal)} />
-                    <PriceRow label="Discount" value={`-${formatPrice(discount)}`} isDiscount />
-                    <PriceRow label="SGST (5%)" value={formatPrice(sgst)} />
-                    <PriceRow label="CGST (5%)" value={formatPrice(cgst)} />
-                    <PriceRow label="Shipping Charges" value={formatPrice(shippingCharges)} />
-                    <PriceRow label="Total" value={formatPrice(finalTotal)} isTotal />
+                    <PriceRow label={`Subtotal (${cartItems.length} items)`} value={formatPrice(subtotal)} />
+                    
+                    {discount > 0 && (
+                        <PriceRow 
+                            label="Discount" 
+                            value={`-${formatPrice(discount)}`} 
+                            isDiscount 
+                        />
+                    )}
+                    
+                    {discount > 0 && (
+                        <div className="pb-2 border-b border-gray-100">
+                            <PriceRow 
+                                label="Subtotal after discount" 
+                                value={formatPrice(subtotal - discount)} 
+                            />
+                        </div>
+                    )}
+                    
+                    <div className="pt-2">
+                        <PriceRow label="SGST (5%)" value={formatPrice(sgst)} />
+                        <PriceRow label="CGST (5%)" value={formatPrice(cgst)} />
+                    </div>
+                    
+                    <div className="pt-2 border-t border-gray-100">
+                        <PriceRow 
+                            label="Shipping" 
+                            value={shippingCharges === 0 ? 'FREE' : formatPrice(shippingCharges)} 
+                            isDiscount={shippingCharges === 0}
+                        />
+                        {shippingCharges > 0 && subtotal < 499 && (
+                            <div className="text-xs text-green-600 text-right -mt-1">
+                                Add ₹{499 - subtotal} more for FREE shipping
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="pt-2 border-t border-gray-200">
+                        <PriceRow 
+                            label="Total Amount" 
+                            value={formatPrice(finalTotal)} 
+                            isTotal 
+                        />
+                    </div>
                 </div>
                 <button
                     onClick={placeOrderHandler}
@@ -285,7 +336,7 @@ const Cart = () => {
                         <div className="md:w-2/3 w-full mt-4 md:mt-0">
                             <div className="bg-white rounded-lg shadow-md border border-gray-200">
                                 <h2 className="text-lg md:text-xl font-semibold p-4 md:p-6">Shopping Cart</h2>
-                                 
+                                
                                 {cartItems.length === 0 ? (
                                     <EmptyCart />
                                 ) : (
@@ -293,51 +344,81 @@ const Cart = () => {
                                         {/* Cart items table for desktop, cards for mobile */}
                                         {isMobile ? (
                                             <div className="flex flex-col gap-4 p-2">
-                                                {cartItems.map((item) => (
-                                                    <div key={item.product} className="flex flex-col bg-gray-50 rounded-lg shadow-sm border border-gray-200 p-4">
-                                                        <div className="flex items-center mb-2">
-                                                            <img className="h-16 w-16 object-contain mr-4" src={item.image} alt={item.name} />
-                                                            <div className="flex-1">
-                                                                <div className="font-medium text-gray-900 text-base">{item.name}</div>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="text-blue-700 font-semibold">{formatPrice(item.price)}</span>
-                                                                    {item.cuttedPrice > item.price && (
-                                                                        <span className="text-xs text-gray-500 line-through">{formatPrice(item.cuttedPrice)}</span>
+                                                {cartItems.map((item) => {
+                                                    const { unit, ...itemProps } = item;
+                                                    return (
+                                                        <div key={item.product} className="flex flex-col bg-gray-50 rounded-lg shadow-sm border border-gray-200 p-4">
+                                                            <div className="flex items-start mb-2">
+                                                                <img className="h-16 w-16 object-contain mr-4" src={item.image} alt={item.name} />
+                                                                <div className="flex-1">
+                                                                    <div className="font-medium text-gray-900 text-base">{item.name}</div>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <span className="text-blue-700 font-semibold">{formatPrice(item.price)}</span>
+                                                                        {item.cuttedPrice > item.price && (
+                                                                            <span className="text-xs text-gray-500 line-through">{formatPrice(item.cuttedPrice)}</span>
+                                                                        )}
+                                                                    </div>
+                                                                    {unit && (
+                                                                        <div className="mt-1 text-sm text-gray-600">
+                                                                            {item.quantity} {unit.name}
+                                                                        </div>
                                                                     )}
                                                                 </div>
+                                                                <button onClick={() => dispatch(removeItemsFromCart(item.product))}
+                                                                    className="text-gray-400 hover:text-red-500 ml-2 hover:cursor-pointer"
+                                                                    aria-label="Remove item"
+                                                                >
+                                                                    &times;
+                                                                </button>
                                                             </div>
-                                                            <button onClick={() => {
-                                                                // Remove item logic
-                                                                const event = new Event('remove-cart-item');
-                                                                event.product = item.product;
-                                                                window.dispatchEvent(event);
-                                                            }}
-                                                                className="text-gray-400 hover:text-red-500 ml-2 hover:cursor-pointer"
-                                                                aria-label="Remove item"
-                                                            >
-                                                                &times;
-                                                            </button>
-                                                        </div>
-                                                        <div className="flex items-center justify-between mt-2">
-                                                            <div className="flex items-center border border-gray-200 rounded-lg">
-                                                                <button onClick={() => {
-                                                                    // Decrease quantity logic
-                                                                    const event = new Event('decrease-cart-qty');
-                                                                    event.product = item.product;
-                                                                    window.dispatchEvent(event);
-                                                                }} className="p-1 hover:bg-gray-100 hover:cursor-pointer" disabled={item.quantity <= 1}>-</button>
-                                                                <span className="px-3 py-1">{item.quantity}</span>
-                                                                <button onClick={() => {
-                                                                    // Increase quantity logic
-                                                                    const event = new Event('increase-cart-qty');
-                                                                    event.product = item.product;
-                                                                    window.dispatchEvent(event);
-                                                                }} className="p-1 hover:bg-gray-100 hover:cursor-pointer">+</button>
+                                                            <div className="flex flex-col gap-2 mt-2">
+                                                                {/* DROPDOWN REMOVED FROM HERE */}
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center border border-gray-200 rounded-lg">
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                const newQty = Math.max(
+                                                                                    (unit?.minQty || 1), 
+                                                                                    item.quantity - (unit?.increment || 1)
+                                                                                );
+                                                                                dispatch(addItemsToCart(item.product, newQty, unit));
+                                                                            }} 
+                                                                            className="p-2 hover:bg-gray-100 hover:cursor-pointer disabled:opacity-30"
+                                                                            disabled={item.quantity <= (unit?.minQty || 1)}
+                                                                            aria-label="Decrease quantity"
+                                                                        >
+                                                                            <FaMinus size={12} />
+                                                                        </button>
+                                                                        <span className="px-3 py-1 text-center min-w-[40px]">
+                                                                            {item.quantity}
+                                                                        </span>
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                const newQty = Math.min(
+                                                                                    unit?.maxQty || Infinity, 
+                                                                                    item.quantity + (unit?.increment || 1)
+                                                                                );
+                                                                                dispatch(addItemsToCart(item.product, newQty, unit));
+                                                                            }}
+                                                                            className="p-2 hover:bg-gray-100 hover:cursor-pointer disabled:opacity-30"
+                                                                            disabled={unit?.maxQty ? item.quantity >= unit.maxQty : false}
+                                                                            aria-label="Increase quantity"
+                                                                        >
+                                                                            <FaPlus size={12} />
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="text-right font-medium">
+                                                                        Subtotal: {formatPrice((unit?.price || item.price) * item.quantity)}
+                                                                    </div>
+                                                                </div>
+                                                                {unit?.increment > 1 && (
+                                                                    <div className="text-xs text-gray-500">
+                                                                        Increments of {unit.increment}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            <div className="text-right font-medium">Subtotal: {formatPrice(item.price * item.quantity)}</div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    )})}
                                             </div>
                                         ) : (
                                             <div className="overflow-x-auto">
@@ -351,9 +432,18 @@ const Cart = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {cartItems.map((item) => (
-                                                            <CartItem key={item.product} {...item} inCart={true} />
-                                                        ))}
+                                                        {cartItems.map((item) => {
+                                                            const { unit, ...itemProps } = item;
+                                                            return (
+                                                                <CartItem 
+                                                                    key={item.product} 
+                                                                    {...itemProps}
+                                                                    unit={unit}
+                                                                    // The 'availableUnits' prop is removed
+                                                                    inCart={true} 
+                                                                />
+                                                            );
+                                                        })}
                                                     </tbody>
                                                 </table>
                                             </div>

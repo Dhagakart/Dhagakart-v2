@@ -57,7 +57,7 @@ const faqItems = [
   {
     question: 'What is the "Procure Now, Pay Later" program?',
     answer:
-      'It is a credit facility that allows you to purchase construction materials now and pay for them later, with up to 45 days of interest-free credit.'
+      'It is a credit facility that allows you to purchase textile materials now and pay for them later, with up to 45 days of interest-free credit.'
   },
   {
     question: 'Who is eligible to apply for credit?',
@@ -112,7 +112,7 @@ const ReqCredits = () => {
             Procure Now, <span className="italic text-[#003366]">Pay Later.</span>
           </h1>
           <p className="text-2xl text-gray-600">
-            Grow your business with our interest‑free credit program to procure construction materials.
+            Grow your business with our interest‑free credit program to procure textile materials.
           </p>
           <button 
             onClick={handleApplyClick}

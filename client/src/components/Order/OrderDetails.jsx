@@ -18,79 +18,33 @@ const OrderDetails = () => {
             alert(error);
             dispatch(clearErrors());
         }
-
         dispatch(getOrderDetails(id));
     }, [dispatch, id, error]);
 
     const getStatusBadge = (status) => {
         switch (status?.toLowerCase()) {
-            case 'processing':
-                return 'bg-blue-100 text-blue-800';
-            case 'shipped':
-                return 'bg-purple-100 text-purple-800';
-            case 'delivered':
-                return 'bg-green-100 text-green-800';
-            case 'cancelled':
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
+            case 'processing': return 'bg-blue-100 text-blue-800';
+            case 'shipped': return 'bg-purple-100 text-purple-800';
+            case 'delivered': return 'bg-green-100 text-green-800';
+            case 'cancelled': return 'bg-red-100 text-red-800';
+            default: return 'bg-gray-100 text-gray-800';
         }
     };
 
-    if (loading) return <Loader />;
-
-    // Calculate order totals from order items if itemsPrice is not available
-    const calculateOrderTotals = () => {
-        if (!order?.orderItems?.length) {
-            return {
-                subtotal: 0,
-                discount: 0,
-                sgst: 0,
-                cgst: 0,
-                shippingCharges: 0,
-                finalTotal: 0
-            };
-        }
-
-        // Calculate subtotal (sum of all item prices)
-        const subtotal = order.orderItems.reduce((sum, item) => {
-            const originalPrice = Number(item.price) || 0;
-            const qty = Number(item.quantity) || 0;
-            return sum + (originalPrice * qty);
-        }, 0);
-
-        // Calculate discount (difference between original and cutted prices)
-        const discount = order.orderItems.reduce((sum, item) => sum + ((item.price - item.cuttedPrice) * item.quantity), 0);
-
-        // Calculate discounted subtotal (subtract discount from subtotal)
-        // const discountedSubtotal = subtotal - discount;
-
-        // Calculate SGST (5%) and CGST (5%) on discounted subtotal
-        const sgst = subtotal * 0.05;
-        const cgst = subtotal * 0.05;
-        const totalGst = sgst + cgst;
-
-        // Use shipping price from order data if available, otherwise default to 100
-        const shippingCharges = order.shippingPrice || 100;
-
-        // Calculate final total
-        const finalTotal = subtotal + totalGst + shippingCharges;
-
-        return {
-            subtotal,
-            discount,
-            sgst,
-            cgst,
-            shippingCharges,
-            finalTotal
-        };
-    };
+    // Show loader while loading or if order data is not yet available
+    if (loading || !order) {
+        return <Loader />;
+    }
     
-    const totals = calculateOrderTotals();
+    // Safely calculate totals only when order.orderItems exists
+    const subtotal = order.orderItems?.reduce((acc, item) => acc + item.quantity * item.price, 0) || 0;
+    const tax = order.taxPrice || subtotal * 0.1; 
+    const shippingCharges = order.shippingPrice || 0;
+    const total = order.totalPrice || (subtotal + tax + shippingCharges);
 
     return (
         <>
-            <MetaData title={`Order #${order?._id?.substring(order._id.length - 6).toUpperCase() || 'Details'}`} />
+            <MetaData title={`Order #${order._id?.substring(order._id.length - 6).toUpperCase()}`} />
             
             <div className="bg-gray-50 min-h-screen py-8 mt-10 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
@@ -104,210 +58,125 @@ const OrderDetails = () => {
                             <button
                                 type="button"
                                 onClick={() => navigate(-1)}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                             >
                                 Back to Orders
                             </button>
                         </div>
                     </div>
 
-                    {order && (
-                        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                            {/* Order Header */}
-                            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                                    <div>
-                                        <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                            Order #{order._id?.substring(order._id.length - 6).toUpperCase()}
-                                        </h3>
-                                        <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                                            Placed on {new Date(order.createdAt).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                    <div className="mt-4 sm:mt-0">
-                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(order.orderStatus)}`}>
-                                            {order.orderStatus || 'Processing'}
-                                        </span>
-                                    </div>
+                    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                        {/* Order Header */}
+                        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                                <div>
+                                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                        Order #{order._id?.substring(order._id.length - 6).toUpperCase()}
+                                    </h3>
+                                    <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                                        Placed on {new Date(order.createdAt).toLocaleDateString()}
+                                    </p>
                                 </div>
-                            </div>
-
-                            <div className="border-b border-gray-200">
-                                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">Shipping Address</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        <p>{order.shippingInfo?.name}</p>
-                                        <p>{order.shippingInfo?.address}</p>
-                                        <p>{order.shippingInfo?.city}, {order.shippingInfo?.state} {order.shippingInfo?.pincode}</p>
-                                        <p>{order.shippingInfo?.country}</p>
-                                        <p className="mt-2">Phone: {order.shippingInfo?.phoneNo}</p>
-                                    </dd>
-                                </div>
-                                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">Payment Information</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        <p>Method: {order.paymentInfo?.type || 'N/A'}</p>
-                                        <p>Status: 
-                                            <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                order.paymentInfo?.status === 'succeeded' 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                                {order.paymentInfo?.status?.toUpperCase() || 'PENDING'}
-                                            </span>
-                                        </p>
-                                        {order.paymentInfo?.id && (
-                                            <p>Transaction ID: {order.paymentInfo.id}</p>
-                                        )}
-                                    </dd>
-                                </div>
-                            </div>
-
-                            {/* Order Totals */}
-                            <div className="border-b border-gray-200">
-                                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">Order Totals</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between">
-                                                <span>Subtotal</span>
-                                                <span>{formatPrice(totals.subtotal)}</span>
-                                            </div>
-                                            {/* <div className="flex justify-between"> */}
-                                                {/* <span className="text-red-600">- Discount</span> */}
-                                                {/* <span className="text-red-600">{formatPrice(totals.discount)}</span> */}
-                                            {/* </div> */}
-                                            <div className="flex justify-between">
-                                                <span>SGST (5%)</span>
-                                                <span>{formatPrice(totals.sgst)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>CGST (5%)</span>
-                                                <span>{formatPrice(totals.cgst)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Shipping Charges</span>
-                                                <span>{formatPrice(totals.shippingCharges)}</span>
-                                            </div>
-                                            <div className="border-t border-gray-300 pt-2 flex justify-between font-medium">
-                                                <span>Total</span>
-                                                <span>{formatPrice(totals.finalTotal)}</span>
-                                            </div>
-                                        </div>
-                                    </dd>
-                                </div>
-                            </div>
-
-                            {/* Order Items */}
-                            <div className="px-4 py-5 sm:px-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Product
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Price
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Quantity
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Total
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {order.orderItems?.map((item) => (
-                                                <tr key={item._id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="flex items-center">
-                                                            <div className="flex-shrink-0 h-16 w-16">
-                                                                <img 
-                                                                    className="h-16 w-16 object-cover rounded-md" 
-                                                                    src={item.image} 
-                                                                    alt={item.name} 
-                                                                />
-                                                            </div>
-                                                            <div className="ml-4">
-                                                                <Link 
-                                                                    to={`/product/${item.product}`}
-                                                                    className="text-sm font-medium text-gray-900 hover:text-indigo-600"
-                                                                >
-                                                                    {item.name}
-                                                                </Link>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                                                        {formatPrice(item.price)}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                                        {item.quantity}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                                                        {formatPrice(item.price * item.quantity)}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                         <tfoot className="bg-gray-50">
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    Sub-total
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatPrice(totals.subtotal)}
-                                                </td>
-                                            </tr>
-                                            {/* <tr>
-                                                <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    Discount
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-sm font-medium text-green-600">
-                                                    -{formatPrice(totals.discount)}
-                                                </td>
-                                            </tr> */}
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    SGST (5%)
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatPrice(totals.sgst)}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    CGST (5%)
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatPrice(totals.cgst)}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">
-                                                    Shipping Charges
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatPrice(totals.shippingCharges)}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-3 text-right text-lg font-bold text-gray-900">
-                                                    Total
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-lg font-bold text-gray-900">
-                                                    {formatPrice(totals.finalTotal)}
-                                                </td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                                <div className="mt-4 sm:mt-0">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(order.orderStatus)}`}>
+                                        {order.orderStatus || 'Processing'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                    )}
+
+                        {/* Shipping & Payment Info */}
+                        <div className="border-b border-gray-200">
+                            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt className="text-sm font-medium text-gray-500">Shipping Address</dt>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <p>{order.shippingInfo?.name}</p>
+                                    <p>{order.shippingInfo?.address}</p>
+                                    <p>{order.shippingInfo?.city}, {order.shippingInfo?.state} {order.shippingInfo?.pincode}</p>
+                                    <p className="mt-2">Phone: {order.shippingInfo?.phoneNo}</p>
+                                </dd>
+                            </div>
+                            <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt className="text-sm font-medium text-gray-500">Payment Information</dt>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <p>Status: 
+                                        <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                            order.paymentInfo?.status === 'succeeded' 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : 'bg-yellow-100 text-yellow-800'
+                                        }`}>
+                                            {order.paymentInfo?.status?.toUpperCase() || 'PENDING'}
+                                        </span>
+                                    </p>
+                                </dd>
+                            </div>
+                        </div>
+
+                        {/* Order Items Table */}
+                        <div className="px-4 py-5 sm:px-6">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {/* FIX: Use optional chaining here too for safety */}
+                                        {order.orderItems?.map((item) => (
+                                            <tr key={item.product}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <img className="h-16 w-16 object-cover rounded-md" src={item.image} alt={item.name} />
+                                                        <div className="ml-4">
+                                                            <Link to={`/product/${item.product}`} className="text-sm font-medium text-gray-900 hover:text-indigo-600">
+                                                                {item.name}
+                                                            </Link>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                                                    {formatPrice(item.price)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                                    {`${item.quantity} ${item.unit?.name || item.unit?.unit || ''}`}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                                                    {formatPrice(item.price * item.quantity)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot className="bg-gray-50">
+                                        <tr>
+                                            <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">Sub-total</td>
+                                            <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">{formatPrice(subtotal)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">SGST (5%)</td>
+                                            <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">{formatPrice(tax / 2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">CGST (5%)</td>
+                                            <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">{formatPrice(tax / 2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3" className="px-6 py-3 text-right text-sm font-medium text-gray-500">Shipping</td>
+                                            <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">{formatPrice(shippingCharges)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3" className="px-6 py-3 text-right text-lg font-bold text-gray-900">Total</td>
+                                            <td className="px-6 py-3 text-right text-lg font-bold text-gray-900">{formatPrice(total)}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
