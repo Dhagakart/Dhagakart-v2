@@ -230,121 +230,57 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
         }
     };
 
-    const handleAddressSubmit = async (e, formData) => {
-        e?.preventDefault?.();
-        
+    const handleAddressSubmit = async (formData) => {
         try {
-            // If formData is not provided, use the current addressFormData state
-            const addressData = formData || addressFormData;
             const addressType = showShippingModal ? 'shipping' : 'billing';
-            const isDefault = addressData.isDefault || false;
-            
-            // Create the final address data object
-            const finalAddressData = {
-                ...addressData,
-                isDefault
-            };
-            
-            let promise;
-            try {
-                if (editingAddress) {
-                    // Update existing address
-                    if (addressType === 'shipping') {
-                        await dispatch(updateShippingAddress({ id: editingAddress, addressData: finalAddressData })).unwrap();
-                    } else {
-                        await dispatch(updateBillingAddress({ id: editingAddress, addressData: finalAddressData })).unwrap();
-                    }
-                } else {
-                    // Add new address
-                    if (addressType === 'shipping') {
-                        await dispatch(addShippingAddress(finalAddressData)).unwrap();
-                    } else {
-                        await dispatch(addBillingAddress(finalAddressData)).unwrap();
-                    }
-                }
-                
-                // Show success message
-                toast.success(
-                    editingAddress 
-                        ? `${addressType === 'shipping' ? 'Shipping' : 'Billing'} address updated successfully`
-                        : `${addressType === 'shipping' ? 'Shipping' : 'Billing'} address added successfully`
-                );
-                
-                // Reset the form data
-                setAddressFormData({
-                    fullName: '',
-                    primaryAddress: '',
-                    city: '',
-                    state: '',
-                    country: 'India',
-                    zipCode: '',
-                    phoneNumber: '',
-                    email: user?.email || '',
-                    additionalInfo: '',
-                    isDefault: false
-                });
-                
-                // Close the modal
-                setShowShippingModal(false);
-                setShowBillingModal(false);
-                
-                // Reset the editing state
-                setEditingAddress(null);
-                
-                // Refresh the addresses
+            const addressId = editingAddress?._id;
+    
+            if (addressId) {
+                // Update existing address
                 if (addressType === 'shipping') {
-                    await dispatch({ type: 'GET_SHIPPING_ADDRESSES' });
-                    await dispatch({ type: 'GET_BILLING_ADDRESSES' });
+                    await dispatch(updateShippingAddress({ id: addressId, addressData: formData }));
                 } else {
-                    await dispatch({ type: 'GET_BILLING_ADDRESSES' });
-                    await dispatch({ type: 'GET_SHIPPING_ADDRESSES' });
+                    await dispatch(updateBillingAddress({ id: addressId, addressData: formData }));
                 }
-                
-            } catch (error) {
-                console.error('Error saving address:', error);
-                throw error; // Re-throw to be caught by the outer try-catch
+            } else {
+                // Add new address
+                if (addressType === 'shipping') {
+                    await dispatch(addShippingAddress(formData));
+                } else {
+                    await dispatch(addBillingAddress(formData));
+                }
             }
+    
+            toast.success(
+                `${addressType.charAt(0).toUpperCase() + addressType.slice(1)} address ${addressId ? 'updated' : 'added'} successfully`
+            );
+            
+            // Close modals and reset state
+            setShowShippingModal(false);
+            setShowBillingModal(false);
+            setEditingAddress(null);
             
         } catch (error) {
             console.error('Error saving address:', error);
-            toast.error(
-                error.response?.data?.message || 
-                error.message || 
-                'Failed to save address. Please try again.'
-            );
-            throw error; // Re-throw to allow parent to handle if needed
+            toast.error(error.message || 'Failed to save address. Please try again.');
         }
     };
 
-    const handleDeleteAddress = (e, addressId, type) => {
-        e.preventDefault();
+    const handleDeleteAddress = async (addressId, type) => {
         if (window.confirm('Are you sure you want to delete this address?')) {
-            const action = type === 'shipping' 
-                ? deleteShippingAddress(addressId)
-                : deleteBillingAddress(addressId);
-            
-            dispatch(action)
-                .then((result) => {
-                    if (result?.error) {
-                        throw new Error(result.error.message || 'Failed to delete address');
-                    }
-                    toast.success(`${type === 'shipping' ? 'Shipping' : 'Billing'} address deleted successfully`);
-                    
-                    // Refresh both shipping and billing addresses
-                    return Promise.all([
-                        dispatch({ type: 'GET_SHIPPING_ADDRESSES' }),
-                        dispatch({ type: 'GET_BILLING_ADDRESSES' })
-                    ]);
-                })
-                .then(() => {
-                    // Close any open modals after successful deletion
-                    setShowShippingModal(false);
-                    setShowBillingModal(false);
-                })
-                .catch(error => {
-                    console.error('Error deleting address:', error);
-                    toast.error(error?.message || `Failed to delete ${type} address`);
-                });
+            try {
+                const action = type === 'shipping' 
+                    ? deleteShippingAddress(addressId)
+                    : deleteBillingAddress(addressId);
+                
+                await dispatch(action);
+    
+                toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} address deleted successfully`);
+    
+            } catch (error) {
+                console.error('Error deleting address:', error);
+                toast.error(error.message || `Failed to delete ${type} address`);
+            }
         }
     };
 
