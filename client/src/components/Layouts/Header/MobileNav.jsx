@@ -46,16 +46,21 @@ const StyledNestedListItem = styled(ListItemButton)({
   padding: '8px 16px',
   '&.Mui-selected': {
     backgroundColor: '#f5f5f5',
-    '&:hover': {
-      backgroundColor: '#e0e0e0',
-    },
+    // '&:hover': {
+    //   backgroundColor: '#e0e0e0',
+    // },
+  },
+  // Remove hover effect
+  '&:hover': {
+    backgroundColor: 'inherit',
   },
 });
 
 // Styled components for better organization
 const StyledListItemButton = styled(ListItemButton)({
+  // Remove hover effect
   '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: 'inherit',
   },
 });
 
@@ -138,7 +143,7 @@ const MobileNav = ({
       <Divider />
       <List>
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/">
+          <ListItemButton component={Link} to="/" onClick={handleDrawerToggle}>
             <ListItemIcon>
               <HomeIcon />
             </ListItemIcon>
@@ -147,7 +152,7 @@ const MobileNav = ({
         </ListItem>
         {isAuthenticated && (
           <ListItem disablePadding>
-            <ListItemButton component={Link} to="/account">
+            <ListItemButton component={Link} to="/account" onClick={handleDrawerToggle}>
               <ListItemIcon>
                 <AccountCircleIcon />
               </ListItemIcon>
@@ -157,7 +162,7 @@ const MobileNav = ({
         )}
         {/* Products Accordion */}
         <ListItem disablePadding onClick={(e) => e.stopPropagation()}>
-          <StyledListItemButton onClick={handleProductsClick}>
+          <StyledListItemButton onClick={handleProductsClick} disableRipple disableTouchRipple>
             <ListItemIcon>
               <CategoryIcon />
             </ListItemIcon>
@@ -188,7 +193,7 @@ const MobileNav = ({
                           to={
                             sub.toLowerCase() === 'sewing machine' ? '/products/jack' :
                             sub.toLowerCase() === 'powerloom' ? '/products/power%20loom' :
-                            `/products/${encodeURIComponent(sub.toLowerCase().replace(/ /g, '%20'))}`
+                            `/products/${encodeURIComponent(sub.toLowerCase().replace(/ /g, '%20'))}` 
                           }
                           onClick={handleDrawerToggle}
                           selected={window.location.pathname === `/products/${encodeURIComponent(sub.toLowerCase().replace(/ /g, '%20'))}`}
@@ -209,7 +214,7 @@ const MobileNav = ({
 
         {/* Bulk Order Accordion */}
         <ListItem disablePadding onClick={(e) => e.stopPropagation()}>
-          <StyledListItemButton onClick={handleBulkOrderClick}>
+          <StyledListItemButton onClick={handleBulkOrderClick} disableRipple disableTouchRipple>
             <ListItemIcon>
               <ShoppingBasketIcon />
             </ListItemIcon>
@@ -238,7 +243,7 @@ const MobileNav = ({
           </List>
         </Collapse>
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/reqcredits">
+          <ListItemButton component={Link} to="/reqcredits" onClick={handleDrawerToggle}>
             <ListItemIcon>
               <CreditCardIcon />
             </ListItemIcon>

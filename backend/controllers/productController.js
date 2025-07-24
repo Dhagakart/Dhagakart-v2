@@ -145,7 +145,12 @@ exports.createProductReview = asyncErrorHandler(async (req, res, next) => {
     product.ratings = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
 
     await product.save({ validateBeforeSave: false });
-    res.status(200).json({ success: true });
+
+    // ✨ FIXED: Return the full updated product object for frontend efficiency
+    res.status(200).json({
+        success: true,
+        product,
+    });
 });
 
 // Get All Reviews of a Product --- ADMIN

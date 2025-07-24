@@ -1132,7 +1132,6 @@ const ProductDetailsDG = () => {
   // Format date to relative time (e.g., "2 days ago")
   const formatDate = (dateString) => {
     if (!dateString) return 'Some time ago';
-    
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Some time ago';
     
@@ -1140,24 +1139,23 @@ const ProductDetailsDG = () => {
     const diffInSeconds = Math.floor((now - date) / 1000);
     
     const intervals = {
-      year: 31536000,
-      month: 2592000,
-      week: 604800,
-      day: 86400,
-      hour: 3600,
-      minute: 60,
-      second: 1
+        year: 31536000,
+        month: 2592000,
+        week: 604800,
+        day: 86400,
+        hour: 3600,
+        minute: 60,
     };
     
     for (const [unit, seconds] of Object.entries(intervals)) {
-      const interval = Math.floor(diffInSeconds / seconds);
-      if (interval >= 1) {
-        return interval === `1 ? 1 ${unit} ago : ${interval} ${unit}s ago`;
-      }
+        const interval = Math.floor(diffInSeconds / seconds);
+        if (interval >= 1) {
+            return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
+        }
     }
     
     return 'Just now';
-  };
+};
 
   const productId = id;
   const itemInWishlist = wishlistItems.some((i) => i.product === productId);
@@ -1403,52 +1401,41 @@ const ProductDetailsDG = () => {
 
   const reviewSubmitHandler = async () => {
     if (rating === 0 || !comment.trim()) {
-      enqueueSnackbar("Please provide both rating and comment", { variant: "error" });
-      return;
+        toast.error("Please provide both a rating and a comment.");
+        return;
     }
 
     try {
-      setIsSubmittingReview(true);
-      const formData = new FormData();
-      formData.set("rating", rating);
-      formData.set("comment", comment);
-      formData.set("productId", id);
+        setIsSubmittingReview(true);
+        // Send a plain JSON object, not FormData
+        const reviewData = {
+            rating,
+            comment,
+            productId: id,
+        };
 
-      // Dispatch the review action and wait for it to complete
-      const result = await dispatch(newReview(formData));
-      
-      if (result?.success) {
-        // Show success toast
-        toast.success('Review submitted successfully!', {
-          position: 'top-right',
-          duration: 3000,
-        });
-        
-        // If we have the updated product in the response, update the local state
-        if (result.product) {
-          // This will trigger a re-render with the updated product data
-          dispatch({ type: 'PRODUCT_DETAILS_SUCCESS', payload: result.product });
-        } else {
-          // Fallback: Refresh product details if not included in the response
-          await dispatch(getProductDetails(id));
+        const result = await dispatch(newReview(reviewData));
+
+        if (result?.success) {
+            toast.success('Review submitted successfully!');
+            
+            // The backend now returns the updated product.
+            // We dispatch it directly to update the UI without another fetch.
+            dispatch({ type: 'PRODUCT_DETAILS_SUCCESS', payload: result.product });
+            
+            // Reset form and Redux state
+            setRating(0);
+            setComment('');
+            dispatch({ type: NEW_REVIEW_RESET });
         }
-        
-        // Reset form
-        setRating(0);
-        setComment('');
-        setActiveTab('review');
-      }
-      
     } catch (error) {
-      console.error('Review submission error:', error);
-      enqueueSnackbar(error.message || "Failed to submit review. Please try again.", { 
-        variant: "error",
-        autoHideDuration: 5000
-      });
+        // Display the error from the action's catch block
+        toast.error(error.message || "Failed to submit review.");
+        dispatch(clearErrors()); // Clear the error from Redux state
     } finally {
-      setIsSubmittingReview(false);
+        setIsSubmittingReview(false);
     }
-  };
+};
 
   // Log product details when component mounts or updates
   useEffect(() => {
