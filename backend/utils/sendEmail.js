@@ -1,10 +1,11 @@
-const nodeMailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
 
-    const transporter = nodeMailer.createTransport({
+    const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
+        secure: true, // Recommended for port 465
         service: process.env.SMTP_SERVICE,
         auth: {
             user: process.env.SMTP_MAIL,
@@ -13,10 +14,10 @@ const sendEmail = async (options) => {
     });
 
     const mailOptions = {
-        from: process.env.SMTP_MAIL,
+        from: `DhagaKart <${process.env.SMTP_MAIL}>`, // Provides a sender name
         to: options.email,
         subject: options.subject,
-        html: options.message,
+        html: options.html, // CORRECTED: Changed from options.message
     };
 
     await transporter.sendMail(mailOptions);

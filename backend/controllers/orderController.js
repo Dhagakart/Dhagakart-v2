@@ -3,56 +3,66 @@ const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
 const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
+const orderConfirmationTemplate = require('../utils/orderConfirmationTemplate');
 
 // Create New Order
 exports.newOrder = asyncErrorHandler(async (req, res, next) => {
     const {
-      shippingInfo,
-      orderItems,
-      paymentInfo,
-      itemsPrice,
-      shippingPrice,
-      totalPrice,
+        shippingInfo,
+        orderItems,
+        paymentInfo,
+        itemsPrice,
+        shippingPrice,
+        totalPrice,
     } = req.body;
-  
-    // FIX: Map over the incoming orderItems to ensure all required fields,
-    // including the 'unit' object, are explicitly defined and saved.
-    const sanitizedOrderItems = orderItems.map(item => ({
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        product: item.product,
-        unit: item.unit, // This line ensures the unit object is saved
-    }));
-  
+
     const order = await Order.create({
-      shippingInfo,
-      orderItems: sanitizedOrderItems, // Use the new sanitized array
-      paymentInfo,
-      itemsPrice,
-      shippingPrice,
-      totalPrice,
-      paidAt: Date.now(),
-      user: req.user._id,
+        shippingInfo,
+        orderItems,
+        paymentInfo,
+        itemsPrice,
+        shippingPrice,
+        totalPrice,
+        paidAt: Date.now(),
+        user: req.user._id,
     });
-  
-    // The email logic can remain the same
-    await sendEmail({
-        email: req.user.email,
-        templateId: process.env.SENDGRID_ORDER_TEMPLATEID,
-        data: {
-            name: req.user.name,
-            shippingInfo,
-            orderItems, // You can still send the original items in the email
-            totalPrice,
-            oid: order._id,
+
+    // --- DEBUGGING STEP 1: Log the created order object ---
+    console.log("--- 1. ORDER CREATED IN DATABASE ---");
+    console.log(JSON.stringify(order, null, 2));
+
+
+    // --- Send Order Confirmation Email ---
+    try {
+        // FIX: Convert Mongoose document to a plain object before passing to the template
+        const orderDataForEmail = order.toObject();
+
+        const emailHtml = orderConfirmationTemplate(orderDataForEmail);
+        
+        // --- DEBUGGING STEP 2: Log the exact HTML being sent ---
+        console.log("--- 2. GENERATED EMAIL HTML (check if empty) ---");
+        console.log(emailHtml);
+
+        // Send email only if HTML content exists
+        if (emailHtml && emailHtml.length > 100) {
+            await sendEmail({
+                email: req.user.email,
+                subject: `Your DhagaKart Order #${order._id} is Confirmed!`,
+                html: emailHtml,
+            });
+             console.log(`--- 3. Order confirmation email sent successfully to ${req.user.email} ---`);
+        } else {
+             console.error("--- WARNING: Email HTML was empty or invalid. Email not sent. ---");
         }
-    });
-  
+
+    } catch (emailError) {
+        console.error(`--- 3. EMAIL FAILED TO SEND for order ${order._id}:`, emailError);
+    }
+    // --- End of Email Logic ---
+
     res.status(201).json({
-      success: true,
-      order,
+        success: true,
+        order,
     });
 });
 
@@ -101,7 +111,6 @@ exports.myOrders = asyncErrorHandler(async (req, res, next) => {
 
 
 // Get All Orders ---ADMIN
-// Get All Orders ---ADMIN
 exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
@@ -130,15 +139,6 @@ exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
     // Calculate total amount for all orders (for backward compatibility)
     const totalAmount = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
     
-    // Log the response for debugging
-    console.log('Sending orders response:', {
-        ordersCount: orders.length,
-        totalOrders,
-        totalPages,
-        currentPage: page,
-        totalAmount
-    });
-
     res.status(200).json({
         success: true,
         orders,
@@ -202,13 +202,6 @@ exports.getAllOrdersWithoutPagination = asyncErrorHandler(async (req, res, next)
         const totalAmount = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
         const totalOrders = orders.length;
 
-        console.log('Sending response with:', {
-            success: true,
-            totalOrders,
-            totalAmount,
-            ordersCount: orders.length
-        });
-
         res.status(200).json({
             success: true,
             orders: orders,
@@ -224,8 +217,6 @@ exports.getAllOrdersWithoutPagination = asyncErrorHandler(async (req, res, next)
 
 // Search Orders with Filters ---ADMIN
 exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
-    console.log('Search request received with query:', req.query);
-    
     const {
         orderId,
         customerName,
@@ -295,9 +286,6 @@ exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
     // Pagination
     const currentPage = Number(page) || 1;
     const skip = (currentPage - 1) * limit;
-
-    console.log('MongoDB query:', JSON.stringify(query, null, 2));
-    console.log('Pagination:', { page, limit, skip, sortBy });
     
     // Execute query with pagination
     const orders = await Order.find(query)
@@ -309,8 +297,6 @@ exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
     // Get total count for pagination
     const totalOrders = await Order.countDocuments(query);
     
-    console.log(`Found ${orders.length} orders out of ${totalOrders} total`);
-
     const response = {
         success: true,
         orders,
@@ -318,11 +304,6 @@ exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
         totalPages: Math.ceil(totalOrders / Number(limit)),
         totalOrders
     };
-    
-    console.log('Sending response:', JSON.stringify({
-        ...response,
-        orders: `[${response.orders.length} orders]`
-    }, null, 2));
     
     res.status(200).json(response);
 });
