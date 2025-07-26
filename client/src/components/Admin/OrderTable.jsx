@@ -110,7 +110,7 @@ const OrderTable = () => {
 
     // --- UPDATED: Real-Time Notification Logic ---
     useEffect(() => {
-        const BACKEND_URL = 'http://localhost:4000';
+        const BACKEND_URL = 'https://dhagakart.onrender.com';
         const socket = io(BACKEND_URL);
 
         socket.on("connect", () => {
