@@ -108,12 +108,24 @@ const OrderTable = () => {
 
     const orders = isSearching ? searchResults : allOrders;
 
-    // --- Function to play notification sound ---
+    // --- UPDATED: Function to play a "sync" sound with Tone.js ---
     const playNotificationSound = () => {
         if (window.Tone) {
             try {
-                const synth = new window.Tone.Synth().toDestination();
-                synth.triggerAttackRelease("G5", "8n");
+                // Ensure audio context is started by user interaction
+                window.Tone.start();
+
+                // Create a PluckSynth for a short, sharp sound
+                const synth = new window.Tone.PluckSynth({
+                    attackNoise: 1,
+                    dampening: 4000,
+                    resonance: 0.7,
+                    release: 1
+                }).toDestination();
+                
+                // Play a high-pitched note for a "sync" effect
+                synth.triggerAttack("C5", window.Tone.now());
+
             } catch (error) {
                 console.error("Could not play notification sound:", error);
             }
