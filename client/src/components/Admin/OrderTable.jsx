@@ -108,8 +108,23 @@ const OrderTable = () => {
 
     const orders = isSearching ? searchResults : allOrders;
 
-    // --- UPDATED: Real-Time Notification Logic ---
+    // --- Function to play notification sound ---
+    const playNotificationSound = () => {
+        if (window.Tone) {
+            try {
+                const synth = new window.Tone.Synth().toDestination();
+                synth.triggerAttackRelease("G5", "8n");
+            } catch (error) {
+                console.error("Could not play notification sound:", error);
+            }
+        } else {
+            console.warn("Tone.js is not loaded. Cannot play sound.");
+        }
+    };
+
+    // --- Real-Time Notification Logic ---
     useEffect(() => {
+        // CORRECTED: Use Vite environment variable, fallback to localhost for development
         const BACKEND_URL = 'https://dhagakart.onrender.com';
         const socket = io(BACKEND_URL);
 
@@ -119,11 +134,8 @@ const OrderTable = () => {
 
         socket.on("newOrder", (order) => {
             console.log("--- New Order Event Received on Frontend ---", order);
-
-            // 1. Show a toast notification
+            playNotificationSound();
             toast.success(`New Order from ${order.shippingInfo.businessName}!`);
-
-            // 2. Dispatch the action to add the order directly to the Redux state
             dispatch({
                 type: NEW_ORDER_RECEIVED,
                 payload: order,
