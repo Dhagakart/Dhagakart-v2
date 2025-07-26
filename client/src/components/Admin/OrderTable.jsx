@@ -18,7 +18,8 @@ import {
     CardContent,
     Collapse,
     useTheme,
-    useMediaQuery
+    useMediaQuery,
+    Avatar // Added for the new notification UI
 } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -26,6 +27,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'; // Added for the new notification UI
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import {
@@ -34,7 +36,6 @@ import {
     getAllOrders,
     searchOrders,
 } from '../../actions/orderAction';
-// --- UPDATED: Import the new action type ---
 import { DELETE_ORDER_RESET, NEW_ORDER_RECEIVED } from '../../constants/orderConstants';
 import Actions from './Actions';
 import { formatDate } from '../../utils/functions';
@@ -45,11 +46,13 @@ import MenuIcon from '@mui/icons-material/Menu';
 
 // --- START: Imports for Real-Time Notifications ---
 import { io } from "socket.io-client";
-import toast, { Toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import notificationSound from './notification.mp3';
 
 // Global variables for sound management
-let audioInstance = null;
+let audioContext = null;
+let audioSource = null;
+let audioElement = null;
 let activeNotifications = new Set();
 // --- END: Imports for Real-Time Notifications ---
 
@@ -113,70 +116,72 @@ const OrderTable = () => {
 
     const orders = isSearching ? searchResults : allOrders;
 
-    const manageNotificationSound = (notificationId, action) => {
-        if (action === 'add') {
-            // Add notification to active set
-            activeNotifications.add(notificationId);
+    const startNotificationSound = async () => {
+        if (audioElement) return; // Already playing
+        
+        try {
+            // Create audio context if it doesn't exist
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
             
-            // If no audio is playing, start it
-            if (!audioInstance && activeNotifications.size > 0) {
-                try {
-                    // Create audio context if it doesn't exist
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    const audioContext = new AudioContext();
-                    
-                    // Create audio element
-                    const audioElement = new Audio(notificationSound);
-                    audioElement.loop = true;
-                    
-                    // Create media element source
-                    const source = audioContext.createMediaElementSource(audioElement);
-                    source.connect(audioContext.destination);
-                    
-                    // Play the audio
-                    const playPromise = audioElement.play();
-                    
-                    // Handle autoplay restrictions
-                    if (playPromise !== undefined) {
-                        playPromise.catch(error => {
-                            console.error("Audio playback failed:", error);
-                        });
-                    }
-                    
-                    // Store the audio instance for later control
-                    audioInstance = {
-                        element: audioElement,
-                        context: audioContext,
-                        source: source
-                    };
-                } catch (error) {
-                    console.error("Could not play notification sound:", error);
-                }
+            // Create audio element
+            audioElement = new Audio(notificationSound);
+            audioElement.loop = true;
+            
+            // Create media element source
+            audioSource = audioContext.createMediaElementSource(audioElement);
+            audioSource.connect(audioContext.destination);
+            
+            // Try to play the audio
+            try {
+                await audioContext.resume();
+                await audioElement.play();
+                console.log("Notification sound started");
+            } catch (playError) {
+                console.error("Audio play failed:", playError);
+                // If autoplay was prevented, show a message to the user
+                toast('🔔 Click anywhere to enable sound notifications', {
+                    duration: 3000,
+                    position: 'bottom-right'
+                });
             }
-        } else if (action === 'remove') {
-            // Remove notification from active set
-            activeNotifications.delete(notificationId);
-            
-            // If no more active notifications, stop the audio
-            if (activeNotifications.size === 0 && audioInstance) {
-                try {
-                    audioInstance.element.pause();
-                    audioInstance.element.currentTime = 0;
-                    audioInstance.source.disconnect();
-                    if (audioInstance.context.state !== 'closed') {
-                        audioInstance.context.close();
-                    }
-                    audioInstance = null;
-                } catch (error) {
-                    console.error("Error stopping notification sound:", error);
+        } catch (error) {
+            console.error("Audio initialization failed:", error);
+        }
+    };
+    
+    const stopNotificationSound = () => {
+        if (audioElement) {
+            try {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                if (audioSource) {
+                    audioSource.disconnect();
                 }
+                if (audioContext && audioContext.state !== 'closed') {
+                    audioContext.close();
+                }
+            } catch (error) {
+                console.error("Error stopping sound:", error);
+            } finally {
+                audioElement = null;
+                audioSource = null;
+                audioContext = null;
             }
         }
+    };
+    
+    const handleNotificationClose = (id) => {
+        activeNotifications.delete(id);
+        if (activeNotifications.size === 0) {
+            stopNotificationSound();
+        }
+        toast.dismiss(id);
     };
 
     // --- Real-Time Notification Logic ---
     useEffect(() => {
-        // CORRECTED: Use Vite environment variable, fallback to localhost for development
+        // const BACKEND_URL = 'http://localhost:4000';
         const BACKEND_URL = 'https://dhagakart.onrender.com';
         const socket = io(BACKEND_URL);
 
@@ -187,80 +192,58 @@ const OrderTable = () => {
         socket.on("newOrder", (order) => {
             console.log("--- New Order Event Received on Frontend ---", order);
             
-            // Generate a unique ID for this notification
             const notificationId = `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            activeNotifications.add(notificationId);
             
-            // Manage sound for this notification
-            manageNotificationSound(notificationId, 'add');
+            if (activeNotifications.size === 1) {
+                startNotificationSound();
+            }
             
-            // Show toast with manual close and call stopSound when dismissed
-            toast.success(
-                (t) => {
-                    // Add cleanup when toast is dismissed
-                    const originalOnClose = t.onClose;
-                    t.onClose = () => {
-                        manageNotificationSound(notificationId, 'remove');
-                        if (originalOnClose) {
-                            originalOnClose();
-                        }
-                    };
-                    
-                    return (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                            <span>New Order from {order.shippingInfo.businessName}!</span>
-                            <button 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    toast.dismiss(t.id);
-                                }}
-                                style={{
-                                    marginLeft: '15px',
-                                    background: '#ff4444',
-                                    border: '1px solid #ff0000',
-                                    borderRadius: '50%',
-                                    color: '#ffffff',
-                                    cursor: 'pointer',
-                                    width: '24px',
-                                    height: '24px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: 0,
-                                    fontSize: '16px',
-                                    lineHeight: 1,
-                                    fontWeight: 'bold',
-                                    transition: 'all 0.2s',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.background = '#ff6666';
-                                    e.currentTarget.style.transform = 'scale(1.1)';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.background = '#ff4444';
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                }}
-                                aria-label="Close notification"
-                            >
-                                ×
-                            </button>
-                        </div>
-            )},
+            // --- UPDATED NOTIFICATION UI ---
+            toast.custom(
+                (t) => (
+                    <Card 
+                        elevation={4} 
+                        sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            p: 2, 
+                            gap: 2,
+                            borderRadius: '12px',
+                            // A subtle animation for appearing
+                            animation: t.visible ? 'fadeIn 0.3s ease-out' : 'fadeOut 0.3s ease-in forwards',
+                            '@keyframes fadeIn': { from: { opacity: 0, transform: 'translateY(-20px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+                            '@keyframes fadeOut': { from: { opacity: 1 }, to: { opacity: 0 } }
+                        }}
+                    >
+                        <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+                            <NotificationsActiveIcon sx={{ color: 'white' }} />
+                        </Avatar>
+                        <Box flexGrow={1}>
+                            <Typography variant="subtitle2" component="div" sx={{ fontWeight: 'bold' }}>
+                                New Order Received!
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                From: {order.shippingInfo.businessName}
+                            </Typography>
+                        </Box>
+                        <IconButton
+                            size="small"
+                            onClick={() => handleNotificationClose(t.id)}
+                            sx={{ color: 'text.secondary' }}
+                        >
+                            <ClearIcon fontSize="small" />
+                        </IconButton>
+                    </Card>
+                ),
                 {
-                    duration: Infinity, // Toast won't auto-dismiss
+                    id: notificationId,
+                    duration: Infinity,
                     style: {
-                        minWidth: '300px',
-                        maxWidth: '400px',
-                        padding: '12px 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                        fontSize: '14px',
-                        lineHeight: '1.5',
+                        background: 'transparent',
+                        padding: 0,
+                        margin: '8px 0',
+                        boxShadow: 'none'
                     },
                 }
             );
