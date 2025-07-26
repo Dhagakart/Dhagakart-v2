@@ -46,6 +46,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 // --- START: Imports for Real-Time Notifications ---
 import { io } from "socket.io-client";
 import toast from 'react-hot-toast';
+import notificationSound from './notification.mp3';
 // --- END: Imports for Real-Time Notifications ---
 
 const OrderTable = () => {
@@ -109,50 +110,40 @@ const OrderTable = () => {
     const orders = isSearching ? searchResults : allOrders;
 
     const playNotificationSound = () => {
-        if (window.Tone) {
-            try {
-                // Ensure audio context is started by user interaction
-                window.Tone.start();
-
-                // Create a PolySynth to play multiple notes for the arpeggio
-                const synth = new window.Tone.PolySynth(window.Tone.Synth, {
-                    oscillator: {
-                        type: "fatsawtooth",
-                        count: 3,
-                        spread: 30
-                    },
-                    envelope: {
-                        attack: 0.01,
-                        decay: 0.1,
-                        sustain: 0.5,
-                        release: 0.5,
-                        attackCurve: "exponential"
-                    },
-                }).toDestination();
-
-                // Create a loop to keep playing the sound
-                const loop = new window.Tone.Loop(time => {
-                    const now = window.Tone.now();
-                    synth.triggerAttackRelease("C5", "16n", now);
-                    synth.triggerAttackRelease("E5", "16n", now + 0.1);
-                    synth.triggerAttackRelease("G5", "16n", now + 0.2);
-                }, 2); // Repeat every 2 seconds
-
-                // Start the loop
-                loop.start(0);
-
-                // Return a function to stop the loop
-                return () => {
-                    loop.stop();
-                    loop.dispose();
-                    synth.dispose();
-                };
-            } catch (error) {
-                console.error("Could not play notification sound:", error);
-                return () => {}; // Return empty cleanup function
+        try {
+            // Create audio context if it doesn't exist
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioContext = new AudioContext();
+            
+            // Create audio buffer source
+            const audioElement = new Audio(notificationSound);
+            audioElement.loop = true; // Loop the audio
+            
+            // Create media element source
+            const source = audioContext.createMediaElementSource(audioElement);
+            source.connect(audioContext.destination);
+            
+            // Play the audio
+            const playPromise = audioElement.play();
+            
+            // Handle autoplay restrictions
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("Audio playback failed:", error);
+                });
             }
-        } else {
-            console.warn("Tone.js is not loaded. Cannot play sound.");
+            
+            // Return a function to stop the audio
+            return () => {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                source.disconnect();
+                if (audioContext.state !== 'closed') {
+                    audioContext.close();
+                }
+            };
+        } catch (error) {
+            console.error("Could not play notification sound:", error);
             return () => {}; // Return empty cleanup function
         }
     };
