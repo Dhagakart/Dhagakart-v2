@@ -167,21 +167,42 @@ const OrderTable = () => {
             // Show toast with manual close and call stopSound when dismissed
             toast.success(
                 (t) => (
-                    <div>
-                        New Order from {order.shippingInfo.businessName}!
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <span>New Order from {order.shippingInfo.businessName}!</span>
                         <button 
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 stopSound();
                                 toast.dismiss(t.id);
                             }}
                             style={{
-                                marginLeft: '10px',
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#fff',
+                                marginLeft: '15px',
+                                background: '#ff4444',
+                                border: '1px solid #ff0000',
+                                borderRadius: '50%',
+                                color: '#ffffff',
                                 cursor: 'pointer',
-                                float: 'right'
+                                width: '24px',
+                                height: '24px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 0,
+                                fontSize: '16px',
+                                lineHeight: 1,
+                                fontWeight: 'bold',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                             }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#ff6666';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#ff4444';
+                                e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                            aria-label="Close notification"
                         >
                             ×
                         </button>
@@ -191,10 +212,17 @@ const OrderTable = () => {
                     duration: Infinity, // Toast won't auto-dismiss
                     style: {
                         minWidth: '300px',
-                        padding: '10px 16px',
+                        maxWidth: '400px',
+                        padding: '12px 16px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        fontSize: '14px',
+                        lineHeight: '1.5',
                     },
                 }
             );
