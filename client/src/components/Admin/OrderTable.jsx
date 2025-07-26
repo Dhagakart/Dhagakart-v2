@@ -1,25 +1,24 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import {
-  Box, 
-  TextField, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem,
-  Button, 
-  InputAdornment, 
-  Grid, 
-  Paper,
-  IconButton,
-  Typography,
-  Card,
-  CardHeader,
-  CardContent,
-  Divider,
-  Collapse,
-  useTheme,
-  useMediaQuery
+    Box,
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Button,
+    InputAdornment,
+    Grid,
+    Paper,
+    IconButton,
+    Typography,
+    Card,
+    CardHeader,
+    CardContent,
+    Collapse,
+    useTheme,
+    useMediaQuery
 } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -29,19 +28,25 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
-import { 
-    clearErrors, 
-    deleteOrder, 
-    getAllOrders, 
-    searchOrders, 
+import {
+    clearErrors,
+    deleteOrder,
+    getAllOrders,
+    searchOrders,
 } from '../../actions/orderAction';
-import { DELETE_ORDER_RESET } from '../../constants/orderConstants';
+// --- UPDATED: Import the new action type ---
+import { DELETE_ORDER_RESET, NEW_ORDER_RECEIVED } from '../../constants/orderConstants';
 import Actions from './Actions';
 import { formatDate } from '../../utils/functions';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import Sidebar from './Sidebar/Sidebar';
 import MenuIcon from '@mui/icons-material/Menu';
+
+// --- START: Imports for Real-Time Notifications ---
+import { io } from "socket.io-client";
+import toast from 'react-hot-toast';
+// --- END: Imports for Real-Time Notifications ---
 
 const OrderTable = () => {
     const dispatch = useDispatch();
@@ -62,53 +67,80 @@ const OrderTable = () => {
         endDate: null,
         paymentMethod: ''
     });
-    
+
     const [searchParams, setSearchParams] = useState({});
     const [sortBy, setSortBy] = useState('-createdAt');
 
-    // Remove limit from state since it's now a constant
-    // Get orders from Redux state with default values
-    const { 
-        orders: allOrders = [], 
-        totalOrders: allTotalOrders = 0, 
-        totalPages: allTotalPages = 1, 
+    const {
+        orders: allOrders = [],
+        totalOrders: allTotalOrders = 0,
+        totalPages: allTotalPages = 1,
         currentPage: allCurrentPage = 1,
         limit: allLimit = 10,
         error: allOrdersError,
         loading: allOrdersLoading = false
     } = useSelector((state) => state.allOrders || {});
 
-    const { 
-        orders: searchResults = [], 
+    const {
+        orders: searchResults = [],
         pagination: searchPagination = {
             currentPage: 1,
             totalPages: 1,
             totalOrders: 0,
             limit: 10
-        }, 
-        loading: searchLoading = false, 
-        error: searchError 
+        },
+        loading: searchLoading = false,
+        error: searchError
     } = useSelector((state) => state.searchOrders || {});
-    
-    // Get order operation states
-    const { 
-        loading: isDeleting = false, 
+
+    const {
+        loading: isDeleting = false,
         isDeleted = false,
         error: deleteError = null
     } = useSelector((state) => state.order || {});
-    
-    // Check if we're currently searching (any search parameter has a value)
-    const isSearching = useMemo(() => 
-        Object.values(searchParams).some(param => 
+
+    const isSearching = useMemo(() =>
+        Object.values(searchParams).some(param =>
             param !== '' && param !== null && param !== undefined
         ),
         [searchParams]
     );
-    
-    // Get orders from the appropriate state slice
+
     const orders = isSearching ? searchResults : allOrders;
-    
-    // Log state for debugging
+
+    // --- UPDATED: Real-Time Notification Logic ---
+    useEffect(() => {
+        const BACKEND_URL = 'http://localhost:4000';
+        const socket = io(BACKEND_URL);
+
+        socket.on("connect", () => {
+            console.log("Socket.io connection established.");
+        });
+
+        socket.on("newOrder", (order) => {
+            console.log("--- New Order Event Received on Frontend ---", order);
+
+            // 1. Show a toast notification
+            toast.success(`New Order from ${order.shippingInfo.businessName}!`);
+
+            // 2. Dispatch the action to add the order directly to the Redux state
+            dispatch({
+                type: NEW_ORDER_RECEIVED,
+                payload: order,
+            });
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Socket.io connection disconnected.");
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [dispatch]);
+    // --- END: Real-Time Notification Logic ---
+
+
     useEffect(() => {
         console.log('OrderTable state:', {
             allOrders,
@@ -123,15 +155,14 @@ const OrderTable = () => {
             }
         });
     }, [allOrders, searchResults, searchPagination, isSearching, searchParams, allCurrentPage, allTotalPages, allTotalOrders]);
-    
-    // Get pagination info based on whether we're searching or not
+
     const paginationInfo = useMemo(() => ({
         currentPage: isSearching ? (searchPagination.currentPage || 1) : (allCurrentPage || 1),
         totalPages: isSearching ? (searchPagination.totalPages || 1) : (allTotalPages || 1),
         totalOrders: isSearching ? (searchPagination.totalOrders || 0) : (allTotalOrders || 0),
         limit: isSearching ? (searchPagination.limit || 10) : (allLimit || 10)
     }), [isSearching, searchPagination, allCurrentPage, allTotalPages, allTotalOrders, allLimit]);
-    
+
     const error = searchError || allOrdersError;
     const isLoading = allOrdersLoading || searchLoading;
 
@@ -141,17 +172,15 @@ const OrderTable = () => {
         }
     }, []);
 
-    // Define fetchOrders with useCallback to prevent recreation on every render
     const fetchOrders = useCallback(async (searchParamsToUse = null) => {
         const paramsToUse = searchParamsToUse || searchParams;
-        const hasSearchParams = paramsToUse && Object.values(paramsToUse).some(param => 
+        const hasSearchParams = paramsToUse && Object.values(paramsToUse).some(param =>
             param !== '' && param !== null && param !== undefined
         );
 
         try {
             if (hasSearchParams && isSearching) {
                 console.log('Fetching orders with search params:', paramsToUse);
-                // Prepare search parameters
                 const params = {
                     ...paramsToUse,
                     startDate: paramsToUse.startDate ? paramsToUse.startDate.toISOString().split('T')[0] : null,
@@ -160,8 +189,7 @@ const OrderTable = () => {
                     limit,
                     sortBy
                 };
-                
-                // Remove empty params
+
                 Object.keys(params).forEach(key => {
                     if (params[key] === '' || params[key] === null || params[key] === undefined) {
                         delete params[key];
@@ -172,76 +200,60 @@ const OrderTable = () => {
                 await dispatch(searchOrders(params));
             } else {
                 console.log('Fetching all orders with pagination:', { page, limit, sortBy });
-                await dispatch(getAllOrders({ 
-                    page, 
-                    limit, 
-                    sortBy 
+                await dispatch(getAllOrders({
+                    page,
+                    limit,
+                    sortBy
                 }));
             }
         } catch (error) {
             console.error('Error in fetchOrders:', error);
-            enqueueSnackbar(error.message || 'An error occurred while fetching orders', { 
-                variant: 'error' 
+            enqueueSnackbar(error.message || 'An error occurred while fetching orders', {
+                variant: 'error'
             });
         }
-    }, [page, limit, sortBy, dispatch, enqueueSnackbar, isSearching]);
+    }, [page, limit, sortBy, dispatch, enqueueSnackbar, isSearching, searchParams]);
 
-    // Track initial load
     const isInitialMount = useRef(true);
-    const [isSearchSubmitted, setIsSearchSubmitted] = useState(false);
 
-    // Initial data load and handle pagination/sorting changes
     useEffect(() => {
-        // Skip the initial render to prevent duplicate calls
         if (isInitialMount.current) {
             isInitialMount.current = false;
             return;
         }
-        
-        console.log('Fetching orders...', { page, limit, sortBy, isSearching });
-        
-        // Only fetch orders when:
-        // 1. Not in search mode, OR
-        // 2. In search mode but only when search was explicitly triggered
+
         if (!isSearching) {
             fetchOrders();
         }
-    }, [page, limit, sortBy, isSearching, fetchOrders]);
-    
-    // Handle delete order success/error
+    }, [page, sortBy, isSearching, fetchOrders]);
+
     useEffect(() => {
         if (deleteError) {
             enqueueSnackbar(deleteError, { variant: 'error' });
             dispatch(clearErrors());
         }
-        
+
         if (isDeleted) {
             enqueueSnackbar('Order deleted successfully', { variant: 'success' });
-            dispatch({ type: 'DELETE_ORDER_RESET' });
-            // Refresh the orders list after deletion
+            dispatch({ type: DELETE_ORDER_RESET });
             fetchOrders();
         }
     }, [dispatch, deleteError, isDeleted, enqueueSnackbar, fetchOrders]);
-    
-    // Initial data load
+
     useEffect(() => {
         console.log('Initial load, fetching orders...');
         fetchOrders();
-        
-        // Cleanup function
+
         return () => {
             isInitialMount.current = true;
         };
-    }, [fetchOrders]); // Add fetchOrders to dependency array
-    
+    }, [fetchOrders]);
 
 
     const handleSearch = (e) => {
         e.preventDefault();
-        setPage(1); // Reset to first page on new search
-        // Only set search params when search is submitted
+        setPage(1);
         setSearchParams({ ...formValues });
-        // Pass the form values to fetchOrders
         fetchOrders(formValues);
     };
 
@@ -262,7 +274,6 @@ const OrderTable = () => {
         setSearchParams({});
         setPage(1);
         setSortBy('-createdAt');
-        // This will trigger the effect to fetch all orders
     };
 
     const handleChange = (e) => {
@@ -353,68 +364,64 @@ const OrderTable = () => {
         },
     ];
 
-// Format orders for the DataGrid
-const rows = useMemo(() => {
-    if (!Array.isArray(orders)) {
-        console.warn('Orders is not an array:', orders);
-        return [];
-    }
-
-    return orders.map((order) => {
-        if (!order) {
-            console.warn('Encountered null/undefined order in orders array');
-            return null;
+    const rows = useMemo(() => {
+        if (!Array.isArray(orders)) {
+            console.warn('Orders is not an array:', orders);
+            return [];
         }
 
-        try {
-            return {
-                id: order._id || order.id || `temp-${Math.random().toString(36).substr(2, 9)}`,
-                itemsQty: Array.isArray(order.orderItems) ? order.orderItems.length : 0,
-                amount: order.totalPrice || 0,
-                orderOn: order.createdAt ? formatDate(order.createdAt) : 'N/A',
-                status: order.orderStatus || 'N/A',
-                customerName: order.shippingInfo?.name || order.shippingInfo?.businessName || 'N/A',
-                customerEmail: order.user?.email || order.userEmail || 'N/A',
-                paymentMethod: order.paymentInfo?.type || 'N/A',
-                // Include raw data for potential use in custom renderers
-                _rawData: order,
-                // Include additional fields that might be needed
-                orderItems: order.orderItems || [],
-                shippingInfo: order.shippingInfo || {},
-                user: order.user || {}
-            };
-        } catch (error) {
-            console.error('Error formatting order:', error, 'Order data:', order);
-            return null;
-        }
-    }).filter(Boolean); // Filter out any null entries
-}, [orders]);
+        return orders.map((order) => {
+            if (!order) {
+                console.warn('Encountered null/undefined order in orders array');
+                return null;
+            }
 
-// Debug effect to log important state changes
-useEffect(() => {
-    console.group('OrderTable Debug Info');
-    console.log('Orders count:', orders?.length || 0);
-    console.log('Rows count:', rows.length);
-    console.log('Pagination:', paginationInfo);
-    console.log('Is searching:', isSearching);
-    
-    if (isSearching) {
-        console.log('Search params:', searchParams);
-        if (searchResults.length > 0) {
-            console.log('First search result:', searchResults[0]);
-        } else {
-            console.log('No search results');
+            try {
+                return {
+                    id: order._id || order.id || `temp-${Math.random().toString(36).substr(2, 9)}`,
+                    itemsQty: Array.isArray(order.orderItems) ? order.orderItems.length : 0,
+                    amount: order.totalPrice || 0,
+                    orderOn: order.createdAt ? formatDate(order.createdAt) : 'N/A',
+                    status: order.orderStatus || 'N/A',
+                    customerName: order.shippingInfo?.name || order.shippingInfo?.businessName || 'N/A',
+                    customerEmail: order.user?.email || order.userEmail || 'N/A',
+                    paymentMethod: order.paymentInfo?.type || 'N/A',
+                    _rawData: order,
+                    orderItems: order.orderItems || [],
+                    shippingInfo: order.shippingInfo || {},
+                    user: order.user || {}
+                };
+            } catch (error) {
+                console.error('Error formatting order:', error, 'Order data:', order);
+                return null;
+            }
+        }).filter(Boolean);
+    }, [orders]);
+
+    useEffect(() => {
+        console.group('OrderTable Debug Info');
+        console.log('Orders count:', orders?.length || 0);
+        console.log('Rows count:', rows.length);
+        console.log('Pagination:', paginationInfo);
+        console.log('Is searching:', isSearching);
+
+        if (isSearching) {
+            console.log('Search params:', searchParams);
+            if (searchResults.length > 0) {
+                console.log('First search result:', searchResults[0]);
+            } else {
+                console.log('No search results');
+            }
+        } else if (allOrders.length > 0) {
+            console.log('First order in allOrders:', allOrders[0]);
         }
-    } else if (allOrders.length > 0) {
-        console.log('First order in allOrders:', allOrders[0]);
-    }
-    
-    if (rows.length > 0) {
-        console.log('First row data:', rows[0]);
-    }
-    
-    console.groupEnd();
-}, [orders, rows, paginationInfo, isSearching, searchResults, allOrders, searchParams]);
+
+        if (rows.length > 0) {
+            console.log('First row data:', rows[0]);
+        }
+
+        console.groupEnd();
+    }, [orders, rows, paginationInfo, isSearching, searchResults, allOrders, searchParams]);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -429,26 +436,11 @@ useEffect(() => {
                 {!onMobile && <Sidebar activeTab="orders" />}
                 {toggleSidebar && <Sidebar activeTab="orders" setToggleSidebar={setToggleSidebar} />}
 
-                <Box component="main" sx={{ flexGrow: 1, px: 1, pb:3, width: { sm: `calc(100% - 240px)` } }}>
+                <Box component="main" sx={{ flexGrow: 1, px: 1, pb: 3, width: { sm: `calc(100% - 240px)` } }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            {/* <Box>
-                                <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                    Order Management
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Manage and track customer orders
-                                </Typography>
-                            </Box> */}
-                            {/* <IconButton 
-                                onClick={() => setToggleSidebar(true)} 
-                                sx={{ display: { sm: 'none' }, bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
-                            >
-                                <MenuIcon />
-                            </IconButton> */}
                         </Box>
 
-                        {/* Search Card */}
                         <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
                             <CardHeader
                                 title={
@@ -456,8 +448,8 @@ useEffect(() => {
                                         <Typography variant="h6" component="div">
                                             Search Orders
                                         </Typography>
-                                        <IconButton 
-                                            onClick={() => setSearchExpanded(!searchExpanded)} 
+                                        <IconButton
+                                            onClick={() => setSearchExpanded(!searchExpanded)}
                                             size="small"
                                             sx={{ color: 'text.secondary' }}
                                         >
@@ -473,7 +465,7 @@ useEffect(() => {
                                     }
                                 }}
                             />
-                            
+
                             <Collapse in={searchExpanded} timeout="auto" unmountOnExit>
                                 <CardContent>
                                     <form onSubmit={handleSearch}>
@@ -604,10 +596,10 @@ useEffect(() => {
                                                     value={formValues.startDate}
                                                     onChange={(date) => handleDateChange('startDate', date)}
                                                     renderInput={(params) => (
-                                                        <TextField 
-                                                            {...params} 
-                                                            fullWidth 
-                                                            size="small" 
+                                                        <TextField
+                                                            {...params}
+                                                            fullWidth
+                                                            size="small"
                                                             variant="outlined"
                                                             InputLabelProps={{
                                                                 shrink: true,
@@ -623,10 +615,10 @@ useEffect(() => {
                                                     value={formValues.endDate}
                                                     onChange={(date) => handleDateChange('endDate', date)}
                                                     renderInput={(params) => (
-                                                        <TextField 
-                                                            {...params} 
-                                                            fullWidth 
-                                                            size="small" 
+                                                        <TextField
+                                                            {...params}
+                                                            fullWidth
+                                                            size="small"
                                                             variant="outlined"
                                                             InputLabelProps={{
                                                                 shrink: true,
@@ -663,7 +655,6 @@ useEffect(() => {
                             </Collapse>
                         </Card>
 
-                        {/* Data Grid */}
                         <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden', width: '100%' }}>
                             <DataGrid
                                 rows={rows}
@@ -677,24 +668,18 @@ useEffect(() => {
                                 disableSelectionOnClick
                                 disableColumnMenu={false}
                                 autoHeight
-                                // loading={isLoading}
                                 getRowId={(row) => row._id || row.id}
                                 components={{
                                     Toolbar: GridToolbar,
                                     NoRowsOverlay: () => (
-                                        <Box sx={{ 
-                                            height: '100%', 
-                                            display: 'flex', 
-                                            flexDirection: 'column', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'center', 
+                                        <Box sx={{
+                                            height: '100%',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
                                             p: 3
                                         }}>
-                                            {/* <SearchIcon sx={{ 
-                                                fontSize: 48, 
-                                                color: 'text.disabled', 
-                                                mb: 2 
-                                            }} /> */}
                                             <Typography variant="h6" color="text.secondary" gutterBottom>
                                                 No orders found
                                             </Typography>

@@ -1,15 +1,16 @@
-import { 
-    NEW_ORDER_REQUEST, NEW_ORDER_SUCCESS, NEW_ORDER_FAIL, 
-    CLEAR_ERRORS, 
-    MY_ORDERS_FAIL, MY_ORDERS_SUCCESS, MY_ORDERS_REQUEST, 
-    PAYMENT_STATUS_REQUEST, PAYMENT_STATUS_SUCCESS, PAYMENT_STATUS_FAIL, 
-    ORDER_DETAILS_REQUEST, ORDER_DETAILS_SUCCESS, ORDER_DETAILS_FAIL, 
-    ALL_ORDERS_REQUEST, ALL_ORDERS_SUCCESS, ALL_ORDERS_FAIL, 
-    UPDATE_ORDER_REQUEST, DELETE_ORDER_REQUEST, 
-    UPDATE_ORDER_SUCCESS, DELETE_ORDER_SUCCESS, 
-    UPDATE_ORDER_FAIL, DELETE_ORDER_FAIL, 
+import {
+    NEW_ORDER_REQUEST, NEW_ORDER_SUCCESS, NEW_ORDER_FAIL,
+    CLEAR_ERRORS,
+    MY_ORDERS_FAIL, MY_ORDERS_SUCCESS, MY_ORDERS_REQUEST,
+    PAYMENT_STATUS_REQUEST, PAYMENT_STATUS_SUCCESS, PAYMENT_STATUS_FAIL,
+    ORDER_DETAILS_REQUEST, ORDER_DETAILS_SUCCESS, ORDER_DETAILS_FAIL,
+    ALL_ORDERS_REQUEST, ALL_ORDERS_SUCCESS, ALL_ORDERS_FAIL,
+    UPDATE_ORDER_REQUEST, DELETE_ORDER_REQUEST,
+    UPDATE_ORDER_SUCCESS, DELETE_ORDER_SUCCESS,
+    UPDATE_ORDER_FAIL, DELETE_ORDER_FAIL,
     UPDATE_ORDER_RESET, DELETE_ORDER_RESET,
-    SEARCH_ORDERS_REQUEST, SEARCH_ORDERS_SUCCESS, SEARCH_ORDERS_FAIL
+    SEARCH_ORDERS_REQUEST, SEARCH_ORDERS_SUCCESS, SEARCH_ORDERS_FAIL,
+    NEW_ORDER_RECEIVED // <-- Import the new constant
 } from "../constants/orderConstants";
 
 export const newOrderReducer = (state = {}, { type, payload }) => {
@@ -130,8 +131,8 @@ export const orderDetailsReducer = (state = { order: {} }, { type, payload }) =>
 };
 
 
-export const allOrdersReducer = (state = { 
-    orders: [], 
+export const allOrdersReducer = (state = {
+    orders: [],
     totalOrders: 0,
     totalAmount: 0,
     totalPages: 1,
@@ -147,9 +148,8 @@ export const allOrdersReducer = (state = {
                 loading: true,
                 error: null
             };
-            
+
         case ALL_ORDERS_SUCCESS:
-            console.log('ALL_ORDERS_SUCCESS payload:', payload);
             return {
                 ...state,
                 loading: false,
@@ -160,9 +160,19 @@ export const allOrdersReducer = (state = {
                 currentPage: payload.currentPage || 1,
                 limit: payload.limit || (Array.isArray(payload.orders) ? payload.orders.length : 10)
             };
-            
+
+        // --- ADD THIS CASE FOR REAL-TIME UPDATES ---
+        case NEW_ORDER_RECEIVED:
+            return {
+                ...state,
+                // Add the new order to the beginning of the existing list
+                orders: [payload, ...state.orders],
+                // Increment the total order count
+                totalOrders: state.totalOrders + 1,
+            };
+        // ---------------------------------------------
+
         case ALL_ORDERS_FAIL:
-            console.error('ALL_ORDERS_FAIL:', payload);
             return {
                 ...state,
                 loading: false,
@@ -171,13 +181,13 @@ export const allOrdersReducer = (state = {
                 totalOrders: 0,
                 totalAmount: 0
             };
-            
+
         case CLEAR_ERRORS:
             return {
                 ...state,
                 error: null,
             };
-            
+
         default:
             return state;
     }
@@ -193,7 +203,6 @@ export const searchOrdersReducer = (state = { orders: [], pagination: {} }, { ty
             };
 
         case SEARCH_ORDERS_SUCCESS:
-            // Handle both direct array response and paginated response
             const orders = Array.isArray(payload) ? payload : (payload.orders || []);
             const pagination = {
                 currentPage: payload.currentPage || 1,

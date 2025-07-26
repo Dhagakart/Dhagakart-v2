@@ -1,17 +1,24 @@
 const path = require('path');
 const express = require('express');
 const cloudinary = require('cloudinary');
-const app = require('./backend/app');
-const connectDatabase = require('./backend/config/database');
+const http = require('http');
+const { Server } = require("socket.io");
+const axios = require('axios');
 
-// Load environment variables
+// --- MOVED TO TOP ---
+// Load environment variables immediately, before any other modules are required.
 if (process.env.NODE_ENV !== 'production') {
+    // This path should point to your .env file relative to the root directory.
     require('dotenv').config({ path: 'backend/.env' });
 }
+// --------------------
+
+const app = require('./backend/app'); // Now 'app' will have access to the loaded env variables
+const connectDatabase = require('./backend/config/database');
 
 const PORT = process.env.PORT || 4000;
 
-// UncaughtException Error - Handle any uncaught exceptions
+// UncaughtException Error
 process.on('uncaughtException', (err) => {
     console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
     console.error('Error:', err);
@@ -29,10 +36,30 @@ cloudinary.config({
     secure: true
 });
 
+// --- START: WebSocket and Server Setup ---
+const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.FRONTEND_URL,
+        methods: ["GET", "POST"]
+    }
+});
+
+// Attach the 'io' instance to the app object to make it accessible in controllers
+app.set('socketio', io);
+
+io.on("connection", (socket) => {
+    console.log(`Socket Connected: ${socket.id}`);
+    socket.on("disconnect", () => {
+        console.log(`Socket Disconnected: ${socket.id}`);
+    });
+});
+// --- END: WebSocket and Server Setup ---
+
 // Configure temporary directory for file uploads
 const os = require('os');
 const fs = require('fs');
-
 const tempDir = path.join(os.tmpdir(), 'dhagakart-uploads');
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
@@ -40,26 +67,20 @@ if (!fs.existsSync(tempDir)) {
 
 // Configure file upload
 const fileUpload = require('express-fileupload');
-const axios = require('axios');
 app.use((req, res, next) => {
-    // Only apply file upload middleware to the quotes endpoint
     if (req.originalUrl.includes('/api/v1/quote')) {
         return fileUpload({
             useTempFiles: true,
             tempFileDir: tempDir,
-            limits: { 
-                fileSize: 50 * 1024 * 1024, // 50MB max file size
-                files: 1,
-                fields: 5 // Limit number of form fields
-            },
+            limits: { fileSize: 50 * 1024 * 1024 },
             abortOnLimit: true,
             responseOnLimit: 'File size is too large. Max 50MB allowed.',
             createParentPath: true,
             safeFileNames: true,
-            preserveExtension: 4, // Keep file extension (up to 4 chars)
+            preserveExtension: 4,
             parseNested: false,
             debug: process.env.NODE_ENV !== 'production',
-            uploadTimeout: 300000 // 5 minutes timeout for large files
+            uploadTimeout: 300000
         })(req, res, next);
     } else {
         next();
@@ -67,63 +88,49 @@ app.use((req, res, next) => {
 });
 
 // Deployment configuration
-__dirname = path.resolve();
+const __dirname_global = path.resolve();
 
-// In production, serve static files from the React app
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '/frontend/build')));
-
-    // Handle React routing, return all requests to React app
+    app.use(express.static(path.join(__dirname_global, '/frontend/build')));
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+        res.sendFile(path.join(__dirname_global, 'frontend', 'build', 'index.html'));
     });
 } else {
-    // In development, provide API status and documentation link
     app.get('/', (req, res) => {
         res.json({
             message: 'API is running in development mode',
-            documentation: 'http://localhost:4000/api-docs',
-            status: 'active',
-            apiBaseUrl: 'http://localhost:4000/api/v1'
+            documentation: `http://localhost:${PORT}/api-docs`,
         });
     });
 }
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'success',
-        message: 'Server is running',
-        timestamp: new Date().toISOString()
-    });
+    res.status(200).json({ status: 'success', message: 'Server is running', timestamp: new Date().toISOString() });
 });
 
-// Start the server
-const server = app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);    
+// --- MODIFIED: Start the httpServer instead of the Express app directly ---
+const server = httpServer.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     console.log(`Frontend URL: http://localhost:${process.env.FRONTEND_PORT || 5173}`);
     console.log(`Backend API: http://localhost:${PORT}/api/v1`);
     console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
-    console.log(`API Documentation (JSON): http://localhost:${PORT}/api-docs.json`);
 });
 
-// Function to ping the health check endpoint
+// Health check and graceful shutdown logic
 const pingServer = async () => {
     try {
-        // const response = await axios.get(`http://localhost:${PORT}/health`);
-        const response = await axios.get(`https://dhagakart.onrender.com/health`);
+        const url = process.env.NODE_ENV === 'production' ? 'https://dhagakart.onrender.com/health' : `http://localhost:${PORT}/health`;
+        await axios.get(url);
         console.log(`Health check successful at ${new Date().toISOString()}`);
     } catch (error) {
         console.error('Health check failed:', error.message);
     }
 };
 
-// Start pinging every minute (60000 ms)
 const healthCheckInterval = setInterval(pingServer, 60000);
-// Initial ping
 pingServer();
 
-// Clean up interval on process termination
 const shutdown = () => {
     clearInterval(healthCheckInterval);
     server.close(() => {
@@ -135,21 +142,10 @@ const shutdown = () => {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
     console.error('UNHANDLED REJECTION! 💥 Shutting down...');
     console.error('Error:', err);
-    
-    // Close the server and exit the process
     server.close(() => {
         process.exit(1);
-    });
-});
-
-// Handle SIGTERM signal for graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
-    server.close(() => {
-        console.log('💥 Process terminated!');
     });
 });
