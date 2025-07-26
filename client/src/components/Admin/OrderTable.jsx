@@ -125,22 +125,35 @@ const OrderTable = () => {
                         attack: 0.01,
                         decay: 0.1,
                         sustain: 0.5,
-                        release: 0.4,
+                        release: 0.5,
                         attackCurve: "exponential"
                     },
                 }).toDestination();
 
-                const now = window.Tone.now();
-                // Play a C-Major arpeggio in quick succession
-                synth.triggerAttackRelease("C5", "16n", now);
-                synth.triggerAttackRelease("E5", "16n", now + 0.1);
-                synth.triggerAttackRelease("G5", "16n", now + 0.2);
+                // Create a loop to keep playing the sound
+                const loop = new window.Tone.Loop(time => {
+                    const now = window.Tone.now();
+                    synth.triggerAttackRelease("C5", "16n", now);
+                    synth.triggerAttackRelease("E5", "16n", now + 0.1);
+                    synth.triggerAttackRelease("G5", "16n", now + 0.2);
+                }, 2); // Repeat every 2 seconds
 
+                // Start the loop
+                loop.start(0);
+
+                // Return a function to stop the loop
+                return () => {
+                    loop.stop();
+                    loop.dispose();
+                    synth.dispose();
+                };
             } catch (error) {
                 console.error("Could not play notification sound:", error);
+                return () => {}; // Return empty cleanup function
             }
         } else {
             console.warn("Tone.js is not loaded. Cannot play sound.");
+            return () => {}; // Return empty cleanup function
         }
     };
 
@@ -156,8 +169,45 @@ const OrderTable = () => {
 
         socket.on("newOrder", (order) => {
             console.log("--- New Order Event Received on Frontend ---", order);
-            playNotificationSound();
-            toast.success(`New Order from ${order.shippingInfo.businessName}!`);
+            
+            // Play sound and get the cleanup function
+            const stopSound = playNotificationSound();
+            
+            // Show toast with manual close and call stopSound when dismissed
+            toast.success(
+                (t) => (
+                    <div>
+                        New Order from {order.shippingInfo.businessName}!
+                        <button 
+                            onClick={() => {
+                                stopSound();
+                                toast.dismiss(t.id);
+                            }}
+                            style={{
+                                marginLeft: '10px',
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                float: 'right'
+                            }}
+                        >
+                            ×
+                        </button>
+                    </div>
+                ),
+                {
+                    duration: Infinity, // Toast won't auto-dismiss
+                    style: {
+                        minWidth: '300px',
+                        padding: '10px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    },
+                }
+            );
+            
             dispatch({
                 type: NEW_ORDER_RECEIVED,
                 payload: order,
