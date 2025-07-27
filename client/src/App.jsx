@@ -53,6 +53,7 @@ import RegisterSuccess from './components/User/RegisterSuccess';
 import ForgotPasswordDG from './components/User/ForgotPasswordDG';
 import FooterDG from './components/Layouts/Footer/FooterDG';
 import ProductDetailsDG from './components/ProductDetails/ProductDetailsDG';
+import Sitemap from './components/Sitemap/Sitemap';
 
 function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
@@ -310,6 +311,9 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } />
+
+        {/* Sitemap Route */}
+        <Route path="/sitemap" element={<Sitemap />} />
 
         <Route path="*" element={<NotFound />} />
         </Routes>
