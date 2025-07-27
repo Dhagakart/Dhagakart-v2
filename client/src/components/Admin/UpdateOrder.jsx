@@ -147,7 +147,9 @@ const UpdateOrder = () => {
                                                             </div>
                                                             <div className="flex-1 w-full">
                                                                 <h4 className="text-base font-medium text-gray-900">{item.name}</h4>
-                                                                <p className="text-sm text-gray-500 mt-1">Quantity: {item.quantity}</p>
+                                                                <p className="text-sm text-gray-500 mt-1">
+                                                                    {item.quantity} {item.unit?.name ? item.unit.name : 'unit'}{item.quantity > 1 ? 's' : ''}
+                                                                </p>
                                                                 <div className="mt-2 flex items-center gap-2">
                                                                     <span className="text-base font-semibold text-[#003366]">
                                                                         ₹{(item.quantity * item.price).toLocaleString('en-IN')}

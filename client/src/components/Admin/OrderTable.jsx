@@ -449,10 +449,32 @@ const OrderTable = () => {
         },
         {
             field: "itemsQty",
-            headerName: "Items Qty",
-            type: "number",
-            minWidth: 100,
-            flex: 0.1,
+            headerName: "Qty & Units",
+            minWidth: 120,
+            flex: 0.15,
+            renderCell: (params) => {
+                const orderItems = params.row.orderItems || [];
+                
+                return (
+                    <div className="w-full">
+                        {orderItems.map((item, idx) => {
+                            const unitName = item.unit?.name || 'unit';
+                            const quantity = item.quantity || 0;
+                            const itemText = `${quantity} ${unitName}${quantity !== 1 ? 's' : ''}`;
+                            
+                            return (
+                                <div 
+                                    key={idx} 
+                                    className="text-sm whitespace-nowrap"
+                                    title={itemText}
+                                >
+                                    {itemText}
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            },
         },
         {
             field: "amount",
@@ -501,9 +523,25 @@ const OrderTable = () => {
             }
 
             try {
+                // Calculate total items and units
+                const itemsQty = Array.isArray(order.orderItems) ? order.orderItems.length : 0;
+                
+                // Prepare order items with unit information
+                const orderItems = (order.orderItems || []).map(item => ({
+                    ...item,
+                    unit: item.unit || {
+                        name: 'unit',
+                        minQty: 1,
+                        increment: 1,
+                        isDefault: true,
+                        price: item.price,
+                        cuttedPrice: item.cuttedPrice
+                    }
+                }));
+
                 return {
                     id: order._id || order.id || `temp-${Math.random().toString(36).substr(2, 9)}`,
-                    itemsQty: Array.isArray(order.orderItems) ? order.orderItems.length : 0,
+                    itemsQty,
                     amount: order.totalPrice || 0,
                     orderOn: order.createdAt ? formatDate(order.createdAt) : 'N/A',
                     status: order.orderStatus || 'N/A',
@@ -511,7 +549,7 @@ const OrderTable = () => {
                     customerEmail: order.user?.email || order.userEmail || 'N/A',
                     paymentMethod: order.paymentInfo?.type || 'N/A',
                     _rawData: order,
-                    orderItems: order.orderItems || [],
+                    orderItems,
                     shippingInfo: order.shippingInfo || {},
                     user: order.user || {}
                 };

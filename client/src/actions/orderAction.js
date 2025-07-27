@@ -38,14 +38,15 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
         const { user } = getState().user;
         const { cartItems, shippingInfo } = getState().cart;
 
-        // Prepare order items with required fields
+        // Prepare order items with unit information
         const orderItems = cartItems.map(item => ({
             name: item.name,
             price: item.price,
             quantity: item.quantity,
             image: item.image,
             product: item.product,
-            seller: item.seller
+            unit: item.unit, // Include the unit information
+            cuttedPrice: item.cuttedPrice
         }));
 
         // Prepare complete order data
@@ -53,7 +54,8 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
             shippingInfo: {
                 ...shippingInfo,
                 businessType: user.businessType || 'individual',
-                businessName: user.businessName || `${user.firstName} ${user.lastName}`.trim() || 'Customer'
+                businessName: user.businessName || `${user.firstName} ${user.lastName}`.trim() || 'Customer',
+                email: user.email // Ensure email is included in shipping info
             },
             orderItems,
             paymentInfo: orderData.paymentInfo || {
@@ -62,7 +64,8 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
             },
             discount: orderData.discount || 0,
             shippingPrice: orderData.shippingPrice || 0,
-            totalPrice: orderData.totalPrice
+            totalPrice: orderData.totalPrice,
+            itemsPrice: orderData.itemsPrice || cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
         };
 
         const { data } = await api.post('/order/new', order);

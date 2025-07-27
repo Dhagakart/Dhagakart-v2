@@ -19,9 +19,34 @@ exports.newOrder = asyncErrorHandler(async (req, res, next) => {
         totalPrice,
     } = req.body;
 
+    // Process order items to ensure they include unit information
+    const processedOrderItems = orderItems.map(item => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        product: item.product,
+        unit: item.unit ? {
+            name: item.unit.name || item.unit.unit || 'unit',
+            minQty: item.unit.minQty || 1,
+            maxQty: item.unit.maxQty,
+            increment: item.unit.increment || 1,
+            isDefault: item.unit.isDefault || false,
+            price: item.unit.price || item.price,
+            cuttedPrice: item.unit.cuttedPrice || item.cuttedPrice
+        } : {
+            name: 'unit',
+            minQty: 1,
+            increment: 1,
+            isDefault: true,
+            price: item.price,
+            cuttedPrice: item.cuttedPrice
+        }
+    }));
+
     const order = await Order.create({
         shippingInfo,
-        orderItems,
+        orderItems: processedOrderItems,
         paymentInfo,
         itemsPrice,
         shippingPrice,

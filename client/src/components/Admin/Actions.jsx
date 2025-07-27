@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 
-const Actions = ({ id, deleteHandler, name, editRoute }) => {
+const Actions = ({ id, deleteHandler, name, editRoute, showDelete = false }) => {
 
     const [open, setOpen] = useState(false);
 
@@ -18,14 +17,14 @@ const Actions = ({ id, deleteHandler, name, editRoute }) => {
     return (
         <>
             <div className="flex justify-between items-center gap-3">
-                {editRoute !== "review" && (
-                    <Link to={`/admin/${editRoute}/${id}`} className="text-blue-600 hover:bg-blue-200 p-1 rounded-full bg-blue-100">
-                        <EditIcon />
-                    </Link>
+                <Link to={`/admin/${editRoute}/${id}`} className="text-blue-600 hover:bg-blue-200 p-1 rounded-full bg-blue-100" title="View Order Details">
+                    <InfoOutlinedIcon />
+                </Link>
+                {showDelete && (
+                    <button onClick={() => setOpen(true)} className="text-red-600 hover:bg-red-200 p-1 rounded-full bg-red-100" style={{ display: 'none' }}>
+                        <DeleteIcon />
+                    </button>
                 )}
-                <button onClick={() => setOpen(true)} className="text-red-600 hover:bg-red-200 p-1 rounded-full bg-red-100">
-                    <DeleteIcon />
-                </button>
             </div>
 
             <Dialog

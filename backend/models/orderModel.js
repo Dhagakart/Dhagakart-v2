@@ -62,6 +62,36 @@ const orderSchema = new mongoose.Schema({
                 ref: "Product",
                 required: true
             },
+            unit: {
+                name: {
+                    type: String,
+                    required: true
+                },
+                minQty: {
+                    type: Number,
+                    default: 1
+                },
+                maxQty: {
+                    type: Number,
+                    required: false
+                },
+                increment: {
+                    type: Number,
+                    default: 1
+                },
+                isDefault: {
+                    type: Boolean,
+                    default: false
+                },
+                price: {
+                    type: Number,
+                    required: true
+                },
+                cuttedPrice: {
+                    type: Number,
+                    required: false
+                }
+            }
         },
     ],
     user: {
