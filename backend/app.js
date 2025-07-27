@@ -20,7 +20,7 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: 'backend/config/config.env' });
 }
 
-app.use(express.static(path.join(__dirname, 'client')));
+app.use(express.static(path.join(__dirname, '..', 'client'))); 
 
 const allowedOrigins = ['http://localhost:5173', 'https://dhagakart-jfaj.vercel.app', 'https://dhagakart.com', 'https://www.dhagakart.com'];
 const corsOptions = {
