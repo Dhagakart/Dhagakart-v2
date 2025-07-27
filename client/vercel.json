@@ -15,6 +15,10 @@
         "dest": "/assets/$1"
       },
       {
+        "src": "/sitemap.xml",
+        "dest": "/sitemap.xml"
+      },
+      {
         "src": "/(.*)",
         "dest": "/index.html"
       }
