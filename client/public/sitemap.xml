@@ -4,12 +4,99 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
-
-<url>
-  <loc>https://www.dhagakart.com/</loc>
-  <lastmod>2025-07-27T10:03:48+00:00</lastmod>
-</url>
-
+  
+  <!-- Home -->
+  <url>
+    <loc>https://www.dhagakart.com/</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Authentication -->
+  <url>
+    <loc>https://www.dhagakart.com/login</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <url>
+    <loc>https://www.dhagakart.com/register</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <url>
+    <loc>https://www.dhagakart.com/register/success</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <url>
+    <loc>https://www.dhagakart.com/loginDG</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <url>
+    <loc>https://www.dhagakart.com/otpDG</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <url>
+    <loc>https://www.dhagakart.com/loginDG2</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <url>
+    <loc>https://www.dhagakart.com/password/forgot</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <!-- Products -->
+  <url>
+    <loc>https://www.dhagakart.com/products</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Cart -->
+  <url>
+    <loc>https://www.dhagakart.com/cart</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  
+  <!-- Request Credits -->
+  <url>
+    <loc>https://www.dhagakart.com/reqcredits</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>weekly</changefreq>
+  </url>
+  
+  <!-- Bulk Order -->
+  <url>
+    <loc>https://www.dhagakart.com/bulkorder</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>weekly</changefreq>
+  </url>
+  
+  <!-- Quote Success -->
+  <url>
+    <loc>https://www.dhagakart.com/quote/success</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  
+  <!-- Sitemap -->
+  <url>
+    <loc>https://www.dhagakart.com/sitemap</loc>
+    <lastmod>2025-07-27T11:26:51+05:30</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
 
 </urlset>
