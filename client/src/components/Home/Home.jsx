@@ -82,9 +82,9 @@ const Home = () => {
 
   return (
     <>
-      <MetaData title="Online Shopping Site for all your textile needs!" />
+      <MetaData title="Online Shopping Site for all your textile needs!" description="One Stop Solution for your textile manufacturing. Yarns | Machinery | Looms | Sewing Machine" />
       {/* <Categories /> */}
-      <main className="flex flex-col gap-3 px-4 sm:px-6 lg:px-[48px] mt-8 sm:mt-10">
+      <main className="flex flex-col gap-3 px-4 sm:px-6 lg:px -[48px] mt-8 sm:mt-10">
         <Banner />
         <DealSlider title={"Best Deals"} />
         <Posters />
