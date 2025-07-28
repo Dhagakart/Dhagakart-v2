@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 const PopularTags = ({ tags }) => {
   return (
     <div className="py-2 md:py-0">
-      <h3 className="text-lg font-semibold text-white mb-6 tracking-wide uppercase">Popular Tags</h3>
+      <h3 className="text-lg font-semibold text-white mb-6 tracking-wide uppercase">
+        POPULAR TAGS
+      </h3>
       <div className="flex flex-wrap gap-2">
         {tags && tags.map((tag, idx) => (
           <Link

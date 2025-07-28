@@ -220,7 +220,7 @@ const FooterDG = () => {
           </div>
 
           <div className="lg:col-span-2 xl:col-span-1">
-            <PopularTags tags={popularTags} />
+            <PopularTags title="Popular Tags" tags={popularTags} />
           </div>
 
         </div>
