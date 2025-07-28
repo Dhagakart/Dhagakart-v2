@@ -27,5 +27,5 @@ export const popularTags = [
   { label: 'Yarn', href: '/products/yarn' },
   { label: 'Zari', href: '/products/zari' },
   { label: 'Machinery', href: '/products/machinery' },
-  { label: 'All Products', href: '/products/all' },
+  { label: 'All Products', href: '/products/all' }, 
 ];
