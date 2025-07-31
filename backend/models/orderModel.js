@@ -99,6 +99,11 @@ const orderSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    isSampleOrder: {
+        type: Boolean,
+        default: false,
+        required: true
+    },
     paymentInfo: {
         id: {
             type: String,

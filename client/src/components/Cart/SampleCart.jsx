@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaTrash, FaMinus, FaPlus } from 'react-icons/fa';
-import { addItemsToCart, removeItemsFromCart } from '../../actions/cartAction';
+import { FaArrowLeft, FaMinus, FaPlus, FaFlask, FaTrash } from 'react-icons/fa';
+import { addItemsToSampleCart, removeItemsFromSampleCart } from '../../actions/cartAction';
 import MetaData from '../Layouts/MetaData';
 import CartItem from './CartItem';
 import EmptyCart from './EmptyCart';
@@ -19,12 +19,12 @@ function useIsMobile() {
     return isMobile;
 }
 
-const Cart = () => {
+const SampleCart = () => {
     const dispatch = useDispatch();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const navigate = useNavigate();
     
-    const { cartItems } = useSelector((state) => state.cart);
+    const { sampleCartItems: cartItems } = useSelector((state) => state.sampleCart);
     const { isAuthenticated } = useSelector((state) => state.user);
     const isMobile = useIsMobile();
 
@@ -33,7 +33,7 @@ const Cart = () => {
             setShowLoginModal(true);
             return;
         }
-        navigate('/shipping');
+        navigate('/sample-shipping'); 
     }
 
     const calculateCartTotals = () => {
@@ -43,14 +43,14 @@ const Cart = () => {
             const cuttedPrice = item.unit?.cuttedPrice || item.cuttedPrice || price;
             return (price > cuttedPrice) ? sum + (price - cuttedPrice) * item.quantity : sum;
         }, 0);
-
+        
         const discountedSubtotal = subtotal - discount;
         const sgst = discountedSubtotal * 0.05;
         const cgst = discountedSubtotal * 0.05;
         const totalGst = sgst + cgst;
         const shippingCharges = discountedSubtotal >= 499 ? 0 : 100;
         const finalTotal = discountedSubtotal + totalGst + shippingCharges;
-
+        
         return { subtotal, discount, sgst, cgst, shippingCharges, finalTotal };
     };
 
@@ -64,16 +64,16 @@ const Cart = () => {
     );
 
     const renderPriceSidebar = () => (
-        <div className='space-y-5'>
+        <div className='space-y-4 md:space-y-5'>
             <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">Order Summary</h2>
-                <div className="space-y-3">
+                <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">Sample Order Summary</h2>
+                <div className="space-y-3 md:space-y-4">
                     <PriceRow label={`Subtotal (${cartItems.length} items)`} value={formatPrice(subtotal)} />
                     {discount > 0 && <PriceRow label="Discount" value={`-${formatPrice(discount)}`} isDiscount />}
                     <PriceRow label="SGST (5%)" value={formatPrice(sgst)} />
                     <PriceRow label="CGST (5%)" value={formatPrice(cgst)} />
                     <PriceRow label="Shipping" value={shippingCharges === 0 ? 'FREE' : formatPrice(shippingCharges)} isDiscount={shippingCharges === 0} />
-                    {shippingCharges > 0 && subtotal < 499 && <div className="text-xs text-green-600 text-right">Add ₹{499 - subtotal} more for FREE shipping</div>}
+                    {shippingCharges > 0 && subtotal < 499 && <div className="text-xs text-green-600 text-right -mt-1">Add ₹{499 - subtotal} more for FREE shipping</div>}
                     <PriceRow label="Total Amount" value={formatPrice(finalTotal)} isTotal />
                 </div>
                 <button
@@ -89,7 +89,7 @@ const Cart = () => {
 
     return (
         <>
-            <MetaData title="Shopping Cart | DhagaKart" />
+            <MetaData title="Sample Shopping Cart | DhagaKart" />
             <main className="w-full min-h-screen bg-gray-50 px-4 md:px-12 pt-4 md:pt-10">
                 <div className="container mx-auto py-4 md:py-8">
                     {/* --- FIX: Conditional check now wraps the entire layout --- */}
@@ -97,10 +97,19 @@ const Cart = () => {
                         <EmptyCart />
                     ) : (
                         <div className="flex flex-col lg:flex-row gap-8">
-                            {/* Left Column */}
                             <div className="lg:w-2/3 w-full">
                                 <div className="bg-white rounded-lg shadow-md">
-                                    <h2 className="text-xl font-bold text-gray-800 p-6 border-b border-gray-200">Shopping Cart ({cartItems.length})</h2>
+                                    <div className="p-4 bg-blue-50 border-b border-blue-200 rounded-t-lg">
+                                        <div className="flex items-center">
+                                            {/* <FaFlask className="text-blue-600 mr-3 h-5 w-5 flex-shrink-0" /> */}
+                                            <div>
+                                                <h3 className="font-semibold text-blue-800">This is a Sample Order</h3>
+                                                <p className="text-sm text-blue-700 mt-1">You are ordering samples to evaluate product quality.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-800 p-6 border-b border-gray-200">Sample Cart ({cartItems.length})</h2>
+                                    
                                     {isMobile ? (
                                         <div className="p-4 space-y-4">
                                             {cartItems.map((item) => {
@@ -108,21 +117,22 @@ const Cart = () => {
                                                 return (
                                                     <div key={item.product} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
                                                         <div className="flex gap-4">
-                                                            <Link to={`/product/${item.product}`} className="flex-shrink-0">
-                                                                <img className="h-24 w-24 object-contain rounded-md bg-gray-50 p-1 hover:cursor-pointer" src={item.image} alt={item.name} />
-                                                            </Link>
+                                                            <Link to={`/product/${item.product}`} className="flex-shrink-0"><img className="h-24 w-24 object-contain rounded-md bg-gray-50 p-1 hover:cursor-pointer" src={item.image} alt={item.name} /></Link>
                                                             <div className="flex flex-col justify-between w-full">
-                                                                <div><Link to={`/product/${item.product}`} className="font-semibold text-gray-800 leading-tight line-clamp-2 hover:text-blue-600 hover:cursor-pointer">{item.name}</Link></div>
+                                                                <div>
+                                                                    <Link to={`/product/${item.product}`} className="font-semibold text-gray-800 leading-tight line-clamp-2 hover:text-blue-600 hover:cursor-pointer">{item.name}</Link>
+                                                                    <div className="mt-1"><span className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">Sample</span></div>
+                                                                </div>
                                                                 <p className="text-lg font-bold text-gray-900">{formatPrice(item.price)}</p>
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                                                             <div className="flex items-center border border-gray-200 rounded-md">
-                                                                <button onClick={() => dispatch(addItemsToCart(item.product, Math.max(unit?.minQty || 1, item.quantity - (unit?.increment || 1)), unit))} className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 hover:cursor-pointer" disabled={item.quantity <= (unit?.minQty || 1)}><FaMinus size={12} /></button>
+                                                                <button onClick={() => dispatch(addItemsToSampleCart(item.product, Math.max(unit?.minQty || 1, item.quantity - (unit?.increment || 1)), unit))} className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 hover:cursor-pointer" disabled={item.quantity <= (unit?.minQty || 1)}><FaMinus size={12} /></button>
                                                                 <span className="px-4 py-1 text-center font-semibold w-12">{item.quantity}</span>
-                                                                <button onClick={() => dispatch(addItemsToCart(item.product, Math.min(unit?.maxQty || Infinity, item.quantity + (unit?.increment || 1)), unit))} className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 hover:cursor-pointer" disabled={unit?.maxQty ? item.quantity >= unit.maxQty : false}><FaPlus size={12} /></button>
+                                                                <button onClick={() => dispatch(addItemsToSampleCart(item.product, Math.min(unit?.maxQty || Infinity, item.quantity + (unit?.increment || 1)), unit))} className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 hover:cursor-pointer" disabled={unit?.maxQty ? item.quantity >= unit.maxQty : false}><FaPlus size={12} /></button>
                                                             </div>
-                                                            <button onClick={() => dispatch(removeItemsFromCart(item.product))} className="text-gray-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 hover:cursor-pointer transition-colors"><FaTrash size={16} /></button>
+                                                            <button onClick={() => dispatch(removeItemsFromSampleCart(item.product))} className="text-gray-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 hover:cursor-pointer transition-colors"><FaTrash size={16} /></button>
                                                         </div>
                                                     </div>
                                                 )
@@ -144,9 +154,10 @@ const Cart = () => {
                                                         <CartItem 
                                                             key={item.product} 
                                                             {...item}
+                                                            isSample={true}
                                                             inCart={true}
-                                                            removeAction={removeItemsFromCart}
-                                                            updateAction={addItemsToCart}
+                                                            removeAction={removeItemsFromSampleCart}
+                                                            updateAction={addItemsToSampleCart}
                                                         />
                                                     ))}
                                                 </tbody>
@@ -155,7 +166,6 @@ const Cart = () => {
                                     )}
                                 </div>
                             </div>
-                            {/* Right Column (Sidebar) */}
                             <div className="lg:w-1/3 w-full">
                                 <div className="lg:sticky lg:top-24">
                                     {renderPriceSidebar()}
@@ -170,4 +180,4 @@ const Cart = () => {
     );
 };
 
-export default Cart;
+export default SampleCart;

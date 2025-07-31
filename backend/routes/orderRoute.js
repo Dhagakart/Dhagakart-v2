@@ -1,5 +1,5 @@
 const express = require('express');
-const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders, getAllOrdersWithoutPagination } = require('../controllers/orderController');
+const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders, getAllOrdersWithoutPagination, newSampleOrder, mySampleOrders } = require('../controllers/orderController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -451,6 +451,41 @@ router.route('/admin/orders').get(isAuthenticatedUser, authorizeRoles("admin"), 
  *       404:
  *         description: Order not found
  */
+
+/**
+ * @swagger
+ * /api/v1/sample-order/new:
+ * post:
+ * summary: Create a new sample order
+ * tags: [Orders] 
+ * security:
+ * - bearerAuth: []
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * $ref: '#/components/schemas/CreateOrderRequest' # This can be reused
+ * responses:
+ * 201:
+ * description: Sample order created successfully
+ */
+router.route('/sample-order/new').post(isAuthenticatedUser, newSampleOrder);
+
+/**
+ * @swagger
+ * /api/v1/sample-orders/me:
+ * get:
+ * summary: Get logged in user's sample orders
+ * tags: [Orders]
+ * security:
+ * - bearerAuth: []
+ * responses:
+ * 200:
+ * description: List of user's sample orders
+ */
+router.route('/sample-orders/me').get(isAuthenticatedUser, mySampleOrders);
+
 // Admin routes
 router.route('/admin/orders')
     .get(isAuthenticatedUser, authorizeRoles("admin"), getAllOrders);

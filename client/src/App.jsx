@@ -19,7 +19,9 @@ import Home from './components/Home/Home';
 // import ProductDetails from './components/ProductDetails/ProductDetails';
 import Products from './components/Products/Products';
 import Cart from './components/Cart/Cart';
+import SampleCart from './components/Cart/SampleCart.jsx'
 import Shipping from './components/Cart/Shipping';
+import SampleShipping from './components/Cart/SampleShipping';
 import OrderConfirm from './components/Cart/OrderConfirm';
 import Payment from './components/Cart/Payment';
 import OrderStatus from './components/Cart/OrderStatus';
@@ -147,11 +149,18 @@ function App() {
         <Route path="/products/:keyword" element={<Products />} />
 
         <Route path="/cart" element={<Cart />} />
+        <Route path="/sample-cart" element={<SampleCart />} />
 
         {/* order process */}
         <Route path="/shipping" element={
           <ProtectedRoute>
             <Shipping />
+          </ProtectedRoute>
+        } ></Route>
+
+        <Route path="/sample-shipping" element={
+          <ProtectedRoute>
+            <SampleShipping />
           </ProtectedRoute>
         } ></Route>
 

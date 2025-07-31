@@ -1,109 +1,73 @@
+import React from 'react';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { FaMinus, FaPlus, FaTimes } from 'react-icons/fa';
-import { addItemsToCart, removeItemsFromCart } from '../../actions/cartAction';
+import { FaMinus, FaPlus, FaTrash } from 'react-icons/fa';
 import { formatPrice } from '../../utils/formatPrice';
 
-const CartItem = ({
-    product,
-    name,
-    price,
-    cuttedPrice,
-    image,
-    quantity,
-    unit
-}) => {
+const CartItem = ({ product, name, image, quantity, unit, isSample = false, updateAction, removeAction }) => {
     const dispatch = useDispatch();
 
     const increaseQuantity = () => {
-        const newQty = quantity + (unit?.increment || 1);
-        dispatch(addItemsToCart(product, newQty));
+        const newQty = Math.min(unit?.maxQty || Infinity, quantity + (unit?.increment || 1));
+        dispatch(updateAction(product, newQty, unit));
     };
 
     const decreaseQuantity = () => {
-        const newQty = quantity - (unit?.increment || 1);
-        if (newQty < (unit?.minQty || 1)) return;
-        dispatch(addItemsToCart(product, newQty));
+        const newQty = Math.max(unit?.minQty || 1, quantity - (unit?.increment || 1));
+        dispatch(updateAction(product, newQty, unit));
     };
 
-    // This variable now safely gets the unit name from either property
-    const unitName = unit?.name || unit?.unit || '';
+    const handleRemoveItem = () => {
+        dispatch(removeAction(product));
+    };
+
+    const itemPrice = unit?.price || 0;
+    const subTotal = itemPrice * quantity;
 
     return (
-        <tr className="border-b hover:bg-gray-50">
-            {/* Product Column */}
-            <td className="py-4 pl-6 w-2/5">
-                <div className="flex items-center space-x-4">
-                    <button
-                        onClick={() => dispatch(removeItemsFromCart(product))}
-                        className="text-gray-400 hover:text-red-500"
-                        aria-label="Remove item"
-                    >
-                        <FaTimes />
-                    </button>
-                    <Link to={`/product/${product}`}>
-                        <img
-                            className="h-16 w-16 object-contain"
-                            src={image}
-                            alt={name}
-                        />
+        <tr className="border-b border-gray-200 last:border-b-0">
+            <td className="py-6 px-6">
+                <div className="flex items-center gap-5">
+                    <Link to={`/product/${product}`} className="flex-shrink-0 hover:cursor-pointer">
+                        {/* --- UI MODIFICATION: Border removed, background added --- */}
+                        <div className="h-24 w-24 bg-gray-50 rounded-md flex items-center justify-center">
+                           <img className="max-h-full max-w-full object-contain" src={image} alt={name} />
+                        </div>
                     </Link>
-                    <div>
-                        <Link to={`/product/${product}`} className="font-medium text-gray-800 hover:text-blue-600">
+                    <div className="flex flex-col justify-center">
+                        <Link to={`/product/${product}`} className="font-semibold text-gray-900 hover:text-blue-600 hover:cursor-pointer line-clamp-2">
                             {name}
                         </Link>
-                        {/* FIX: Use the safe unitName variable */}
-                        {unitName && <p className="text-sm text-gray-500 mt-1">{unitName}</p>}
-                    </div>
-                </div>
-            </td>
-
-            {/* Price Column */}
-            <td className="py-4 pl-6 text-center">
-                <div className="flex flex-col items-center">
-                    <span className="font-medium">{formatPrice(price)}</span>
-                    {cuttedPrice > price && (
-                        <span className="text-sm text-gray-400 line-through">{formatPrice(cuttedPrice)}</span>
-                    )}
-                </div>
-            </td>
-
-            {/* Quantity Column */}
-            <td className="py-4 pl-6">
-                <div className="flex flex-col items-center mx-auto w-max">
-                    <div className="flex items-center border border-gray-200 rounded-lg">
-                        <button
-                            onClick={decreaseQuantity}
-                            className="p-2 hover:bg-gray-100 disabled:opacity-40"
-                            disabled={quantity <= (unit?.minQty || 1)}
-                            aria-label="Decrease quantity"
+                        {isSample && (
+                             <span className="mt-1 text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full w-max">Sample</span>
+                        )}
+                        <div className="text-sm text-gray-500 mt-1">Unit: {unit?.name || 'N/A'}</div>
+                        <button 
+                            onClick={handleRemoveItem} 
+                            className="text-sm text-gray-500 hover:text-red-600 mt-2 font-medium flex items-center gap-1.5 w-max p-1 rounded-md hover:bg-red-50 transition-colors hover:cursor-pointer"
                         >
-                            <FaMinus size={12} />
-                        </button>
-                        <span className="px-4 py-1 text-center font-medium min-w-[60px]">
-                           {/* FIX: Use the safe unitName variable */}
-                           {`${quantity} ${unitName}`}
-                        </span>
-                        <button
-                            onClick={increaseQuantity}
-                            className="p-2 hover:bg-gray-100 disabled:opacity-40"
-                            disabled={unit?.maxQty && quantity >= unit.maxQty}
-                            aria-label="Increase quantity"
-                        >
-                            <FaPlus size={12} />
+                            <FaTrash size={12} />
+                            Remove
                         </button>
                     </div>
-                    {unit?.minQty > 1 && (
-                        <div className="text-xs text-gray-500 mt-1">
-                            Min: {unit.minQty}
-                        </div>
-                    )}
                 </div>
             </td>
-
-            {/* Subtotal Column */}
-            <td className="py-4 pr-6 text-right font-semibold">
-                {formatPrice(price * quantity)}
+            <td className="py-6 px-6 text-center">
+                <p className="font-medium text-base text-gray-800">{formatPrice(itemPrice)}</p>
+            </td>
+            <td className="py-6 px-6">
+                <div className="flex items-center justify-center border border-gray-200 rounded-md w-max mx-auto">
+                    <button onClick={decreaseQuantity} disabled={quantity <= (unit?.minQty || 1)} className="px-3 py-2.5 hover:bg-gray-100 disabled:opacity-50 transition-colors hover:cursor-pointer">
+                        <FaMinus size={12} />
+                    </button>
+                    <span className="px-4 py-1 text-center font-semibold text-gray-800 w-12">{quantity}</span>
+                    <button onClick={increaseQuantity} disabled={quantity >= (unit?.maxQty || Infinity)} className="px-3 py-2.5 hover:bg-gray-100 disabled:opacity-50 transition-colors hover:cursor-pointer">
+                        <FaPlus size={12} />
+                    </button>
+                </div>
+            </td>
+            <td className="py-6 px-6 text-right">
+                <p className="font-bold text-base text-gray-900">{formatPrice(subTotal)}</p>
             </td>
         </tr>
     );

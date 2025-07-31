@@ -24,11 +24,20 @@ import {
     UPDATE_ORDER_SUCCESS,
     SEARCH_ORDERS_REQUEST,
     SEARCH_ORDERS_SUCCESS,
-    SEARCH_ORDERS_FAIL
+    SEARCH_ORDERS_FAIL,
+    // --- MODIFICATION: Import sample order constants ---
+    NEW_SAMPLE_ORDER_REQUEST,
+    NEW_SAMPLE_ORDER_SUCCESS,
+    NEW_SAMPLE_ORDER_FAIL,
+    MY_SAMPLE_ORDERS_REQUEST,
+    MY_SAMPLE_ORDERS_SUCCESS,
+    MY_SAMPLE_ORDERS_FAIL,
 } from "../constants/orderConstants";
 import api from "../utils/api";
-import { emptyCart } from './cartAction';
-import { useNavigate } from 'react-router-dom';
+// --- MODIFICATION: Import emptySampleCart action ---
+import { emptyCart, emptySampleCart } from './cartAction';
+
+// --- Regular Order Actions ---
 
 // New Order
 export const newOrder = (orderData) => async (dispatch, getState) => {
@@ -38,30 +47,19 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
         const { user } = getState().user;
         const { cartItems, shippingInfo } = getState().cart;
 
-        // Prepare order items with unit information
         const orderItems = cartItems.map(item => ({
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-            product: item.product,
-            unit: item.unit, // Include the unit information
-            cuttedPrice: item.cuttedPrice
+            name: item.name, price: item.price, quantity: item.quantity, image: item.image, product: item.product, unit: item.unit, cuttedPrice: item.cuttedPrice
         }));
 
-        // Prepare complete order data
         const order = {
             shippingInfo: {
                 ...shippingInfo,
                 businessType: user.businessType || 'individual',
                 businessName: user.businessName || `${user.firstName} ${user.lastName}`.trim() || 'Customer',
-                email: user.email // Ensure email is included in shipping info
+                email: user.email
             },
             orderItems,
-            paymentInfo: orderData.paymentInfo || {
-                id: `mock_pay_${Date.now()}`,
-                status: "succeeded"
-            },
+            paymentInfo: orderData.paymentInfo || { id: `mock_pay_${Date.now()}`, status: "succeeded" },
             discount: orderData.discount || 0,
             shippingPrice: orderData.shippingPrice || 0,
             totalPrice: orderData.totalPrice,
@@ -69,8 +67,6 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
         };
 
         const { data } = await api.post('/order/new', order);
-
-        // Clear cart after successful order
         await dispatch(emptyCart());
 
         dispatch({
@@ -78,7 +74,6 @@ export const newOrder = (orderData) => async (dispatch, getState) => {
             payload: data,
         });
 
-        // Return success status and order data
         return { success: true, data };
 
     } catch (error) {
@@ -96,9 +91,7 @@ export const myOrders = (page = 1) => async (dispatch) => {
         dispatch({ type: MY_ORDERS_REQUEST });
 
         const { data } = await api.get(`/orders/me?page=${page}`);
-        console.log('Orders API Response:', data);
         
-        // Use the orders array from the response
         const orders = data.orders || [];
         
         dispatch({
@@ -118,6 +111,90 @@ export const myOrders = (page = 1) => async (dispatch) => {
         });
     }
 };
+
+
+// --- MODIFICATION: Added Sample Order Actions ---
+
+// New Sample Order
+export const createSampleOrder = (orderData) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: NEW_SAMPLE_ORDER_REQUEST });
+
+        const { user } = getState().user;
+        // Get items and shipping info from the sampleCart slice
+        const { sampleCartItems, sampleShippingInfo } = getState().sampleCart;
+
+        const orderItems = sampleCartItems.map(item => ({
+            name: item.name, price: item.price, quantity: item.quantity, image: item.image, product: item.product, unit: item.unit, cuttedPrice: item.cuttedPrice
+        }));
+
+        const order = {
+            shippingInfo: {
+                ...sampleShippingInfo,
+                businessType: user.businessType || 'individual',
+                businessName: user.businessName || `${user.firstName} ${user.lastName}`.trim() || 'Customer',
+                email: user.email
+            },
+            orderItems,
+            paymentInfo: orderData.paymentInfo || { id: `mock_sample_pay_${Date.now()}`, status: "succeeded" },
+            discount: orderData.discount || 0,
+            shippingPrice: orderData.shippingPrice || 0,
+            totalPrice: orderData.totalPrice,
+            itemsPrice: orderData.itemsPrice || sampleCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        };
+        
+        // Post to the new sample order endpoint
+        const { data } = await api.post('/sample-order/new', order);
+
+        // Clear the sample cart after a successful order
+        await dispatch(emptySampleCart());
+
+        dispatch({
+            type: NEW_SAMPLE_ORDER_SUCCESS,
+            payload: data,
+        });
+
+        return { success: true, data };
+
+    } catch (error) {
+        dispatch({
+            type: NEW_SAMPLE_ORDER_FAIL,
+            payload: error.response?.data?.message || 'Error creating sample order',
+        });
+        throw error;
+    }
+};
+
+// Get User's Sample Orders
+export const mySampleOrders = (page = 1) => async (dispatch) => {
+    try {
+        dispatch({ type: MY_SAMPLE_ORDERS_REQUEST });
+
+        // Get from the new sample orders endpoint
+        const { data } = await api.get(`/sample-orders/me?page=${page}`);
+        
+        const orders = data.orders || [];
+        
+        dispatch({
+            type: MY_SAMPLE_ORDERS_SUCCESS,
+            payload: {
+                orders,
+                currentPage: data.currentPage || page,
+                totalPages: data.totalPages || 1,
+                totalOrders: data.totalOrders || orders.length
+            }
+        });
+
+    } catch (error) {
+        dispatch({
+            type: MY_SAMPLE_ORDERS_FAIL,
+            payload: error.response?.data?.message || 'Error fetching sample orders'
+        });
+    }
+};
+
+
+// --- Other and Admin Actions (No changes needed below this line) ---
 
 // Get Order Details
 export const getOrderDetails = (id) => async (dispatch) => {
@@ -162,54 +239,27 @@ export const getPaymentStatus = (id) => async (dispatch) => {
 };
 
 // Get All Orders ---ADMIN
-// Get All Orders Without Pagination ---ADMIN
 export const getAllOrdersWithoutPagination = () => async (dispatch) => {
     try {
         dispatch({ type: ALL_ORDERS_REQUEST });
         
-        console.log('Fetching all orders without pagination');
-        
         const { data } = await axios.get('/api/v1/admin/orders/all');
-        console.log('API Response Data:', data);
         
-        // Ensure we have the expected data structure
         const orders = Array.isArray(data.orders) ? data.orders : [];
         const totalAmount = data.totalAmount || 0;
         const totalOrders = data.totalOrders || orders.length;
         
-        console.log('Processed Orders Data:', { 
-            ordersCount: orders.length,
-            totalOrders,
-            totalAmount 
-        });
-        
-        // Prepare the payload for the reducer
         const payload = {
-            orders,
-            totalAmount,
-            totalOrders,
-            totalPages: 1,
-            currentPage: 1,
-            limit: totalOrders,
-            count: totalOrders
+            orders, totalAmount, totalOrders, totalPages: 1, currentPage: 1, limit: totalOrders, count: totalOrders
         };
-        
-        console.log('Dispatching with payload:', payload);
         
         dispatch({
             type: ALL_ORDERS_SUCCESS,
             payload
         });
         
-        return orders; // Return the orders for the component to use
+        return orders;
     } catch (error) {
-        console.error('Error fetching all orders:', {
-            error,
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status
-        });
-        
         const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch all orders';
         
         dispatch({
@@ -217,7 +267,6 @@ export const getAllOrdersWithoutPagination = () => async (dispatch) => {
             payload: errorMessage,
         });
         
-        // Re-throw the error to be caught by the component
         throw new Error(errorMessage);
     }
 };
@@ -227,23 +276,10 @@ export const getAllOrders = ({ page = 1, limit = 10, sortBy = '-createdAt' } = {
     try {
         dispatch({ type: ALL_ORDERS_REQUEST });
         
-        console.log('Fetching all orders with:', { page, limit, sortBy });
-        
-        const queryParams = new URLSearchParams({
-            page,
-            limit,
-            sortBy
-        }).toString();
-        
+        const queryParams = new URLSearchParams({ page, limit, sortBy }).toString();
         const url = `/admin/orders?${queryParams}`;
-        console.log('API URL:', url);
         
         const { data } = await api.get(url);
-        
-        console.log('Orders API response:', {
-            ordersCount: data.orders?.length || 0,
-            pagination: data.pagination
-        });
 
         dispatch({
             type: ALL_ORDERS_SUCCESS,
@@ -255,15 +291,9 @@ export const getAllOrders = ({ page = 1, limit = 10, sortBy = '-createdAt' } = {
             },
         });
         
-        return data; // Return the data for potential use in components
+        return data;
 
     } catch (error) {
-        console.error('Error fetching orders:', {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status
-        });
-        
         const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch orders';
         
         dispatch({
@@ -271,7 +301,6 @@ export const getAllOrders = ({ page = 1, limit = 10, sortBy = '-createdAt' } = {
             payload: errorMessage,
         });
         
-        // Re-throw the error to be caught by the component
         throw new Error(errorMessage);
     }
 };
@@ -281,12 +310,7 @@ export const updateOrder = (id, order) => async (dispatch) => {
     try {
         dispatch({ type: UPDATE_ORDER_REQUEST });
 
-        const config = {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        };
-
+        const config = { headers: { "Content-Type": "application/json" } };
         const { data } = await api.put(`/admin/order/${id}`, order, config);
 
         dispatch({
@@ -327,50 +351,20 @@ export const searchOrders = (filters) => async (dispatch) => {
     try {
         dispatch({ type: SEARCH_ORDERS_REQUEST });
         
-        // Convert filters to query string with proper handling of dates and objects
         const queryString = Object.entries(filters)
-            .filter(([_, value]) => {
-                // Filter out empty strings, null, and undefined
-                if (value === '' || value === null || value === undefined) {
-                    return false;
-                }
-                // Filter out empty objects and arrays
-                if (typeof value === 'object' && Object.keys(value).length === 0) {
-                    return false;
-                }
-                return true;
-            })
-            .map(([key, value]) => {
-                // Handle date objects
-                if (value instanceof Date) {
-                    return `${key}=${encodeURIComponent(value.toISOString())}`;
-                }
-                // Handle nested objects (like shippingInfo)
-                if (typeof value === 'object' && value !== null) {
-                    return `${key}=${encodeURIComponent(JSON.stringify(value))}`;
-                }
-                return `${key}=${encodeURIComponent(value)}`;
-            })
+            .filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
             .join('&');
 
-        console.log('Making API request to:', `/admin/orders/search?${queryString}`);
         const response = await api.get(`/admin/orders/search?${queryString}`);
-        console.log('Search API response:', response.data);
 
         dispatch({
             type: SEARCH_ORDERS_SUCCESS,
             payload: response.data
         });
         
-        return response.data; // Return the data for potential use in components
+        return response.data;
     } catch (error) {
-        console.error('Search orders error:', error);
-        console.error('Error details:', {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status
-        });
-        
         const errorMessage = error.response?.data?.message || error.message || 'Failed to search orders';
         
         dispatch({
@@ -378,7 +372,6 @@ export const searchOrders = (filters) => async (dispatch) => {
             payload: errorMessage
         });
         
-        // Re-throw the error to be caught by the component
         throw new Error(errorMessage);
     }
 };

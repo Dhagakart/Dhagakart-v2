@@ -90,11 +90,11 @@ app.use('/api/v1/', payment);
 app.use('/api/v1/search', search);
 
 // Swagger
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    explorer: true,
-    customSiteTitle: 'DhagaKart ECommerce API Documentation'
-}));
+// const swaggerSpec = swaggerJsdoc(swaggerOptions);
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+//     explorer: true,
+//     customSiteTitle: 'DhagaKart ECommerce API Documentation'
+// }));
 
 // Error Middleware
 app.use(errorMiddleware);

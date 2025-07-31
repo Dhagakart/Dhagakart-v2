@@ -10,7 +10,10 @@ import {
     UPDATE_ORDER_FAIL, DELETE_ORDER_FAIL,
     UPDATE_ORDER_RESET, DELETE_ORDER_RESET,
     SEARCH_ORDERS_REQUEST, SEARCH_ORDERS_SUCCESS, SEARCH_ORDERS_FAIL,
-    NEW_ORDER_RECEIVED // <-- Import the new constant
+    NEW_ORDER_RECEIVED,
+    MY_SAMPLE_ORDERS_REQUEST,
+    MY_SAMPLE_ORDERS_SUCCESS,
+    MY_SAMPLE_ORDERS_FAIL, // <-- Import the new constant
 } from "../constants/orderConstants";
 
 export const newOrderReducer = (state = {}, { type, payload }) => {
@@ -274,6 +277,38 @@ export const orderReducer = (state = {}, { type, payload }) => {
             return {
                 ...state,
                 isDeleted: false,
+            };
+        case CLEAR_ERRORS:
+            return {
+                ...state,
+                error: null,
+            };
+        default:
+            return state;
+    }
+};
+
+
+export const mySampleOrdersReducer = (state = { orders: [] }, { type, payload }) => {
+    switch (type) {
+        case MY_SAMPLE_ORDERS_REQUEST:
+            return {
+                loading: true,
+            };
+        case MY_SAMPLE_ORDERS_SUCCESS:
+            return {
+                loading: false,
+                orders: payload.orders,
+                pagination: {
+                    currentPage: payload.currentPage,
+                    totalPages: payload.totalPages,
+                    totalOrders: payload.totalOrders,
+                }
+            };
+        case MY_SAMPLE_ORDERS_FAIL:
+            return {
+                loading: false,
+                error: payload,
             };
         case CLEAR_ERRORS:
             return {
