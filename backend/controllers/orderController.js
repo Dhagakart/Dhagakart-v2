@@ -6,6 +6,38 @@ const sendEmail = require('../utils/sendEmail');
 const orderConfirmationTemplate = require('../utils/orderConfirmationTemplate');
 const sampleOrderConfirmationTemplate = require('../utils/sampleOrderConfirmationTemplate');
 
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_SECRET,
+});
+
+exports.createRazorpaySampleOrder = asyncErrorHandler(async (req, res, next) => {
+    const { amount } = req.body;
+
+    const options = {
+        amount: Number(amount) * 100, // Amount in the smallest currency unit (paise)
+        currency: "INR",
+        receipt: `receipt_order_${new Date().getTime()}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    if (!order) {
+        return next(new ErrorHandler("Razorpay order creation failed", 500));
+    }
+
+    res.status(200).json({
+        success: true,
+        order,
+    });
+});
+
+exports.sendRazorpayApiKey = asyncErrorHandler(async (req, res, next) => {
+    res.status(200).json({ razorpayApiKey: process.env.RAZORPAY_KEY_ID });
+});
+
 // --- Create New Regular Order ---
 exports.newOrder = asyncErrorHandler(async (req, res, next) => {
     const io = req.app.get('socketio');

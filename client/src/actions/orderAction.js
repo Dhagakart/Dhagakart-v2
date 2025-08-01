@@ -39,6 +39,16 @@ import { emptyCart, emptySampleCart } from './cartAction';
 
 // --- Regular Order Actions ---
 
+// Add this new action at the top of the file
+export const getRazorpayApiKey = () => async (dispatch) => {
+    try {
+        const { data } = await api.get('/payment/razorpay/apikey');
+        dispatch({ type: 'RAZORPAY_KEY_SUCCESS', payload: data.razorpayApiKey });
+    } catch (error) {
+        dispatch({ type: 'RAZORPAY_KEY_FAIL', payload: error.response.data.message });
+    }
+};
+
 // New Order
 export const newOrder = (orderData) => async (dispatch, getState) => {
     try {

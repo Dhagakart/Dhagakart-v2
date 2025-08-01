@@ -12,11 +12,9 @@ import UpdateProfile from './components/User/UpdateProfile';
 import UpdatePassword from './components/User/UpdatePassword';
 import ForgotPassword from './components/User/ForgotPassword';
 import ResetPassword from './components/User/ResetPassword';
-// import Account from './components/User/Account';
 import AccountDG from './components/User/AccountDG';
 import ProtectedRoute from './Routes/ProtectedRoute.jsx';
 import Home from './components/Home/Home';
-// import ProductDetails from './components/ProductDetails/ProductDetails';
 import Products from './components/Products/Products';
 import Cart from './components/Cart/Cart';
 import SampleCart from './components/Cart/SampleCart.jsx'
@@ -44,9 +42,6 @@ import NotFound from './components/NotFound';
 import ReqCredits from './components/ReqCredits/ReqCredits';
 import BulkOrder from './components/BulkOrder/BulkOrder';
 import QuoteSuccess from './components/BulkOrder/QuoteSuccess';
-// import oAuthSuccess from './components/oAuthSuccess';
-
-// DG ROUTES
 import LoginDG from './components/User/LoginDG';
 import OtpDG from './components/User/OtpDG.jsx';
 import LoginDG2 from './components/User/LoginDG2';
@@ -57,280 +52,104 @@ import FooterDG from './components/Layouts/Footer/FooterDG';
 import ProductDetailsDG from './components/ProductDetails/ProductDetailsDG';
 import Sitemap from './components/Sitemap/Sitemap';
 
+// --- MODIFICATION: Import the new global notifier component ---
+import GlobalOrderNotifier from './components/Admin/GlobalOrderNotifier';
+
 function App() {
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
-  const dispatch = useDispatch();
-  const { pathname } = useLocation();
-  // const [stripeApiKey, setStripeApiKey] = useState("");
+    const dispatch = useDispatch();
+    const { pathname } = useLocation();
 
-  // async function getStripeApiKey() {
-  //   const { data } = await axios.get('https://dhagakart.onrender.com/api/v1/stripeapikey');
-  //   setStripeApiKey(data.stripeApiKey);
-  // }
+    useEffect(() => {
+        WebFont.load({
+            google: {
+                families: ["Roboto:300,400,500,600,700"]
+            },
+        });
+    }, []);
 
-  useEffect(() => {
-    WebFont.load({
-      google: {
-        families: ["Roboto:300,400,500,600,700"]
-      },
-    });
+    useEffect(() => {
+        dispatch(loadUser());
+    }, [dispatch]);
 
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth > 1024);
-    };
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: "smooth"
+        });
+    }, [pathname]);
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    const isAdminRoute = pathname.startsWith('/admin/');
 
-  // if (!isDesktop) {
-  //   return (
-  //     <div style={{
-  //       display: 'flex',
-  //       justifyContent: 'center',
-  //       alignItems: 'center',
-  //       height: '100vh',
-  //       textAlign: 'center',
-  //       padding: '20px',
-  //       fontSize: '1.5rem',
-  //       lineHeight: '2rem',
-  //       fontWeight: 500
-  //     }}>
-  //       Kindly continue on a PC or laptop for the best experience.
-  //     </div>
-  //   );
-  // }
+    return (
+        <>
+            <HeaderDG />
+            {/* --- MODIFICATION: Add the notifier component to the global layout --- */}
+            {/* It will automatically handle logic for admin users */}
+            <GlobalOrderNotifier />
+            <main className="-mt-8">
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/register/success" element={<RegisterSuccess />} />
+                    <Route path="/oauth-complete-registration" element={<Register />} />
+                    <Route path="/loginDG" element={<LoginDG />} />
+                    <Route path="/otpDG" element={<OtpDG />} />
+                    <Route path="/loginDG2" element={<LoginDG2 />} />
+                    <Route path="/password/forgot" element={<ForgotPasswordDG />} />
+                    <Route path="/product/:id" element={<ProductDetailsDG />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/products/:keyword" element={<Products />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/sample-cart" element={<SampleCart />} />
+                    
+                    {/* Protected Routes */}
+                    <Route path="/shipping" element={<ProtectedRoute><Shipping /></ProtectedRoute>} />
+                    <Route path="/sample-shipping" element={<ProtectedRoute><SampleShipping /></ProtectedRoute>} />
+                    <Route path="/order/confirm" element={<ProtectedRoute><OrderConfirm /></ProtectedRoute>} />
+                    <Route path="/process/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+                    <Route path="/orders/success" element={<OrderSuccess success={true} />} />
+                    <Route path="/orders/failed" element={<OrderSuccess success={false} />} />
+                    <Route path="/order/:id" element={<ProtectedRoute><OrderStatus /></ProtectedRoute>} />
+                    <Route path="/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                    <Route path="/order_details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+                    <Route path="/account" element={<ProtectedRoute><AccountDG /></ProtectedRoute>}>
+                        <Route index element={<AccountDG defaultTab="profile" />} />
+                        <Route path="profile" element={<AccountDG defaultTab="profile" />} />
+                        <Route path="orders" element={<AccountDG defaultTab="orders" />} />
+                        <Route path="track-order" element={<AccountDG defaultTab="track-order" />} />
+                        <Route path="rfqs" element={<AccountDG defaultTab="rfqs" />} />
+                    </Route>
+                    <Route path="/account/update" element={<ProtectedRoute><UpdateProfile /></ProtectedRoute>} />
+                    <Route path="/password/update" element={<ProtectedRoute><UpdatePassword /></ProtectedRoute>} />
+                    <Route path="/password/reset/:token" element={<ResetPassword />} />
+                    <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
 
-  // In App.jsx
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        await dispatch(loadUser());
-      } catch (error) {
-        console.error('Error loading user:', error);
-      }
-    };
+                    {/* Admin Routes */}
+                    <Route path="/admin/dashboard" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={0}><MainData /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/orders" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={1}><OrderTable /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/order/:id" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={1}><UpdateOrder /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/products" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={2}><ProductTable /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/new_product" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={3}><NewProduct /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/product/:id" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={2}><UpdateProduct /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/users" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={4}><UserTable /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/user/:id" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={4}><UpdateUser /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/reviews" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={5}><ReviewsTable /></Dashboard></ProtectedRoute>} />
+                    <Route path="/admin/quotes" element={<ProtectedRoute isAdmin={true}><Dashboard activeTab={6}><Quotes /></Dashboard></ProtectedRoute>} />
 
-    loadUserData();
-  }, [dispatch]);
-
-  // always scroll to top on route/path change
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth"
-    });
-  }, [pathname])
-
-  // Check if current route is an admin route
-  const isAdminRoute = pathname.startsWith('/admin/');
-
-  return (
-    <>
-      <HeaderDG />
-      <main className="-mt-8">
-        <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/register/success" element={<RegisterSuccess />} />
-        <Route path="/oauth-complete-registration" element={<Register />} />
-
-        {/* DG ROUTES */}
-        <Route path="/loginDG" element={<LoginDG />} />
-        <Route path="/otpDG" element={<OtpDG />} />
-        <Route path="/loginDG2" element={<LoginDG2 />} />
-        <Route path="/password/forgot" element={<ForgotPasswordDG />} />
-
-        {/* <Route path="/product/:id" element={<ProductDetails />} /> */}
-        <Route path="/product/:id" element={<ProductDetailsDG />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/products/:keyword" element={<Products />} />
-
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/sample-cart" element={<SampleCart />} />
-
-        {/* order process */}
-        <Route path="/shipping" element={
-          <ProtectedRoute>
-            <Shipping />
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/sample-shipping" element={
-          <ProtectedRoute>
-            <SampleShipping />
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/order/confirm" element={
-          <ProtectedRoute>
-            <OrderConfirm />
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/reqcredits" element={<ReqCredits />} />
-
-        <Route path="/bulkorder" element={<BulkOrder />} />
-        <Route path="/quote/success" element={<QuoteSuccess />} />
-
-        <Route path="/process/payment" element={
-          <ProtectedRoute>
-            {/* // stripeApiKey && ( */}
-            {/* // <Elements stripe={loadStripe(stripeApiKey)}> */}
-            <Payment />
-            {/* // </Elements> */}
-            {/* ) */}
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/orders/success" element={<OrderSuccess success={true} />} />
-        <Route path="/orders/failed" element={<OrderSuccess success={false} />} />
-        {/* order process */}
-
-        <Route path="/order/:id" element={
-          <ProtectedRoute>
-            <OrderStatus />
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/orders" element={
-          <ProtectedRoute>
-            <MyOrders />
-          </ProtectedRoute>
-        }></Route>
-
-        <Route path="/order_details/:id" element={
-          <ProtectedRoute>
-            <OrderDetails />
-          </ProtectedRoute>
-        }></Route>
-
-        <Route path="/account" element={
-          <ProtectedRoute>
-            <AccountDG />
-          </ProtectedRoute>
-        }>
-          <Route index element={<AccountDG defaultTab="profile" />} />
-          <Route path="profile" element={<AccountDG defaultTab="profile" />} />
-          <Route path="orders" element={<AccountDG defaultTab="orders" />} />
-          <Route path="track-order" element={<AccountDG defaultTab="track-order" />} />
-          <Route path="rfqs" element={<AccountDG defaultTab="rfqs" />} />
-        </Route>
-
-        <Route path="/account/update" element={
-          <ProtectedRoute>
-            <UpdateProfile />
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/password/update" element={
-          <ProtectedRoute>
-            <UpdatePassword />
-          </ProtectedRoute>
-        } ></Route>
-
-        {/* <Route path="/password/forgot" element={<ForgotPassword />} /> */}
-
-        <Route path="/password/reset/:token" element={<ResetPassword />} />
-
-        <Route path="/wishlist" element={
-          <ProtectedRoute>
-            <Wishlist />
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/dashboard" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={0}>
-              <MainData />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/orders" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={1}>
-              <OrderTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/order/:id" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={1}>
-              <UpdateOrder />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/products" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={2}>
-              <ProductTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/new_product" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={3}>
-              <NewProduct />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/product/:id" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={2}>
-              <UpdateProduct />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/users" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={4}>
-              <UserTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/user/:id" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={4}>
-              <UpdateUser />
-            </Dashboard>
-          </ProtectedRoute>
-        } ></Route>
-
-        <Route path="/admin/reviews" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={5}>
-              <ReviewsTable />
-            </Dashboard>
-          </ProtectedRoute>
-        } />
-
-        <Route path="/admin/quotes" element={
-          <ProtectedRoute isAdmin={true}>
-            <Dashboard activeTab={6}>
-              <Quotes />
-            </Dashboard>
-          </ProtectedRoute>
-        } />
-
-        {/* Sitemap Route */}
-        <Route path="/sitemap" element={<Sitemap />} />
-
-        <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <Toaster position="bottom-right" />
-      {!isAdminRoute && <FooterDG />}
-    </>
-  );
+                    {/* Other Routes */}
+                    <Route path="/reqcredits" element={<ReqCredits />} />
+                    <Route path="/bulkorder" element={<BulkOrder />} />
+                    <Route path="/quote/success" element={<QuoteSuccess />} />
+                    <Route path="/sitemap" element={<Sitemap />} />
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
+            </main>
+            <Toaster position="bottom-right" />
+            {!isAdminRoute && <FooterDG />}
+        </>
+    );
 }
 
 export default App;

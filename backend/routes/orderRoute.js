@@ -1,8 +1,12 @@
 const express = require('express');
-const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders, getAllOrdersWithoutPagination, newSampleOrder, mySampleOrders } = require('../controllers/orderController');
+const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders, getAllOrdersWithoutPagination, newSampleOrder, mySampleOrders, createRazorpaySampleOrder, sendRazorpayApiKey } = require('../controllers/orderController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const router = express.Router();
+
+router.route('/payment/razorpay/apikey').get(isAuthenticatedUser, sendRazorpayApiKey);
+router.route('/payment/razorpay/sample').post(isAuthenticatedUser, createRazorpaySampleOrder);
+
 
 /**
  * @swagger

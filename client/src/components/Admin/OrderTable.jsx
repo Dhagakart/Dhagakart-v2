@@ -19,12 +19,12 @@ import {
     Grid,
     CardHeader,
     CardContent,
-    Collapse
+    Collapse,
+    Chip
 } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import ClearIcon from '@mui/icons-material/Clear';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -42,42 +42,6 @@ import { formatDate } from '../../utils/functions';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 import Sidebar from './Sidebar/Sidebar';
-
-// --- START: Imports for Real-Time Notifications ---
-import { io } from "socket.io-client";
-import toast from 'react-hot-toast';
-import notificationSound from './notification.mp3';
-
-// Global variables for sound management
-let audioContext = null;
-let audioSource = null;
-let audioElement = null;
-let activeNotifications = new Set();
-// --- END: Imports for Real-Time Notifications ---
-
-// --- START: Notification Toast Component ---
-const NotificationToast = ({ t, order, onClose }) => {
-    return (
-        <Card elevation={4} sx={{ display: 'flex', alignItems: 'center', p: 2, gap: 2, borderRadius: '12px' }}>
-            <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
-                <NotificationsActiveIcon sx={{ color: 'white' }} />
-            </Avatar>
-            <Box flexGrow={1}>
-                <Typography variant="subtitle2" component="div" sx={{ fontWeight: 'bold' }}>
-                    New Order Received!
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    From: {order.shippingInfo.businessName}
-                </Typography>
-            </Box>
-            <IconButton size="small" onClick={() => onClose(t.id)} sx={{ color: 'text.secondary' }}>
-                <ClearIcon fontSize="small" />
-            </IconButton>
-        </Card>
-    );
-};
-// --- END: Notification Toast Component ---
-
 
 const OrderTable = () => {
     const dispatch = useDispatch();
@@ -144,64 +108,6 @@ const OrderTable = () => {
     );
 
     const orders = isSearching ? searchResults : allOrders;
-
-    const startNotificationSound = async () => {
-        if (audioElement) return;
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioContext = new AudioContext();
-            audioElement = new Audio(notificationSound);
-            audioElement.loop = true;
-            audioSource = audioContext.createMediaElementSource(audioElement);
-            audioSource.connect(audioContext.destination);
-            await audioContext.resume();
-            await audioElement.play();
-        } catch (error) {
-            console.error("Audio initialization failed:", error);
-            toast('🔔 Click anywhere to enable sound notifications', { duration: 3000, position: 'bottom-right' });
-        }
-    };
-    
-    const stopNotificationSound = () => {
-        if (audioElement) {
-            try {
-                audioElement.pause();
-                audioElement.currentTime = 0;
-                if (audioSource) audioSource.disconnect();
-                if (audioContext && audioContext.state !== 'closed') audioContext.close();
-            } catch (error) {
-                console.error("Error stopping sound:", error);
-            } finally {
-                audioElement = null;
-                audioSource = null;
-                audioContext = null;
-            }
-        }
-    };
-    
-    const handleNotificationClose = (id) => {
-        activeNotifications.delete(id);
-        if (activeNotifications.size === 0) stopNotificationSound();
-        toast.dismiss(id);
-    };
-
-    useEffect(() => {
-        const BACKEND_URL = 'https://dhagakart.onrender.com';
-        const socket = io(BACKEND_URL);
-        socket.on("connect", () => console.log("Socket.io connection established."));
-        socket.on("newOrder", (order) => {
-            const notificationId = `order-${Date.now()}`;
-            activeNotifications.add(notificationId);
-            if (activeNotifications.size === 1) startNotificationSound();
-            toast.custom(
-                (t) => <NotificationToast t={t} order={order} onClose={handleNotificationClose} />,
-                { id: notificationId, duration: Infinity, style: { background: 'transparent', padding: 0, margin: '8px 0', boxShadow: 'none' } }
-            );
-            dispatch({ type: NEW_ORDER_RECEIVED, payload: order });
-        });
-        socket.on("disconnect", () => console.log("Socket.io connection disconnected."));
-        return () => socket.disconnect();
-    }, [dispatch]);
 
     const paginationInfo = useMemo(() => ({
         currentPage: isSearching ? (searchPagination.currentPage || 1) : (allCurrentPage || 1),
@@ -318,7 +224,24 @@ const OrderTable = () => {
                         </Typography>
                     );
                 }
-                return row.id;
+                return (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Box>{row.id}</Box>
+                        {row.isSampleOrder && (
+                            <Chip 
+                                label="Sample Order" 
+                                size="small" 
+                                color="primary" 
+                                sx={{ 
+                                    width: 'fit-content',
+                                    fontSize: '0.7rem',
+                                    height: '20px',
+                                    '& .MuiChip-label': { px: 0.75 }
+                                }} 
+                            />
+                        )}
+                    </Box>
+                );
             }
         },
         {
@@ -401,6 +324,7 @@ const OrderTable = () => {
                 newRows.push({
                     id: order._id,
                     isHeader: false,
+                    isSampleOrder: order.isSampleOrder || false,
                     status: order.orderStatus || 'N/A',
                     amount: order.totalPrice || 0,
                     time: new Date(order.createdAt).toLocaleTimeString('en-US', {
