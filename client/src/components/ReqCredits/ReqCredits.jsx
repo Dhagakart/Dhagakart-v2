@@ -67,7 +67,7 @@ const ReqCredits = () => {
   return (
     <div className="bg-white w-full overflow-x-hidden">
       {/* — Hero Section — */}
-      <div className="bg-[#003366] text-white relative flex items-center min-h-[92vh] md:mt-8">
+      <div className="bg-[#003366] text-white relative flex items-center min-h-[92vh] md:mt-[34px]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
           <div className="max-w-xl text-center md:text-left">
             <div className="space-y-6">
