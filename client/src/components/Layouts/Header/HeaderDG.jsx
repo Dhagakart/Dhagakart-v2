@@ -17,6 +17,7 @@ import Headroom from 'react-headroom';
 import MobileNav from './MobileNav';
 import MobileSearchBar from './MobileSearchbar';
 import axios from 'axios';
+import api from '../../../utils/api'; // Import the API instance
 
 const HeaderDG = () => {
   const navigate = useNavigate();
@@ -64,8 +65,7 @@ const HeaderDG = () => {
     if (keyword.trim()) {
       try {
         setIsLoading(true);
-        // const response = await axios.get(`http://localhost:4000/api/v1/search/suggestions?keyword=${keyword}`);
-        const response = await axios.get(`https://dhagakart.onrender.com/api/v1/search/suggestions?keyword=${keyword}`);
+        const response = await api.get(`https://dhagakart.onrender.com/api/v1/search/suggestions?keyword=${keyword}`);
         setSearchSuggestions(response.data.suggestions);
         setShowSuggestions(true);
       } catch (error) {
@@ -112,54 +112,113 @@ const HeaderDG = () => {
     }
   };
 
-  useEffect(() => {
-    // const savedLocation = localStorage.getItem('userLocation');
-    // const savedPincode = localStorage.getItem('userPincode');
+  const fetchUserLocation = useCallback(async () => {
+    if (!isAuthenticated) {
+      setUserLocation('');
+      setUserPincode('');
+      setHasFetchedLocation(true);
+      return;
+    }
 
-    // if (savedLocation && savedPincode) {
-    //   setUserLocation(savedLocation);
-    //   setUserPincode(savedPincode);
-    //   setHasFetchedLocation(true);
-    //   return;
-    // }
+    try {
+      // First check for shipping addresses
+      if (user?.shippingAddresses?.length > 0) {
+        const defaultAddress = user.shippingAddresses.find(addr => addr.isDefault) || user.shippingAddresses[0];
+        if (defaultAddress) {
+          const locationText = `${defaultAddress.city}, ${defaultAddress.state}`;
+          setUserLocation(locationText);
+          setUserPincode(defaultAddress.zipCode || 'NA');
+          localStorage.setItem('userLocation', locationText);
+          localStorage.setItem('userPincode', defaultAddress.zipCode || 'NA');
+          setHasFetchedLocation(true);
+          return;
+        }
+      }
+      
+      // If no shipping address, use the user's city from their profile
+      if (user?.city) {
+        const locationText = user.city;
+        setUserLocation(locationText);
+        setUserPincode('NA');
+        localStorage.setItem('userLocation', locationText);
+        localStorage.setItem('userPincode', 'NA');
+        setHasFetchedLocation(true);
+        return;
+      }
 
-    if (navigator.geolocation && !hasFetchedLocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const locationResponse = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
-            );
-            const locationData = await locationResponse.json();
-            const address = locationData.address;
-            const location =
-              address.city ||
-              address.town ||
-              address.village ||
-              address.county ||
-              '';
-            const locationText = location || 'NA';
-            setUserLocation(locationText);
-            const pincode = address.postcode || 'NA';
-            setUserPincode(pincode);
-            setHasFetchedLocation(true);
-          } catch (error) {
-            console.error('Error fetching location details:', error);
+      if (navigator.geolocation && !hasFetchedLocation) {
+        console.log('Requesting geolocation permission...');
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            console.log('Got geolocation position:', position);
+            try {
+              const { latitude, longitude } = position.coords;
+              console.log('Fetching location data for coordinates:', { latitude, longitude });
+              
+              const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+              console.log('Fetching from URL:', url);
+              
+              const locationResponse = await fetch(url, {
+                headers: {
+                  'User-Agent': 'Dhagakart/1.0 (dsharpaglobal@gmail.com)',
+                  'Accept': 'application/json',
+                  'Referer': window.location.origin
+                }
+              });
+              
+              console.log('Location API response status:', locationResponse.status);
+              const locationData = await locationResponse.json();
+              console.log('Location API response data:', locationData);
+              const address = locationData.address;
+              const location =
+                address.city ||
+                address.town ||
+                address.village ||
+                address.county ||
+                '';
+              const locationText = location || 'Location not available';
+              const pincode = address.postcode || 'NA';
+
+              setUserLocation(locationText);
+              setUserPincode(pincode);
+              localStorage.setItem('userLocation', locationText);
+              localStorage.setItem('userPincode', pincode);
+              setHasFetchedLocation(true);
+            } catch (error) {
+              console.error('Error fetching location details:', error);
+              setUserLocation('Enable location access');
+              setUserPincode('NA');
+              setHasFetchedLocation(true);
+            }
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
             setUserLocation('Enable location access');
             setUserPincode('NA');
+            setHasFetchedLocation(true);
+          },
+          { 
+            enableHighAccuracy: true, 
+            timeout: 10000, 
+            maximumAge: 0 
           }
-        },
-        (error) => {
-          setUserLocation('Enable location access');
-          setUserPincode('NA');
-        }
-      );
-    } else {
-      setUserLocation('NA');
+        );
+      } else if (!hasFetchedLocation) {
+        setUserLocation('Geolocation not supported');
+        setUserPincode('NA');
+        setHasFetchedLocation(true);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserLocation:', error);
+      setUserLocation('Location not available');
       setUserPincode('NA');
+      setHasFetchedLocation(true);
     }
-  }, [hasFetchedLocation]);
+  }, [isAuthenticated, user?.shippingAddresses, hasFetchedLocation]);
+
+  useEffect(() => {
+    fetchUserLocation();
+  }, [fetchUserLocation]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -250,7 +309,7 @@ const HeaderDG = () => {
                           Delivery to {user?.name?.split(' ')[0]}
                         </span>
                         <span className="truncate text-sm text-gray-200">
-                          {userLocation}, {userPincode}
+                          {userLocation}
                         </span>
                       </div>
                     </div>

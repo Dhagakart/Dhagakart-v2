@@ -87,8 +87,8 @@ const GlobalOrderNotifier = () => {
 
     useEffect(() => {
         if (user && user.role === 'admin') {
-            // const SOCKET_URL = 'https://dhagakart.onrender.com';
-            const SOCKET_URL = 'http://localhost:4000';
+            const SOCKET_URL = 'https://dhagakart.onrender.com';
+            // const SOCKET_URL = 'http://localhost:4000';
             const socket = io(SOCKET_URL);
 
             socket.on("connect", () => console.log("Global Socket.io connection established for Admin."));
