@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
+import { TextField, MenuItem, Switch, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageIcon from '@mui/icons-material/Image';
 import { NEW_PRODUCT_RESET } from '../../constants/productConstants';
@@ -12,17 +11,20 @@ import { categories } from '../../utils/constants';
 import MetaData from '../Layouts/MetaData';
 import BackdropLoader from '../Layouts/BackdropLoader';
 
-const ProductDetails = ({ 
-  name, setName, 
-  description, setDescription, 
-  price, setPrice, 
-  cuttedPrice, setCuttedPrice, 
-  category, setCategory, 
-  subCategory, setSubCategory, 
-  availableSubcategories, 
-  stock, setStock, 
+const ProductDetails = ({
+  name, setName,
+  description, setDescription,
+  price, setPrice,
+  cuttedPrice, setCuttedPrice,
+  category, setCategory,
+  subCategory, setSubCategory,
+  availableSubcategories,
+  stock, setStock,
   warranty, setWarranty,
-  orderConfig, setOrderConfig 
+  orderConfig, setOrderConfig,
+  isSampleAvailable, setIsSampleAvailable,
+  samplePrice, setSamplePrice,
+  maxSampleQuantity, setMaxSampleQuantity
 }) => (
   <div className="flex flex-col gap-4">
     <TextField
@@ -163,6 +165,42 @@ const ProductDetails = ({
           sx={{ '& .MuiOutlinedInput-root': { '&:hover fieldset': { borderColor: '#003366' }, '&.Mui-focused fieldset': { borderColor: '#003366' } } }}
         />
       </div>
+    </div>
+    {/* --- MODIFICATION: Added Sample Options UI --- */}
+    <div className="border-t pt-4 mt-2">
+      <div className="flex items-center justify-between">
+        <Typography variant="h6" sx={{ fontSize: "1.1rem", fontWeight: 500 }}>Sample Options</Typography>
+        <Switch
+          checked={isSampleAvailable}
+          onChange={(e) => setIsSampleAvailable(e.target.checked)}
+          name="isSampleAvailable"
+          color="primary"
+        />
+      </div>
+      {isSampleAvailable && (
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <TextField
+            label="Sample Price (₹)"
+            type="number"
+            variant="outlined"
+            size="small"
+            InputProps={{ inputProps: { min: 0 } }}
+            required
+            value={samplePrice}
+            onChange={(e) => setSamplePrice(e.target.value)}
+          />
+          <TextField
+            label="Max Sample Quantity"
+            type="number"
+            variant="outlined"
+            size="small"
+            InputProps={{ inputProps: { min: 1 } }}
+            required
+            value={maxSampleQuantity}
+            onChange={(e) => setMaxSampleQuantity(e.target.value)}
+          />
+        </div>
+      )}
     </div>
   </div>
 );
@@ -327,7 +365,9 @@ const NewProduct = () => {
     minQty: 1,
     increment: 1
   });
-
+  const [isSampleAvailable, setIsSampleAvailable] = useState(false);
+  const [samplePrice, setSamplePrice] = useState(0);
+  const [maxSampleQuantity, setMaxSampleQuantity] = useState(1);
   const handleOrderConfigChange = (e) => {
     const { name, value } = e.target;
     setOrderConfig(prev => ({
@@ -373,15 +413,22 @@ const NewProduct = () => {
     formData.set('stock', stock);
     formData.set('warranty', warranty);
     formData.set('orderConfig', JSON.stringify(orderConfig));
-    
+
+    const sampleConfig = {
+      isSampleAvailable,
+      price: samplePrice,
+      maxQuantity: maxSampleQuantity,
+    };
+    formData.set('sampleConfig', JSON.stringify(sampleConfig));
+
     highlights.forEach((highlight) => {
       formData.append('highlights', highlight);
     });
-    
+
     specs.forEach((spec) => {
       formData.append('specifications', JSON.stringify(spec));
     });
-    
+
     images.forEach((image) => {
       formData.append('images', image);
     });
@@ -428,6 +475,12 @@ const NewProduct = () => {
               setWarranty={setWarranty}
               orderConfig={orderConfig}
               setOrderConfig={setOrderConfig}
+              isSampleAvailable={isSampleAvailable} 
+              setIsSampleAvailable={setIsSampleAvailable}
+              samplePrice={samplePrice} 
+              setSamplePrice={setSamplePrice}
+              maxSampleQuantity={maxSampleQuantity} 
+              setMaxSampleQuantity={setMaxSampleQuantity}
             />
             <HighlightsSection
               highlights={highlights}

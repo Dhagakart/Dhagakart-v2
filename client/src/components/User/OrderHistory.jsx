@@ -1,49 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { myOrders, mySampleOrders } from '../../actions/orderAction'; // Import both actions
+import { myOrders } from '../../actions/orderAction';
 import Loader from '../Layouts/Loader';
 import MetaData from '../Layouts/MetaData';
 import { formatPrice } from '../../utils/formatPrice';
 
 const OrderHistory = () => {
     const dispatch = useDispatch();
-
-    // --- MODIFICATION: State to manage the active tab ---
-    const [activeTab, setActiveTab] = useState('PURCHASES'); // 'PURCHASES' or 'SAMPLES'
     const [currentPage, setCurrentPage] = useState(1);
-
-    // --- MODIFICATION: Select data from both Redux slices ---
-    const { loading: purchasesLoading, orders: purchaseOrders, pagination: purchasePagination } = useSelector((state) => state.myOrders);
-    const { loading: samplesLoading, orders: sampleOrders, pagination: samplePagination } = useSelector((state) => state.mySampleOrders);
-
-    // --- MODIFICATION: Fetch data based on the active tab ---
-    useEffect(() => {
-        if (activeTab === 'PURCHASES') {
-            dispatch(myOrders(currentPage));
-        }
-        if (activeTab === 'SAMPLES') {
-            dispatch(mySampleOrders(currentPage));
-        }
-    }, [dispatch, currentPage, activeTab]);
-
-    // Determine which data to display
-    const isLoading = activeTab === 'SAMPLES' ? samplesLoading : purchasesLoading;
-    const orders = activeTab === 'SAMPLES' ? sampleOrders : purchaseOrders;
-    const pagination = activeTab === 'SAMPLES' ? samplePagination : purchasePagination;
-
-    const handleTabClick = (tab) => {
-        setActiveTab(tab);
-        setCurrentPage(1); // Reset to page 1 when switching tabs
-    };
+    const { loading, error, orders = [], pagination = {} } = useSelector((state) => state.myOrders);
+    const { user } = useSelector((state) => state.user);
     
+    useEffect(() => {
+        dispatch(myOrders(currentPage));
+    }, [dispatch, currentPage]);
+
     const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
+        const newPage = Math.max(1, Math.min(pageNumber, pagination.totalPages || 1));
+        setCurrentPage(newPage);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const getStatusBadge = (status) => {
-        switch (status?.toLowerCase()) {
+        switch (status.toLowerCase()) {
             case 'processing':
                 return 'bg-blue-100 text-blue-800';
             case 'shipped':
@@ -56,54 +36,58 @@ const OrderHistory = () => {
                 return 'bg-gray-100 text-gray-800';
         }
     };
+
     const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
         return new Date(dateString).toLocaleDateString('en-IN', options);
     };
 
     const totalPages = pagination?.totalPages || 1;
+    const totalOrders = pagination?.totalOrders || 0;
+    const startItem = totalOrders > 0 ? (currentPage - 1) * 10 + 1 : 0;
+    const endItem = Math.min((currentPage - 1) * 10 + orders.length, totalOrders);
+    const hasPreviousPage = currentPage > 1;
+    const hasNextPage = currentPage < totalPages;
 
-    if (isLoading && (!orders || orders.length === 0)) {
+    if (loading && orders.length === 0) {
         return <Loader />;
     }
+    if (error) return <div className="text-center text-red-500 p-4">{error}</div>;
 
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
             <MetaData title="My Orders" />
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Order History</h2>
-
-            {/* --- MODIFICATION: Tabs UI --- */}
-            <div className="border-b border-gray-200 mb-6">
-                <nav className="-mb-px flex space-x-6" aria-label="Tabs">
-                    <button
-                        onClick={() => handleTabClick('PURCHASES')}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:cursor-pointer ${
-                            activeTab === 'PURCHASES'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
-                    >
-                        Purchase History
-                    </button>
-                    <button
-                        onClick={() => handleTabClick('SAMPLES')}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:cursor-pointer ${
-                            activeTab === 'SAMPLES'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
-                    >
-                        Sample History
-                    </button>
-                </nav>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">Order History</h2>
             </div>
 
-            {(!orders || orders.length === 0) ? (
+            {orders.length === 0 ? (
                 <div className="text-center py-12">
-                    {/* ... (empty state UI) ... */}
+                    <svg
+                        className="mx-auto h-12 w-12 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                        />
+                    </svg>
                     <h3 className="mt-2 text-lg font-medium text-gray-900">No orders found</h3>
-                    <p className="mt-1 text-gray-500">You haven't placed any {activeTab === 'SAMPLES' ? 'sample' : ''} orders yet.</p>
+                    <p className="mt-1 text-gray-500">
+                        You haven't placed any orders yet.
+                    </p>
+                    <div className="mt-6">
+                        <Link
+                            to="/products"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#003366] hover:bg-[#002244]"
+                        >
+                            Continue Shopping
+                        </Link>
+                    </div>
                 </div>
             ) : (
                 <div className="space-y-6">
@@ -111,12 +95,24 @@ const OrderHistory = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">View</span></th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Order ID
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Date
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Items
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Total
+                                    </th>
+                                    <th scope="col" className="relative px-6 py-3">
+                                        <span className="sr-only">View</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -124,21 +120,30 @@ const OrderHistory = () => {
                                     <tr key={order._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             #{order._id.substring(order._id.length - 6).toUpperCase()}
-                                            {/* --- MODIFICATION: Add Sample Badge --- */}
+                                            {/* --- MODIFICATION: Added Sample Badge --- */}
                                             {order.isSampleOrder && (
                                                 <span className="ml-2 text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Sample</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(order.createdAt)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {formatDate(order.createdAt)}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(order.orderStatus)}`}>
                                                 {order.orderStatus}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.orderItems.length}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">{formatPrice(order.totalPrice)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {order.orderItems.reduce((total, item) => total + item.quantity, 0)} items
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                                            {formatPrice(order.totalPrice)}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link to={`/order_details/${order._id}`} className="text-[#003366] hover:text-[#002244] hover:underline">
+                                            <Link
+                                                to={`/order_details/${order._id}`}
+                                                className="text-[#003366] hover:text-[#002244] hover:underline"
+                                            >
                                                 View Details
                                             </Link>
                                         </td>
@@ -147,7 +152,95 @@ const OrderHistory = () => {
                             </tbody>
                         </table>
                     </div>
-                    {/* ... Pagination Controls ... */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+                            {/* --- MODIFICATION: Removed "Loading..." text --- */}
+                            <div className="flex-1 flex justify-between sm:hidden">
+                                <button 
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={!hasPreviousPage || loading}
+                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
+                                        !hasPreviousPage || loading
+                                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    Previous
+                                </button>
+                                <div className="text-sm text-gray-700 px-4 py-2 border border-gray-300 rounded-md">
+                                    Page {currentPage} of {totalPages}
+                                </div>
+                                <button 
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={!hasNextPage || loading}
+                                    className={`ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
+                                        !hasNextPage || loading
+                                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    Next
+                                </button>
+                            </div>
+                            
+                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-700">
+                                        Showing <span className="font-medium">{startItem}</span> to{' '}
+                                        <span className="font-medium">{endItem}</span> of <span className="font-medium">{totalOrders}</span> results
+                                    </p>
+                                </div>
+                                <div>
+                                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                        <button
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={!hasPreviousPage || loading}
+                                            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border ${
+                                                !hasPreviousPage || loading
+                                                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <span className="sr-only">Previous</span>
+                                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        
+                                        {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                                            <button
+                                                key={page}
+                                                onClick={() => handlePageChange(page)}
+                                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                                    currentPage === page
+                                                        ? 'bg-blue-50 text-blue-600 border-blue-300'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                                } ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                disabled={loading}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                        
+                                        <button
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={!hasNextPage || loading}
+                                            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border ${
+                                                !hasNextPage || loading
+                                                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <span className="sr-only">Next</span>
+                                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

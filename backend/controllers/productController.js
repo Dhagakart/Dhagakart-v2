@@ -54,24 +54,30 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
     try {
         const productData = { ...req.body, user: req.user.id };
 
-        // Handle orderConfig
+        // --- MODIFICATION: Handle sampleConfig ---
+        // This logic is added to parse the sample configuration from the form
+        if (req.body.sampleConfig) {
+            if (typeof req.body.sampleConfig === 'string') {
+                productData.sampleConfig = JSON.parse(req.body.sampleConfig);
+            } else {
+                productData.sampleConfig = req.body.sampleConfig;
+            }
+        }
+        // -----------------------------------------
+
+        // Handle orderConfig (Your existing robust logic)
         try {
             if (req.body.orderConfig) {
-                // If it's a string, parse it
                 if (typeof req.body.orderConfig === 'string') {
                     productData.orderConfig = JSON.parse(req.body.orderConfig);
                 } else {
                     productData.orderConfig = req.body.orderConfig;
                 }
-                
-                // Ensure orderConfig has the correct structure with units array
                 if (!Array.isArray(productData.orderConfig)) {
                     productData.orderConfig = { units: [productData.orderConfig] };
                 } else if (productData.orderConfig.length > 0 && !productData.orderConfig[0].units) {
                     productData.orderConfig = { units: productData.orderConfig };
                 }
-                
-                // Ensure each unit has required fields with valid values
                 if (productData.orderConfig.units && productData.orderConfig.units.length > 0) {
                     productData.orderConfig.units = productData.orderConfig.units.map(unit => ({
                         unit: unit.unit || 'unit',
@@ -84,68 +90,39 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
                     }));
                 }
             } else {
-                // Default orderConfig if not provided
                 const price = Math.max(0.01, parseFloat(req.body.price) || 1);
                 const cuttedPrice = Math.max(0.01, parseFloat(req.body.cuttedPrice) || price);
-                
                 productData.orderConfig = {
-                    units: [{
-                        unit: 'unit',
-                        minQty: 1,
-                        increment: 1,
-                        maxQty: 25,
-                        isDefault: true,
-                        price: price,
-                        cuttedPrice: cuttedPrice
-                    }]
+                    units: [{ unit: 'unit', minQty: 1, increment: 1, maxQty: 25, isDefault: true, price: price, cuttedPrice: cuttedPrice }]
                 };
             }
         } catch (error) {
             console.error('Error processing orderConfig:', error);
-            // Fallback to default config if there's an error
             const price = Math.max(0.01, parseFloat(req.body.price) || 1);
             const cuttedPrice = Math.max(0.01, parseFloat(req.body.cuttedPrice) || price);
-            
             productData.orderConfig = {
-                units: [{
-                    unit: 'unit',
-                    minQty: 1,
-                    increment: 1,
-                    maxQty: 25,
-                    isDefault: true,
-                    price: price,
-                    cuttedPrice: cuttedPrice
-                }]
+                units: [{ unit: 'unit', minQty: 1, increment: 1, maxQty: 25, isDefault: true, price: price, cuttedPrice: cuttedPrice }]
             };
         }
 
-        // Handle specifications
+        // Handle specifications (Your existing robust logic)
         try {
             if (req.body.specifications) {
-                // If it's a string, parse it
                 if (typeof req.body.specifications === 'string') {
                     productData.specifications = JSON.parse(req.body.specifications);
                 } else {
                     productData.specifications = req.body.specifications;
                 }
-                
-                // Ensure specifications is an array
                 if (!Array.isArray(productData.specifications)) {
-                    // If it's a single object, convert it to an array
                     if (typeof productData.specifications === 'object' && productData.specifications !== null) {
                         productData.specifications = [productData.specifications];
                     } else {
                         productData.specifications = [];
                     }
                 }
-                
-                // Ensure each spec has required fields
                 productData.specifications = productData.specifications
                     .filter(spec => spec && (spec.title || spec.description))
-                    .map(spec => ({
-                        title: spec.title || '',
-                        description: spec.description || ''
-                    }));
+                    .map(spec => ({ title: spec.title || '', description: spec.description || '' }));
             } else {
                 productData.specifications = [];
             }
@@ -154,29 +131,20 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
             productData.specifications = [];
         }
 
-        // Handle image uploads
+        // Handle image uploads (Your existing robust logic)
         if (req.body.images) {
             const imagesToUpload = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
             const imagesLink = [];
-            
             for (const image of imagesToUpload) {
-                if (image) { // Only process if image exists
+                if (image) {
                     try {
-                        const result = await cloudinary.v2.uploader.upload(image, { 
-                            folder: "products",
-                            resource_type: 'auto' 
-                        });
-                        imagesLink.push({ 
-                            public_id: result.public_id, 
-                            url: result.secure_url 
-                        });
+                        const result = await cloudinary.v2.uploader.upload(image, { folder: "products", resource_type: 'auto' });
+                        imagesLink.push({ public_id: result.public_id, url: result.secure_url });
                     } catch (uploadError) {
                         console.error('Error uploading image to Cloudinary:', uploadError);
-                        // Continue with other images even if one fails
                     }
                 }
             }
-            
             if (imagesLink.length > 0) {
                 productData.images = imagesLink;
             } else {
@@ -201,6 +169,7 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     const updateData = { ...req.body };
     let finalImages = [...product.images];
 
+    // Handle removed images
     if (req.body.removedImages) {
         const publicIdsToRemove = Array.isArray(req.body.removedImages) ? req.body.removedImages : [req.body.removedImages];
         for (const publicId of publicIdsToRemove) {
@@ -209,6 +178,7 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
         finalImages = finalImages.filter(img => !publicIdsToRemove.includes(img.public_id));
     }
 
+    // Handle newly uploaded images
     if (req.body.images) {
         const newImagesToUpload = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
         for (const image of newImagesToUpload) {
@@ -218,9 +188,16 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
     }
     updateData.images = finalImages;
 
+    // --- MODIFICATION: Parse the new sampleConfig object from the form data ---
+    if (req.body.sampleConfig) {
+        updateData.sampleConfig = JSON.parse(req.body.sampleConfig);
+    }
+    
+    // Parse other JSON stringified fields
     if (req.body.orderConfig) updateData.orderConfig = JSON.parse(req.body.orderConfig);
     if (req.body.specifications) updateData.specifications = JSON.parse(req.body.specifications);
     
+    // Clean up temporary fields
     delete updateData.removedImages;
 
     product = await Product.findByIdAndUpdate(req.params.id, updateData, {

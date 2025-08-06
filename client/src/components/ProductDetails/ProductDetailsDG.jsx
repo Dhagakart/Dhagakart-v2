@@ -821,12 +821,14 @@ const ProductDetailsDG = () => {
             </div>
             {/* --- MODIFIED MOBILE ACTION BUTTONS --- */}
             <div className="flex flex-col gap-2">
-              <button
-                onClick={() => setIsSampleModalOpen(true)}
-                className="w-full py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg text-sm hover:bg-gray-200 transition-color"
-              >
-                Order Sample
-              </button>
+              {product.sampleConfig && product.sampleConfig.isSampleAvailable && (
+                <button
+                  onClick={() => setIsSampleModalOpen(true)}
+                  className="w-full py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg text-sm hover:bg-gray-200 transition-color"
+                >
+                  Order Sample
+                </button>
+              )}
               <div className="flex space-x-2">
                 <button
                   onClick={handleAddToCart}
@@ -946,12 +948,14 @@ const ProductDetailsDG = () => {
               </div>
               {/* --- MODIFIED DESKTOP ACTION BUTTONS --- */}
               <div className="flex flex-col gap-3 w-full sm:w-auto mt-6">
-                <button
-                  onClick={() => setIsSampleModalOpen(true)}
-                  className="w-full py-3 px-4 bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors rounded-lg font-medium text-sm shadow-sm whitespace-nowrap hover:cursor-pointer"
-                >
-                  ORDER SAMPLE
-                </button>
+                {product.sampleConfig && product.sampleConfig.isSampleAvailable && (
+                  <button
+                    onClick={() => setIsSampleModalOpen(true)}
+                    className="w-full py-3 px-4 bg-gray-200 text-gray-900 hover:bg-gray-300 transition-colors rounded-lg font-semibold text-base shadow-sm hover:cursor-pointer"
+                  >
+                    ORDER SAMPLE
+                  </button>
+                )}
                 <div className="flex gap-3 w-full">
                   <button
                     onClick={handleAddToCart}
@@ -1530,11 +1534,13 @@ const ProductDetailsDG = () => {
           )}
         </div>
       </div>
-      <SampleOrderModal
-        open={isSampleModalOpen}
-        onClose={() => setIsSampleModalOpen(false)}
-        product={product}
-      />
+      {product && (
+        <SampleOrderModal
+          open={isSampleModalOpen}
+          onClose={() => setIsSampleModalOpen(false)}
+          product={product}
+        />
+      )}
     </div>
   );
 };

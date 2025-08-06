@@ -3,10 +3,9 @@ import thunk from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { forgotPasswordReducer, profileReducer, userReducer, allUsersReducer, userDetailsReducer } from './reducers/userReducer';
 import { newProductReducer, newReviewReducer, productDetailsReducer, productReducer, productsReducer, productReviewsReducer, reviewReducer } from './reducers/productReducer';
-// --- MODIFICATION: Import the new sampleCartReducer ---
 import { cartReducer, sampleCartReducer } from './reducers/cartReducer';
 import { saveForLaterReducer } from './reducers/saveForLaterReducer';
-import { allOrdersReducer, myOrdersReducer, newOrderReducer, orderDetailsReducer, orderReducer, paymentStatusReducer, searchOrdersReducer, mySampleOrdersReducer } from './reducers/orderReducer';
+import { allOrdersReducer, myOrdersReducer, mySampleOrdersReducer, newOrderReducer, orderDetailsReducer, orderReducer, paymentStatusReducer, searchOrdersReducer } from './reducers/orderReducer';
 import { wishlistReducer } from './reducers/wishlistReducer';
 import { quoteListReducer, quoteDetailsReducer, newQuoteReducer } from './reducers/quoteReducer';
 
@@ -18,12 +17,11 @@ const reducer = combineReducers({
     productDetails: productDetailsReducer,
     newReview: newReviewReducer,
     cart: cartReducer,
-    // --- MODIFICATION: Add the sampleCart reducer to the store ---
     sampleCart: sampleCartReducer,
-    mySampleOrders: mySampleOrdersReducer,
     saveForLater: saveForLaterReducer,
     newOrder: newOrderReducer,
     myOrders: myOrdersReducer,
+    mySampleOrders: mySampleOrdersReducer,
     paymentStatus: paymentStatusReducer,
     orderDetails: orderDetailsReducer,
     allOrders: allOrdersReducer,
@@ -41,6 +39,7 @@ const reducer = combineReducers({
     newQuote: newQuoteReducer,
 });
 
+// --- MODIFICATION: Added initial state for myOrders and mySampleOrders ---
 let initialState = {
     cart: {
         cartItems: localStorage.getItem('cartItems')
@@ -50,7 +49,6 @@ let initialState = {
             ? JSON.parse(localStorage.getItem("shippingInfo"))
             : {},
     },
-    // --- MODIFICATION: Add initial state for the sample cart from localStorage ---
     sampleCart: {
         sampleCartItems: localStorage.getItem('sampleCartItems')
             ? JSON.parse(localStorage.getItem('sampleCartItems'))
@@ -69,6 +67,15 @@ let initialState = {
             ? JSON.parse(localStorage.getItem('wishlistItems'))
             : [],
     },
+    // Add these to ensure they are never undefined
+    myOrders: {
+        orders: [],
+        pagination: {}
+    },
+    mySampleOrders: {
+        orders: [],
+        pagination: {}
+    }
 };
 
 const middleware = [thunk];

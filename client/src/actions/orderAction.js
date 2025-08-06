@@ -390,3 +390,23 @@ export const searchOrders = (filters) => async (dispatch) => {
 export const clearErrors = () => async (dispatch) => {
     dispatch({ type: CLEAR_ERRORS });
 };
+
+export const myAllOrders = (page = 1) => async (dispatch) => {
+    try {
+        dispatch({ type: MY_ALL_ORDERS_REQUEST });
+        
+        // This calls the new unified endpoint we created on the backend
+        const { data } = await api.get(`/orders/me/all?page=${page}`);
+        
+        dispatch({
+            type: MY_ALL_ORDERS_SUCCESS,
+            payload: data, // The payload already contains orders and pagination
+        });
+
+    } catch (error) {
+        dispatch({
+            type: MY_ALL_ORDERS_FAIL,
+            payload: error.response?.data?.message || 'Error fetching all orders'
+        });
+    }
+};

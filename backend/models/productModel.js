@@ -129,6 +129,24 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: 1
     },
+    // --- THIS IS THE NEW SECTION FOR SAMPLE ORDERS ---
+    sampleConfig: {
+        isSampleAvailable: {
+            type: Boolean,
+            default: false,
+        },
+        price: {
+            type: Number,
+            default: 0,
+            required: [function() { return this.isSampleAvailable; }, 'Sample price is required if samples are available.'],
+        },
+        maxQuantity: {
+            type: Number,
+            default: 1,
+            required: [function() { return this.isSampleAvailable; }, 'Max sample quantity is required if samples are available.'],
+        },
+    },
+    // -----------------------------------------------
     ratings: {
         type: Number,
         default: 0

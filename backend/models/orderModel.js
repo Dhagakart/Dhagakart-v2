@@ -99,10 +99,26 @@ const orderSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
-    isSampleOrder: {
-        type: Boolean,
-        default: false,
-        required: true
+    // isSampleOrder: {
+    //     type: Boolean,
+    //     default: false,
+    //     required: true
+    // },
+    sampleConfig: {
+        isSampleAvailable: {
+            type: Boolean,
+            default: false,
+        },
+        price: {
+            type: Number,
+            default: 0,
+            required: [function() { return this.isSampleAvailable; }, 'Sample price is required if samples are available.'],
+        },
+        maxQuantity: {
+            type: Number,
+            default: 1,
+            required: [function() { return this.isSampleAvailable; }, 'Max sample quantity is required if samples are available.'],
+        },
     },
     paymentInfo: {
         id: {

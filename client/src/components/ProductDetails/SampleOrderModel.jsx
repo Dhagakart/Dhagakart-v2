@@ -1,10 +1,8 @@
-// src/components/Product/SampleOrderModal.js
-
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-// Make sure you are importing the CORRECT action
 import { addItemsToSampleCart } from '../../actions/cartAction';
+import { formatPrice } from '../../utils/formatPrice'; // Assuming you have this utility
 
 // MUI Imports
 import { Modal, Box, Typography, IconButton, Button, Backdrop } from '@mui/material';
@@ -28,30 +26,30 @@ const SampleOrderModal = ({ open, onClose, product }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
-  const MAX_SAMPLE_QTY = 5;
+
+  // --- MODIFICATION: Get max quantity and price from product.sampleConfig ---
+  const maxSampleQuantity = product?.sampleConfig?.maxQuantity || 1;
+  const samplePrice = product?.sampleConfig?.price || 0;
 
   useEffect(() => {
     if (open) {
-      setQuantity(1);
+      setQuantity(1); // Reset quantity to 1 each time the modal opens
     }
   }, [open]);
 
   if (!product) return null;
 
   const handleIncrement = () => {
-    setQuantity((prev) => Math.min(prev + 1, MAX_SAMPLE_QTY));
+    // Use the dynamic max quantity
+    setQuantity((prev) => Math.min(prev + 1, maxSampleQuantity));
   };
 
   const handleDecrement = () => {
     setQuantity((prev) => Math.max(prev - 1, 1));
   };
 
-  // This is the critical function. Ensure it's correct.
   const handleAddSampleToCart = () => {
-    // 1. Dispatch the SPECIFIC action for the sample cart.
     dispatch(addItemsToSampleCart(product._id, quantity));
-    
-    // 2. Redirect to the sample cart page.
     navigate('/sample-cart'); 
   };
 
@@ -83,20 +81,25 @@ const SampleOrderModal = ({ open, onClose, product }) => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, borderBottom: '1px solid #eee', pb: 2 }}>
           <Box component="img" sx={{ height: 80, width: 80, objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee' }} alt={product.name} src={product.images?.[0]?.url || ''} />
-          <Typography variant="body1" sx={{ fontWeight: '500' }}>{product.name}</Typography>
+          <Box>
+            <Typography variant="body1" sx={{ fontWeight: '500' }}>{product.name}</Typography>
+            {/* --- MODIFICATION: Display the sample price --- */}
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>{formatPrice(samplePrice)}</Typography>
+          </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: '500' }}>Select Quantity:</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '8px' }}>
             <IconButton onClick={handleDecrement} disabled={quantity <= 1}><RemoveIcon /></IconButton>
             <Typography sx={{ px: 2, fontWeight: 'bold' }}>{quantity}</Typography>
-            <IconButton onClick={handleIncrement} disabled={quantity >= MAX_SAMPLE_QTY}><AddIcon /></IconButton>
+            {/* --- MODIFICATION: Use dynamic max quantity --- */}
+            <IconButton onClick={handleIncrement} disabled={quantity >= maxSampleQuantity}><AddIcon /></IconButton>
           </Box>
         </Box>
         
         <Typography variant="caption" display="block" sx={{ textAlign: 'center', color: 'text.secondary', mb: 3 }}>
-          A maximum of {MAX_SAMPLE_QTY} samples can be ordered.
+          A maximum of {maxSampleQuantity} sample(s) can be ordered.
         </Typography>
 
         <Button fullWidth variant="contained" size="large" onClick={handleAddSampleToCart} sx={{ py: 1.5, backgroundColor: '#003366', '&:hover': { backgroundColor: '#002244' } }}>
