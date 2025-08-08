@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast'; // --- MODIFICATION: Imported react-hot-toast ---
 import { addItemsToSampleCart } from '../../actions/cartAction';
-import { formatPrice } from '../../utils/formatPrice'; // Assuming you have this utility
+import { formatPrice } from '../../utils/formatPrice';
 
 // MUI Imports
 import { Modal, Box, Typography, IconButton, Button, Backdrop } from '@mui/material';
@@ -25,9 +26,9 @@ const style = {
 const SampleOrderModal = ({ open, onClose, product }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  // --- MODIFICATION: Removed useSnackbar ---
   const [quantity, setQuantity] = useState(1);
 
-  // --- MODIFICATION: Get max quantity and price from product.sampleConfig ---
   const maxSampleQuantity = product?.sampleConfig?.maxQuantity || 1;
   const samplePrice = product?.sampleConfig?.price || 0;
 
@@ -40,7 +41,6 @@ const SampleOrderModal = ({ open, onClose, product }) => {
   if (!product) return null;
 
   const handleIncrement = () => {
-    // Use the dynamic max quantity
     setQuantity((prev) => Math.min(prev + 1, maxSampleQuantity));
   };
 
@@ -51,17 +51,12 @@ const SampleOrderModal = ({ open, onClose, product }) => {
   const handleAddSampleToCart = async () => {
     try {
       await dispatch(addItemsToSampleCart(product._id, quantity));
+      // --- MODIFICATION: Use toast.success for success notification ---
+      toast.success(`${quantity} Sample(s) added to cart!`);
       navigate('/sample-cart');
     } catch (error) {
-      // Show error notification to the user
-      enqueueSnackbar(error.message || 'Failed to add item to sample cart', {
-        variant: 'error',
-        autoHideDuration: 3000,
-        anchorOrigin: {
-          vertical: 'bottom',
-          horizontal: 'center',
-        },
-      });
+      // --- MODIFICATION: Use toast.error for error notification ---
+      toast.error(error.message || 'Failed to add item to sample cart');
       console.error('Error adding to sample cart:', error);
     }
   };
@@ -96,7 +91,6 @@ const SampleOrderModal = ({ open, onClose, product }) => {
           <Box component="img" sx={{ height: 80, width: 80, objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee' }} alt={product.name} src={product.images?.[0]?.url || ''} />
           <Box>
             <Typography variant="body1" sx={{ fontWeight: '500' }}>{product.name}</Typography>
-            {/* --- MODIFICATION: Display the sample price --- */}
             <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>{formatPrice(samplePrice)}</Typography>
           </Box>
         </Box>
@@ -106,7 +100,6 @@ const SampleOrderModal = ({ open, onClose, product }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '8px' }}>
             <IconButton onClick={handleDecrement} disabled={quantity <= 1}><RemoveIcon /></IconButton>
             <Typography sx={{ px: 2, fontWeight: 'bold' }}>{quantity}</Typography>
-            {/* --- MODIFICATION: Use dynamic max quantity --- */}
             <IconButton onClick={handleIncrement} disabled={quantity >= maxSampleQuantity}><AddIcon /></IconButton>
           </Box>
         </Box>
