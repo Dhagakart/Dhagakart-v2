@@ -1137,17 +1137,14 @@ const ProductDetailsDG = () => {
                     <div className="space-y-4">
                       {[
                         {
-                          icon: '✓',
                           title: 'Free 1 Year Warranty',
                           desc: 'Comprehensive coverage for peace of mind'
                         },
                         {
-                          icon: '🚚',
                           title: 'Fast & Free Delivery',
                           desc: 'Quick shipping to your doorstep'
                         },
                         {
-                          icon: '🤝',
                           title: 'Money-back Guarantee',
                           desc: '100% satisfaction or your money back'
                         }
@@ -1195,31 +1192,31 @@ const ProductDetailsDG = () => {
                       <div className="md:flex md:justify-between items-center p-3 md:p-0 rounded-lg md:rounded-none transition-all duration-200 hover:bg-blue-50 md:hover:bg-transparent">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 md:w-8 md:h-8 bg-green-50 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {/* <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            </svg> */}
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-900">Standard Shipping</h4>
                             <p className="text-sm text-gray-600 mt-1">2-4 business days</p>
                           </div>
                         </div>
-                        <span className="font-semibold text-green-600 mt-2 md:mt-0 block md:inline-block">Free</span>
+                        {/* <span className="font-semibold text-green-600 mt-2 md:mt-0 block md:inline-block">Free</span> */}
                       </div>
 
                       <div className="md:flex md:justify-between items-center p-3 md:p-0 rounded-lg md:rounded-none transition-all duration-200 hover:bg-blue-50 md:hover:bg-transparent">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 md:w-8 md:h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {/* <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            </svg> */}
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-900">Express Shipping</h4>
                             <p className="text-sm text-gray-600 mt-1">1-2 business days</p>
                           </div>
                         </div>
-                        <span className="font-semibold text-gray-900 mt-2 md:mt-0 block md:inline-block">$19.00</span>
+                        {/* <span className="font-semibold text-gray-900 mt-2 md:mt-0 block md:inline-block">$19.00</span> */}
                       </div>
 
                       {/* Processing Time */}
