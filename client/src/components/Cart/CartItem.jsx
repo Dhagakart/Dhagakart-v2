@@ -7,31 +7,31 @@ import { formatPrice } from '../../utils/formatPrice';
 const CartItem = ({ product, name, image, price, quantity, unit, isSample = false, sampleConfig, updateAction, removeAction }) => {
     const dispatch = useDispatch();
 
-    // --- FIX: Determine the correct data source based on whether it's a sample ---
     const itemPrice = isSample ? price : (unit?.price || 0);
-    const unitName = isSample ? "Sample" : (unit?.name || 'N/A');
+    // --- MODIFICATION: Changed the fallback from 'N/A' to 'unit' ---
+    const unitName = isSample ? "Sample" : (unit?.name || 'unit');
     const subTotal = itemPrice * quantity;
 
-    // Determine quantity limits based on order type
     const minQty = isSample ? 1 : (unit?.minQty || 1);
     const maxQty = isSample ? (sampleConfig?.maxQuantity || 1) : (unit?.maxQty || Infinity);
     const increment = isSample ? 1 : (unit?.increment || 1);
 
     const increaseQuantity = () => {
         const newQty = Math.min(maxQty, quantity + increment);
-        // For samples, the `unit` prop will be undefined, which is correct
         dispatch(updateAction(product, newQty, isSample ? null : unit));
     };
 
     const decreaseQuantity = () => {
         const newQty = Math.max(minQty, quantity - increment);
-        // For samples, the `unit` prop will be undefined, which is correct
         dispatch(updateAction(product, newQty, isSample ? null : unit));
     };
 
     const handleRemoveItem = () => {
         dispatch(removeAction(product));
     };
+
+    // Logic to correctly pluralize the unit name
+    const plural = quantity > 1 && unitName && unitName !== 'Sample' && !unitName.endsWith('s') ? 's' : '';
 
     return (
         <tr className="border-b border-gray-200 last:border-b-0">
@@ -73,7 +73,9 @@ const CartItem = ({ product, name, image, price, quantity, unit, isSample = fals
                     <button onClick={decreaseQuantity} disabled={quantity <= minQty} className="px-3 py-2.5 hover:bg-gray-100 disabled:opacity-50 transition-colors hover:cursor-pointer">
                         <FaMinus size={12} />
                     </button>
-                    <span className="px-4 py-1 text-center font-semibold text-gray-800 w-12">{quantity}</span>
+                    <span className="px-4 py-1 text-center font-semibold text-gray-800 min-w-[100px] whitespace-nowrap">
+                        {`${quantity} ${unitName}${plural}`}
+                    </span>
                     <button onClick={increaseQuantity} disabled={quantity >= maxQty} className="px-3 py-2.5 hover:bg-gray-100 disabled:opacity-50 transition-colors hover:cursor-pointer">
                         <FaPlus size={12} />
                     </button>

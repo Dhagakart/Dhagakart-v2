@@ -92,19 +92,21 @@ const Cart = () => {
             <MetaData title="Shopping Cart | DhagaKart" />
             <main className="w-full min-h-screen bg-gray-50 px-4 md:px-12 pt-4 md:pt-10">
                 <div className="container mx-auto py-4 md:py-8">
-                    {/* --- FIX: Conditional check now wraps the entire layout --- */}
                     {cartItems.length === 0 ? (
                         <EmptyCart />
                     ) : (
                         <div className="flex flex-col lg:flex-row gap-8">
-                            {/* Left Column */}
                             <div className="lg:w-2/3 w-full">
                                 <div className="bg-white rounded-lg shadow-md">
                                     <h2 className="text-xl font-bold text-gray-800 p-6 border-b border-gray-200">Shopping Cart ({cartItems.length})</h2>
+                                    
                                     {isMobile ? (
                                         <div className="p-4 space-y-4">
                                             {cartItems.map((item) => {
                                                 const { unit } = item;
+                                                const unitName = unit?.name || '';
+                                                const plural = item.quantity > 1 && unitName && !unitName.endsWith('s') ? 's' : '';
+
                                                 return (
                                                     <div key={item.product} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
                                                         <div className="flex gap-4">
@@ -119,7 +121,8 @@ const Cart = () => {
                                                         <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                                                             <div className="flex items-center border border-gray-200 rounded-md">
                                                                 <button onClick={() => dispatch(addItemsToCart(item.product, Math.max(unit?.minQty || 1, item.quantity - (unit?.increment || 1)), unit))} className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 hover:cursor-pointer" disabled={item.quantity <= (unit?.minQty || 1)}><FaMinus size={12} /></button>
-                                                                <span className="px-4 py-1 text-center font-semibold w-12">{item.quantity}</span>
+                                                                {/* --- MODIFICATION: Display quantity with unit name --- */}
+                                                                <span className="px-4 py-1 text-center font-semibold w-auto min-w-[60px]">{`${item.quantity} ${unitName}${plural}`}</span>
                                                                 <button onClick={() => dispatch(addItemsToCart(item.product, Math.min(unit?.maxQty || Infinity, item.quantity + (unit?.increment || 1)), unit))} className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 hover:cursor-pointer" disabled={unit?.maxQty ? item.quantity >= unit.maxQty : false}><FaPlus size={12} /></button>
                                                             </div>
                                                             <button onClick={() => dispatch(removeItemsFromCart(item.product))} className="text-gray-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 hover:cursor-pointer transition-colors"><FaTrash size={16} /></button>
@@ -155,7 +158,6 @@ const Cart = () => {
                                     )}
                                 </div>
                             </div>
-                            {/* Right Column (Sidebar) */}
                             <div className="lg:w-1/3 w-full">
                                 <div className="lg:sticky lg:top-24">
                                     {renderPriceSidebar()}
