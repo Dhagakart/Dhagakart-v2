@@ -30,7 +30,11 @@ const Products = () => {
     const params = useParams();
     const location = useLocation();
 
-    const [selectedCategory, setSelectedCategory] = useState("");
+    // Get category from URL if present
+    const searchParams = new URLSearchParams(location.search);
+    const urlCategory = searchParams.get('category') || '';
+
+    const [selectedCategory, setSelectedCategory] = useState(urlCategory);
     const [selectedSubcategory, setSelectedSubcategory] = useState("");
 
     // pagination
@@ -72,6 +76,17 @@ const Products = () => {
         // Pass selected category and subcategory to filter products
         dispatch(getProducts(searchKeyword, selectedCategory || "", [0, 20000000], 0, currentPage, selectedSubcategory || ""));
     }, [dispatch, keyword, selectedCategory, selectedSubcategory, currentPage, error, enqueueSnackbar]);
+
+    // Update selected category when URL changes
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const urlCategory = searchParams.get('category') || '';
+        if (urlCategory && urlCategory !== selectedCategory) {
+            setSelectedCategory(urlCategory);
+            setSelectedSubcategory("");
+            setCurrentPage(1);
+        }
+    }, [location.search, selectedCategory]);
     
     // Reset subcategory and page when category changes
     useEffect(() => {

@@ -350,7 +350,7 @@ const ProductDetailsDG = () => {
     }
   }, [product]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedUnit && product?.orderConfig?.units?.length > 0) {
       toast.error('Please select a unit before adding to cart', {
         position: 'top-right',
@@ -359,44 +359,70 @@ const ProductDetailsDG = () => {
       return;
     }
 
-    // Get the full unit details
-    const unitDetails = product?.orderConfig?.units?.find(u => u.unit === selectedUnit);
+    try {
+      // Get the full unit details
+      const unitDetails = product?.orderConfig?.units?.find(u => u.unit === selectedUnit);
 
-    // Validate quantity against unit constraints
-    let validatedQuantity = quantity;
-    if (unitDetails) {
-      validatedQuantity = Math.max(validatedQuantity, unitDetails.minQty || 1);
-      if (unitDetails.maxQty) {
-        validatedQuantity = Math.min(validatedQuantity, unitDetails.maxQty);
+      // Validate quantity against unit constraints
+      let validatedQuantity = quantity;
+      if (unitDetails) {
+        validatedQuantity = Math.max(validatedQuantity, unitDetails.minQty || 1);
+        if (unitDetails.maxQty) {
+          validatedQuantity = Math.min(validatedQuantity, unitDetails.maxQty);
+        }
+        if (unitDetails.increment > 1) {
+          validatedQuantity = Math.ceil(validatedQuantity / unitDetails.increment) * unitDetails.increment;
+        }
       }
-      if (unitDetails.increment > 1) {
-        validatedQuantity = Math.ceil(validatedQuantity / unitDetails.increment) * unitDetails.increment;
+
+      // Only update quantity if it was adjusted
+      if (validatedQuantity !== quantity) {
+        setQuantity(validatedQuantity);
+      }
+
+      // Dispatch with unit information
+      await dispatch(addItemsToCart(id, validatedQuantity, unitDetails || null));
+
+      toast.success(
+        validatedQuantity > 1 ? `${validatedQuantity} items added to cart!` : '1 item added to cart!',
+        {
+          position: 'top-right',
+          duration: 3000,
+        }
+      );
+    } catch (error) {
+      // Show error notification for mutual exclusion
+      if (error.message.includes('sample cart')) {
+        toast.error(error.message, {
+          position: 'top-right',
+          duration: 5000, // Longer duration for important messages
+          style: {
+            background: '#fef2f2',
+            color: '#b91c1c',
+            border: '1px solid #fecaca',
+          },
+        });
+      } else {
+        // Other errors
+        toast.error(error.message || 'Failed to add to cart', {
+          position: 'top-right',
+          duration: 3000,
+        });
       }
     }
-
-    // Only update quantity if it was adjusted
-    if (validatedQuantity !== quantity) {
-      setQuantity(validatedQuantity);
-    }
-
-    // Dispatch with unit information
-    dispatch(addItemsToCart(id, validatedQuantity, unitDetails || null));
-
-    toast.success(
-      validatedQuantity > 1 ? `${validatedQuantity} items added to cart!` : '1 item added to cart!',
-      {
-        position: 'top-right',
-        duration: 3000,
-      }
-    );
   };
 
-  const handleBuyNow = () => {
-    // Call handleAddToCart first to validate and add to cart
-    handleAddToCart();
-    // Only navigate if we successfully added to cart (no validation errors)
-    if (selectedUnit || !product?.orderConfig?.units?.length) {
-      navigate('/cart');
+  const handleBuyNow = async () => {
+    try {
+      // Call handleAddToCart first to validate and add to cart
+      await handleAddToCart();
+      // Only navigate if we successfully added to cart (no validation errors)
+      if (selectedUnit || !product?.orderConfig?.units?.length) {
+        navigate('/cart');
+      }
+    } catch (error) {
+      // Error is already handled in handleAddToCart
+      console.error('Error in handleBuyNow:', error);
     }
   };
 
@@ -832,13 +858,13 @@ const ProductDetailsDG = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 py-2.5 bg-white text-[#003366] border border-[#003366] font-medium rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-2.5 bg-white text-[#003366] border border-[#003366] font-medium rounded-lg text-sm hover:bg-gray-50 transition-colors hover:cursor-pointer"
                 >
                   Add to Cart
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="flex-1 py-2.5 bg-[#003366] text-white hover:bg-[#002b57] transition-colors"
+                  className="flex-1 py-2.5 bg-[#003366] text-white hover:bg-[#002b57] transition-colors hover:cursor-pointer"
                 >
                   Buy Now
                 </button>
@@ -959,13 +985,13 @@ const ProductDetailsDG = () => {
                 <div className="flex gap-3 w-full">
                   <button
                     onClick={handleAddToCart}
-                    className="flex-1 py-3 px-6 border border-[#003366] text-[#003366] hover:bg-gray-50 transition-all rounded-lg font-medium text-sm shadow-sm whitespace-nowrap"
+                    className="flex-1 py-3 px-6 border border-[#003366] text-[#003366] hover:bg-gray-50 transition-all rounded-lg font-medium text-sm shadow-sm whitespace-nowrap hover:cursor-pointer"
                   >
                     ADD TO CART
                   </button>
                   <button
                     onClick={handleBuyNow}
-                    className="flex-1 py-3 px-6 bg-[#003366] text-white hover:bg-[#002b57] transition-colors rounded-lg font-medium text-sm shadow-sm whitespace-nowrap"
+                    className="flex-1 py-3 px-6 bg-[#003366] text-white hover:bg-[#002b57] transition-colors rounded-lg font-medium text-sm shadow-sm whitespace-nowrap hover:cursor-pointer"
                   >
                     BUY NOW
                   </button>

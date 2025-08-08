@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import { logoutUser } from '../../../actions/userAction';
+import { getProducts } from '../../../actions/productAction';
 import LogoutConfirmationModal from '../../../components/User/LogoutConfirmationModal';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import SearchIcon from '@mui/icons-material/Search';
@@ -25,6 +26,7 @@ const HeaderDG = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const { cartItems } = useSelector((state) => state.cart);
+  const { sampleCartItems } = useSelector((state) => state.sampleCart);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -38,6 +40,7 @@ const HeaderDG = () => {
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const dropdownRefs = {
     category: useRef(null),
     bulkOrder: useRef(null),
@@ -57,6 +60,15 @@ const HeaderDG = () => {
   const closeDropdown = () => {
     if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
     dropdownTimeout.current = setTimeout(() => setActiveDropdown(null), 100);
+  };
+
+  const handleCategorySelect =categoryName => {
+    closeDropdown();
+    // Navigate to products page with category as URL parameter
+    navigate({
+      pathname: '/products',
+      search: `?category=${encodeURIComponent(categoryName)}`
+    });
   };
 
   const isDropdownOpen = (dropdownName) => activeDropdown === dropdownName;
@@ -100,17 +112,24 @@ const HeaderDG = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     const trimmedQuery = searchQuery.trim();
-    if (trimmedQuery) {
-      navigate(`/products/${trimmedQuery}`);
-      setShowSuggestions(false);
-    } else {
-      enqueueSnackbar('Please enter a search term', {
-        variant: 'warning',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'right' },
-      });
+
+    // --- FIX: Immediately cancel any pending suggestion fetches ---
+    if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
     }
-  };
+
+    if (trimmedQuery) {
+        navigate(`/products/${trimmedQuery}`);
+        setShowSuggestions(false); // Hide suggestions immediately
+        setSearchQuery('');      // Clear the search bar
+    } else {
+        enqueueSnackbar('Please enter a search term', {
+            variant: 'warning',
+            autoHideDuration: 2000,
+            anchorOrigin: { vertical: 'top', horizontal: 'right' },
+        });
+    }
+};
 
   const fetchUserLocation = useCallback(async () => {
     if (!isAuthenticated) {
@@ -125,7 +144,7 @@ const HeaderDG = () => {
       if (user?.shippingAddresses?.length > 0) {
         const defaultAddress = user.shippingAddresses.find(addr => addr.isDefault) || user.shippingAddresses[0];
         if (defaultAddress) {
-          const locationText = `${defaultAddress.city}, ${defaultAddress.state}`;
+          const locationText = `${defaultAddress.city}, ${defaultAddress.zipCode || 'NA'}`;
           setUserLocation(locationText);
           setUserPincode(defaultAddress.zipCode || 'NA');
           localStorage.setItem('userLocation', locationText);
@@ -410,110 +429,48 @@ const HeaderDG = () => {
                       />
                     </button>
                     {isDropdownOpen('category') && (
-                      <div
-                        className="absolute z-50 mt-4 w-96 px-4 -left-40 bg-white rounded-lg shadow-lg overflow-hidden"
-                        onMouseEnter={() => handleMouseEnter('category')}
-                        onMouseLeave={handleMouseLeave}
-                      >
-                        <div className="grid grid-cols-3 p-3">
-                          <div>
-                            <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">YARNS</h3>
-                            <ul className="space-y-1">
-                              <li>
-                                <a
-                                  href="/products/silk%20yarn"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Silk Yarn
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="/products/cotton%20yarn"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Cotton Yarn
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="/products/polyester%20yarn"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Polyester Yarn
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="/products/viscose%20yarn"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Viscose Yarn
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                          <div>
-                            <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">ZARI</h3>
-                            <ul className="space-y-1">
-                              <li>
-                                <a
-                                  href="/products/flora%20zari"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Flora Zari
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="/products/metallic%20zari"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Metallic Zari
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="/products/zari"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Zari
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="/products/pure%20zari"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Pure Zari
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                          <div>
-                            <h3 className="text-xs text-gray-400 mb-2 px-2 py-2">Machinery</h3>
-                            <ul className="space-y-1">
-                              <li>
-                                <a
-                                  href="/products/jack"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Sewing Machine
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="/products/power%20loom"
-                                  className="text-sm text-gray-600 hover:text-blue-600 block py-1"
-                                >
-                                  Powerloom
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                                            <div className="absolute z-50 mt-4 w-96 px-4 -left-40 bg-white rounded-lg shadow-lg overflow-hidden" onMouseEnter={() => handleMouseEnter('category')} onMouseLeave={handleMouseLeave}>
+                                                <div className="grid grid-cols-3 p-3">
+                                                    <div>
+                                                        {/* --- MODIFICATION: Made heading clickable --- */}
+                                                        <div onClick={() => handleCategorySelect('Yarn')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">YARNS</div>
+                                                        <ul className="space-y-1">
+                                                            <li><a href="/products/silk%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
+                                                            <li><a href="/products/cotton%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
+                                                            <li><a href="/products/polyester%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyester Yarn</a></li>
+                                                            <li><a href="/products/viscose%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscose Yarn</a></li>
+                                                        </ul>
+                                                    </div>
+                                                    <div>
+                                                        {/* --- MODIFICATION: Made heading clickable --- */}
+                                                        <div onClick={() => handleCategorySelect('Zari')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">ZARI</div>
+                                                        <ul className="space-y-1">
+                                                            <li><a href="/products/flora%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
+                                                            <li><a href="/products/metallic%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Zari</a></li>
+                                                            <li><a href="/products/zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Zari</a></li>
+                                                            <li><a href="/products/pure%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Zari</a></li>
+                                                        </ul>
+                                                    </div>
+                                                    <div>
+                                                        {/* --- MODIFICATION: Made heading clickable --- */}
+                                                        <div onClick={() => handleCategorySelect('Machinery')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">MACHINERY</div>
+                                                        <ul className="space-y-1">
+                                                            <li><a href="/products/jack" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Sewing Machine</a></li>
+                                                            <li><a href="/products/power%20loom" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Powerloom</a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div className="border-t border-gray-100 p-2">
+                                                    <Link 
+                                                        to="/products" 
+                                                        onClick={closeDropdown}
+                                                        className="block w-full text-center px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                    >
+                                                        View All Products
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        )}
                   </div>
 
                   {/* Bulk Order Dropdown */}
@@ -572,13 +529,14 @@ const HeaderDG = () => {
                 {/* Cart Icon */}
                 <div className="flex items-center">
                   <Link
-                    to="/cart"
+                    to={sampleCartItems?.length > 0 ? "/sample-cart" : "/cart"}
                     className="relative flex items-center text-gray-100 hover:text-white transition-colors"
+                    title={sampleCartItems?.length > 0 ? "View Sample Cart" : "View Cart"}
                   >
                     <ShoppingCartOutlinedIcon className="text-2xl" />
-                    {cartItems?.length > 0 && (
+                    {(cartItems?.length > 0 || sampleCartItems?.length > 0) && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        {cartItems?.length}
+                        {sampleCartItems?.length > 0 ? sampleCartItems.length : cartItems.length}
                       </span>
                     )}
                   </Link>

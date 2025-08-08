@@ -48,9 +48,22 @@ const SampleOrderModal = ({ open, onClose, product }) => {
     setQuantity((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleAddSampleToCart = () => {
-    dispatch(addItemsToSampleCart(product._id, quantity));
-    navigate('/sample-cart'); 
+  const handleAddSampleToCart = async () => {
+    try {
+      await dispatch(addItemsToSampleCart(product._id, quantity));
+      navigate('/sample-cart');
+    } catch (error) {
+      // Show error notification to the user
+      enqueueSnackbar(error.message || 'Failed to add item to sample cart', {
+        variant: 'error',
+        autoHideDuration: 3000,
+        anchorOrigin: {
+          vertical: 'bottom',
+          horizontal: 'center',
+        },
+      });
+      console.error('Error adding to sample cart:', error);
+    }
   };
 
   return (
