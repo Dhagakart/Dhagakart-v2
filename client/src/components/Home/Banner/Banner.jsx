@@ -386,7 +386,7 @@ const Banner = () => {
       {/* RIGHT COLUMN: Two "Cards" Stacked */}
       <div className="w-full lg:w-2/5 h-full flex flex-col gap-3 sm:gap-4">
         {/* TOP CARD */}
-        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer transition-all duration-300 hover:shadow-lg" onClick={() => navigate('/product/687229f7378bce74bc0a70bd')}>
+        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer transition-all duration-300" onClick={() => navigate('/product/687229f7378bce74bc0a70bd')}>
           <div className="flex flex-row h-full w-full">
             <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col justify-center">
               <p className="text-white text-lg sm:text-xl md:text-2xl font-medium leading-tight">High-Speed Rapier Power Loom - 48</p>
@@ -407,7 +407,7 @@ const Banner = () => {
         </div>
 
         {/* BOTTOM CARD */}
-        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer transition-all duration-300 hover:shadow-lg" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
+        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer transition-all duration-300" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
           <div className="flex flex-row h-full w-full">
             <div className="w-1/3 sm:w-2/5 md:w-1/2 flex-shrink-0 flex items-center justify-center p-2">
               <img
