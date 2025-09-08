@@ -391,7 +391,7 @@ const Banner = () => {
             <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col justify-center">
               <p className="text-white text-lg sm:text-xl md:text-2xl font-medium leading-tight">High-Speed Rapier Power Loom - 48</p>
               <h3 className="mt-1 text-xs sm:text-sm md:text-base font-bold text-yellow-400">DEAL FOR WEAVING HIGH-QUALITY SILK SAREES</h3>
-              <button className="mt-2 sm:mt-3 w-max bg-[#003366] hover:bg-[#002244] text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-md transition-colors duration-200">
+              <button className="mt-2 sm:mt-3 w-max bg-[#003366] hover:bg-[#002244] text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-md transition-colors duration-200 hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>
@@ -419,7 +419,7 @@ const Banner = () => {
             </div>
             <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col justify-center text-center sm:text-left">
               <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 leading-tight">SHINE SEWING THREAD MULTICOLOR THREAD</h3>
-              <button className="mt-2 sm:mt-3 mx-auto sm:mx-0 w-max bg-[#003366] hover:bg-[#002244] text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200">
+              <button className="mt-2 sm:mt-3 mx-auto sm:mx-0 w-max bg-[#003366] hover:bg-[#002244] text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200 hover:cursor-pointer">
                 SHOP NOW →
               </button>
             </div>
