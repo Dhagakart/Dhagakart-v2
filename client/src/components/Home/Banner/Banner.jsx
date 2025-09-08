@@ -270,7 +270,7 @@ const fullSizeCarouselStyles = `
     display: block !important;
     width: 100% !important;
     height: 100% !important;
-    object-fit: cover !important;
+    object-fit: contain !important;
   }
 
   /* ───────────── REMOVE ALL FOCUS STYLES INSIDE SLICK ───────────── */
@@ -357,70 +357,69 @@ const Banner = () => {
   return (
     <div className="w-full h-auto lg:h-[600px] bg-white py-4 lg:py-8 flex flex-col lg:flex-row gap-4">
       {/* LEFT COLUMN: Carousel */}
-      <div className="w-full lg:w-3/5 h-[200px] sm:h-[350px] lg:h-full rounded-sm shadow relative overflow-hidden hover:cursor-pointer">
+      <div className="w-full lg:w-3/5 h-auto rounded-sm shadow relative hover:cursor-pointer">
         <Slider {...settings} className="h-full">
           {banners.map((src, idx) => (
             <div 
               key={idx} 
-              className="h-full w-full relative hover:cursor-pointer"
+              className="w-full h-full relative hover:cursor-pointer"
+              style={{ backgroundColor: idx === 0 ? '#003366' : '#F2F4F5' }}
               onClick={(e) => isValidClick && navigate(slidePaths[idx])}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             >
-              <img
-                draggable="false"
-                className="w-full h-full object-cover focus:outline-none focus:ring-0 rounded-lg"
-                src={src}
-                alt={`banner-slide-${idx}`}
-              />
+              <div className="w-full h-full flex items-center justify-center">
+                <img
+                  draggable="false"
+                  className="w-full h-full object-contain"
+                  src={src}
+                  alt={`banner-slide-${idx}`}
+                />
+              </div>
             </div>
           ))}
         </Slider>
       </div>
 
       {/* RIGHT COLUMN: Two "Cards" Stacked */}
-      <div className="w-full lg:w-2/5 h-full flex flex-col gap-2 sm:gap-4">
+      <div className="w-full lg:w-2/5 h-full flex flex-col gap-3 sm:gap-4">
         {/* TOP CARD */}
-        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/687229f7378bce74bc0a70bd')}>
-          {/* <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded">
-            29% OFF
-          </div> */}
+        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-gray-900 rounded-sm shadow overflow-hidden relative hover:cursor-pointer transition-all duration-300 hover:shadow-lg" onClick={() => navigate('/product/687229f7378bce74bc0a70bd')}>
           <div className="flex flex-row h-full w-full">
-            <div className="flex-1 px-4 py-2 sm:px-6 sm:py-4 flex flex-col justify-center text-left">
-              <p className="text-white text-2xl sm:text-2xl font-medium ">High-Speed Rapier Power Loom - 48</p>
-              <h3 className="mt-1 text-xs sm:text-sm font-bold text-yellow-500">DEAL FOR WEAVING HIGH-QUALITY SILK SAREES.</h3>
-              <button className="mt-2 sm:mt-3 w-max bg-[#003366] text-white text-xs sm:text-sm text-white font-medium  px-3 sm:px-4 py-1.5 sm:py-2 rounded hover:cursor-pointer">
+            <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col justify-center">
+              <p className="text-white text-lg sm:text-xl md:text-2xl font-medium leading-tight">High-Speed Rapier Power Loom - 48</p>
+              <h3 className="mt-1 text-xs sm:text-sm md:text-base font-bold text-yellow-400">DEAL FOR WEAVING HIGH-QUALITY SILK SAREES</h3>
+              <button className="mt-2 sm:mt-3 w-max bg-[#003366] hover:bg-[#002244] text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-md transition-colors duration-200">
                 SHOP NOW →
               </button>
             </div>
-            <div className="w-[120px] sm:w-[150px] lg:w-[250px] flex-shrink-0 flex items-center justify-center p-2 sm:pr-4">
+            <div className="w-1/3 sm:w-2/5 md:w-1/2 flex-shrink-0 flex items-center justify-center p-2">
               <img
                 draggable="false"
-                className="h-full max-h-[120px] sm:max-h-[150px] lg:max-h-none w-auto object-contain"
+                className="h-full w-auto max-w-full object-contain"
                 src={BannerTop}
-                alt="pixel-6-pro"
+                alt="High-Speed Rapier Power Loom"
               />
             </div>
           </div>
         </div>
 
         {/* BOTTOM CARD */}
-        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
+        <div className="h-[180px] sm:h-[200px] lg:h-1/2 bg-white rounded-sm shadow overflow-hidden relative hover:cursor-pointer transition-all duration-300 hover:shadow-lg" onClick={() => navigate('/product/6870dd3b1022eca9beb2a645')}>
           <div className="flex flex-row h-full w-full">
-            <div className="w-[120px] sm:w-[150px] lg:w-[250px] flex-shrink-0 flex items-center justify-center p-2 sm:pl-4">
+            <div className="w-1/3 sm:w-2/5 md:w-1/2 flex-shrink-0 flex items-center justify-center p-2">
               <img
                 draggable="false"
-                className="h-full max-h-[120px] sm:max-h-[150px] lg:max-h-none w-auto object-contain"
+                className="h-full w-auto max-w-full object-contain"
                 src={BannerBottom}
-                alt="xiaomi-flipbuds-pro"
+                alt="SHINE SEWING THREAD"
               />
             </div>
-            <div className="flex-1 px-4 py-2 sm:px-6 sm:py-4 flex flex-col justify-center text-center sm:text-left">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800">SHINE SEWING THREAD MULTICOLOR THREAD</h3>
-              {/* <p className="mt-1 sm:mt-2 text-xl sm:text-2xl font-bold text-blue-500">Rs 299</p> */}
-              <button className="mt-2 sm:mt-4 mx-auto sm:mx-0 w-max bg-[#003366] text-white text-sm font-medium px-4 py-2 rounded hover:cursor-pointer">
+            <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col justify-center text-center sm:text-left">
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 leading-tight">SHINE SEWING THREAD MULTICOLOR THREAD</h3>
+              <button className="mt-2 sm:mt-3 mx-auto sm:mx-0 w-max bg-[#003366] hover:bg-[#002244] text-white text-sm font-medium px-4 py-2 rounded-md transition-colors duration-200">
                 SHOP NOW →
               </button>
             </div>
