@@ -6,7 +6,7 @@ const MobileSearchBar = ({ searchQuery, setSearchQuery, handleSearch, isNavbarHi
   return (
     <Box
       sx={{
-        display: { xs: 'block', md: 'none' },
+        display: { xs: 'block', '2xl': 'none' },
         bgcolor: '#003366',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         px: 2,

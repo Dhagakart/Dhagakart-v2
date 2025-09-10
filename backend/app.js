@@ -79,6 +79,7 @@ const order = require('./routes/orderRoute');
 const payment = require('./routes/paymentRoute');
 const quote = require('./routes/quoteRoute');
 const search = require('./routes/searchRoute');
+// const tracking = require('./routes/trackingRoute');
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
@@ -88,6 +89,7 @@ app.use('/api/v1/', product);
 app.use('/api/v1/', order);
 app.use('/api/v1/', payment);
 app.use('/api/v1/search', search);
+// app.use('/api/v1/tracking', tracking);
 
 // Swagger
 // const swaggerSpec = swaggerJsdoc(swaggerOptions);
