@@ -320,7 +320,7 @@ const HeaderDG = () => {
                   <img src={Logo} alt="logo" className="w-[133.3px]" />
                 </Link>
                 {isAuthenticated ? (
-                  <div className="hidden 2xl:flex items-center rounded px-2 py-1 w-40">
+                  <div className="hidden xl:flex items-center rounded px-2 py-1 w-40">
                     <div className="text-white font-medium text-sm flex items-center gap-1">
                       <img src={PinIcon} alt="pin" className="w-5 h-5" />
                       <div className="flex flex-col min-w-0">
@@ -339,7 +339,7 @@ const HeaderDG = () => {
               </div>
 
               {/* CENTER: Search Bar */}
-              <div className="hidden 2xl:block w-[470px] shrink-0 relative" ref={searchRef}>
+              <div className="hidden xl:block w-[470px] shrink-0 relative" ref={searchRef}>
                 <form
                   onSubmit={handleSearch}
                   className="w-full flex bg-white rounded-md overflow-hidden shadow-md"
@@ -406,7 +406,7 @@ const HeaderDG = () => {
               {/* RIGHT: Navigation Links + Cart + Profile */}
               <div className="flex items-center space-x-4 ml-auto ">
                 {/* Desktop Navigation */}
-                <div className="hidden 2xl:flex items-center space-x-6">
+                <div className="hidden xl:flex items-center space-x-6">
                   {/* Category Dropdown */}
                   <div
                     className="relative py-2"
@@ -615,7 +615,7 @@ const HeaderDG = () => {
         </header>
       </Headroom>
 
-      <div className="2xl:hidden" style={{ height: '56px' }}>
+      <div className="xl:hidden" style={{ height: '56px' }}>
         <MobileSearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
