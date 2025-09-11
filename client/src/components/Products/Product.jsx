@@ -31,7 +31,7 @@ const Product = ({ _id, name, images, ratings, numOfReviews, price, cuttedPrice 
     return (
         // The onClick and className have been simplified to always be active
         <div 
-            className="flex flex-col items-center justify-center gap-2 py-2 md:px-4 px-2 relative rounded-lg border border-gray-200 overflow-hidden hover:cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 py-2 md:px-4 px-2 relative rounded-lg overflow-hidden hover:cursor-pointer"
             onClick={() => navigate(`/product/${_id}`)}
         >
             
