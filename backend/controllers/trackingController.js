@@ -1,125 +1,107 @@
-// const axios = require('axios');
-// const cheerio = require('cheerio');
+const axios = require('axios');
 
-// /**
-//  * @desc    Get VRL consignment tracking details
-//  * @route   GET /api/v1/tracking/vrl/:trackingId
-//  * @access  Public
-//  */
-// const getVrlTracking = async (req, res) => {
-//     try {
-//         const { trackingId } = req.params;
-        
-//         // Validate tracking ID format (VRL tracking IDs are typically 10-12 alphanumeric characters)
-//         if (!trackingId || typeof trackingId !== 'string' || !/^[A-Za-z0-9]{10,12}$/.test(trackingId)) {
-//             return res.status(400).json({ 
-//                 success: false, 
-//                 error: 'Invalid VRL tracking ID. Please provide a valid 10-12 character alphanumeric ID.' 
-//             });
-//         }
+/**
+ * @desc    Get VRL consignment tracking details by calling their internal API
+ * @route   GET /api/v1/tracking/vrl/:trackingId
+ * @access  Public
+ */
+const getVrlTracking = async (req, res) => {
+    try {
+        const { trackingId } = req.params;
+        
+        // Validate tracking ID format
+        if (!trackingId || typeof trackingId !== 'string' || !/^[A-Za-z0-9]{8,15}$/.test(trackingId)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid VRL tracking ID. Please provide a valid 8-15 character alphanumeric ID.' 
+            });
+        }
 
-//         // Make request to VRL tracking page
-//         const response = await axios.post(
-//             'https://www.vrlgroup.in/track_consignment.aspx',
-//             `txt_cons_no=${encodeURIComponent(trackingId)}&btn_track=Track`,
-//             {
-//                 headers: {
-//                     'Content-Type': 'application/x-www-form-urlencoded',
-//                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-//                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-//                     'Accept-Language': 'en-US,en;q=0.5',
-//                     'Origin': 'https://www.vrlgroup.in',
-//                     'Referer': 'https://www.vrlgroup.in/track_consignment.aspx'
-//                 },
-//                 timeout: 10000 // 10 seconds timeout
-//             }
-//         );
+        // Target the internal AJAX endpoint the VRL website uses
+        const apiUrl = `https://www.vrlgroup.in/track_consignment.aspx?lrtrack=1&lrno=${encodeURIComponent(trackingId)}`;
 
-//         // Parse the HTML response
-//         const $ = cheerio.load(response.data);
-        
-//         // Check if tracking data was found
-//         const noDataMessage = $('.alert-danger, .error-message').text().trim();
-//         if (noDataMessage.toLowerCase().includes('no record found') || 
-//             noDataMessage.toLowerCase().includes('invalid consignment')) {
-//             return res.status(404).json({
-//                 success: false,
-//                 error: 'No tracking information found for this consignment number.'
-//             });
-//         }
+        const response = await axios.post(apiUrl, null, { // Body is null as params are in URL
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+                'Referer': 'https://www.vrlgroup.in/track_consignment.aspx'
+            },
+            timeout: 15000
+        });
 
-//         // Extract consignment details
-//         const consignmentDetails = {};
-//         $('table.table tbody tr').each((i, row) => {
-//             const cols = $(row).find('td');
-//             if (cols.length >= 2) {
-//                 const key = $(cols[0]).text().trim().replace(/[\s:]+$/, '');
-//                 const value = $(cols[1]).text().trim();
-//                 if (key && value) {
-//                     // Convert keys to camelCase for consistency
-//                     const formattedKey = key
-//                         .toLowerCase()
-//                         .replace(/\s+(\w)/g, (_, letter) => letter.toUpperCase());
-//                     consignmentDetails[formattedKey] = value;
-//                 }
-//             }
-//         });
+        // Axios automatically parses the JSON response if the content-type is correct.
+        // We will check if the data is a string and parse it, otherwise we use it directly.
+        let jsonData;
+        if (typeof response.data === 'string') {
+            try {
+                jsonData = JSON.parse(response.data);
+            } catch (e) {
+                console.error("Failed to parse response from VRL:", response.data);
+                throw new Error("Received an invalid response from the tracking service.");
+            }
+        } else {
+            jsonData = response.data;
+        }
 
-//         // Extract tracking history
-//         const trackingHistory = [];
-//         $('table.table-hover tbody tr').each((i, row) => {
-//             const cols = $(row).find('td');
-//             if (cols.length >= 4) {
-//                 trackingHistory.push({
-//                     date: $(cols[0]).text().trim(),
-//                     time: $(cols[1]).text().trim(),
-//                     status: $(cols[2]).text().trim(),
-//                     location: $(cols[3]).text().trim(),
-//                     remarks: $(cols[4] || '').text().trim()
-//                 });
-//             }
-//         });
 
-//         // Structure the response
-//         const trackingData = {
-//             success: true,
-//             trackingId,
-//             carrier: 'VRL',
-//             consignmentDetails,
-//             trackingHistory,
-//             lastUpdated: new Date().toISOString()
-//         };
+        // Check for failure status from the API
+        if (jsonData.Status !== "Success" || !jsonData.shipment || jsonData.shipment.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: jsonData.Msg || 'No tracking information found for this consignment number.'
+            });
+        }
 
-//         res.json(trackingData);
+        const shipment = jsonData.shipment[0];
 
-//     } catch (error) {
-//         console.error('Error fetching VRL tracking information:', error);
-        
-//         let errorMessage = 'Failed to fetch tracking information';
-//         let statusCode = 500;
-        
-//         if (error.code === 'ECONNABORTED') {
-//             errorMessage = 'Request to VRL tracking service timed out';
-//             statusCode = 504; // Gateway Timeout
-//         } else if (error.response) {
-//             // The request was made and the server responded with a status code
-//             // that falls out of the range of 2xx
-//             errorMessage = `VRL service responded with status ${error.response.status}`;
-//             statusCode = 502; // Bad Gateway
-//         } else if (error.request) {
-//             // The request was made but no response was received
-//             errorMessage = 'No response received from VRL tracking service';
-//             statusCode = 502; // Bad Gateway
-//         }
-        
-//         res.status(statusCode).json({
-//             success: false,
-//             error: errorMessage,
-//             details: process.env.NODE_ENV === 'development' ? error.message : undefined
-//         });
-//     }
-// };
+        // Map the API data to a clean format
+        const consignmentDetails = {
+            consignmentNo: shipment.lrno,
+            fromCity: shipment.origin,
+            toCity: shipment.bookingtocode,
+            bookingDate: shipment.shipDate,
+            noOfArticles: shipment.noa,
+            currentStatus: shipment.track.length > 0 ? shipment.track[0].Status : 'Details Received'
+        };
 
-// module.exports = {
-//     getVrlTracking
-// };
+        const trackingHistory = shipment.track.map(item => ({
+            date: item.scanDate,
+            time: item.scanTime,
+            status: item.Status,
+            location: item.ldfromcity
+        })).reverse(); // Reverse to show chronological order
+
+        const trackingData = {
+            success: true,
+            trackingId,
+            carrier: 'VRL',
+            consignmentDetails,
+            trackingHistory,
+            lastUpdated: new Date().toISOString()
+        };
+
+        res.json(trackingData);
+
+    } catch (error) {
+        console.error('Error fetching VRL tracking information:', error.message);
+        let errorMessage = 'Failed to fetch tracking information';
+        let statusCode = 500;
+        
+        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            errorMessage = 'Request to VRL tracking service timed out';
+            statusCode = 504;
+        } else if (error.response) {
+            errorMessage = `VRL service responded with status ${error.response.status}`;
+            statusCode = 502;
+        }
+        
+        res.status(statusCode).json({
+            success: false,
+            error: errorMessage
+        });
+    }
+};
+
+module.exports = {
+    getVrlTracking
+};
+
