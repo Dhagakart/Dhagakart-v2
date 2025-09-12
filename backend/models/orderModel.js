@@ -155,6 +155,14 @@ const orderSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    vrlInvoiceLink: {
+        type: String,
+        default: ''
+    },
+    consignmentNumber: {
+        type: String,
+        default: ''
+    },
 });
 
 module.exports = mongoose.model("Order", orderSchema);

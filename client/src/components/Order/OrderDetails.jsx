@@ -5,6 +5,7 @@ import { getOrderDetails, clearErrors } from '../../actions/orderAction';
 import Loader from '../Layouts/Loader';
 import MetaData from '../Layouts/MetaData';
 import { formatPrice } from '../../utils/formatPrice';
+// import { useNavigate } from 'react-router-dom';
 
 const OrderDetails = () => {
     const dispatch = useDispatch();
@@ -171,6 +172,16 @@ const OrderDetails = () => {
                                         <tr>
                                             <td colSpan="3" className="px-6 py-3 text-right text-lg font-bold text-gray-900">Total</td>
                                             <td className="px-6 py-3 text-right text-lg font-bold text-gray-900">{formatPrice(total)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="4" className="px-6 py-3 text-right">
+                                                <button
+                                                    onClick={() => navigate(`/track-order?orderId=${order._id}`)}
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                                                >
+                                                    Track This Order
+                                                </button>
+                                            </td>
                                         </tr>
                                     </tfoot>
                                 </table>

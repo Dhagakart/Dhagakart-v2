@@ -19,6 +19,8 @@ const UpdateOrder = () => {
     const params = useParams();
 
     const [status, setStatus] = useState("");
+    const [vrlInvoiceLink, setVrlInvoiceLink] = useState("");
+    const [consignmentNumber, setConsignmentNumber] = useState("");
     const [onMobile, setOnMobile] = useState(false);
     const [toggleSidebar, setToggleSidebar] = useState(false);
 
@@ -30,6 +32,14 @@ const UpdateOrder = () => {
             setOnMobile(true);
         }
     }, []);
+
+    // Set initial values when order data is loaded
+    useEffect(() => {
+        if (order) {
+            setVrlInvoiceLink(order.vrlInvoiceLink || '');
+            setConsignmentNumber(order.consignmentNumber || '');
+        }
+    }, [order]);
 
     useEffect(() => {
         if (error) {
@@ -49,10 +59,16 @@ const UpdateOrder = () => {
 
     const updateOrderSubmitHandler = (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.set("status", status);
-        dispatch(updateOrder(params.id, formData));
-    }
+
+        const myForm = new FormData();
+        myForm.set("status", status);
+        
+        // Add VRL shipping details to the form data
+        if (vrlInvoiceLink) myForm.set("vrlInvoiceLink", vrlInvoiceLink);
+        if (consignmentNumber) myForm.set("consignmentNumber", consignmentNumber);
+
+        dispatch(updateOrder(params.id, myForm));
+    };
 
     return (
         <>
@@ -193,7 +209,45 @@ const UpdateOrder = () => {
                                                     </p>
                                                 </div>
 
-                                                <div>
+                                                {/* VRL Shipping Details */}
+                                                <div className="mt-6 pt-6 border-t border-gray-100">
+                                                    <h4 className="text-sm font-medium text-gray-700 mb-3">VRL Shipping Details</h4>
+                                                    
+                                                    <div className="space-y-4">
+                                                        <div>
+                                                            <label htmlFor="consignment-number" className="block text-sm font-medium text-gray-700 mb-1">
+                                                                Consignment Number
+                                                            </label>
+                                                            <TextField
+                                                                id="consignment-number"
+                                                                fullWidth
+                                                                size="small"
+                                                                value={consignmentNumber}
+                                                                onChange={(e) => setConsignmentNumber(e.target.value)}
+                                                                placeholder="Enter consignment number"
+                                                                variant="outlined"
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div>
+                                                            <label htmlFor="vrl-invoice-link" className="block text-sm font-medium text-gray-700 mb-1">
+                                                                VRL Invoice Link
+                                                            </label>
+                                                            <TextField
+                                                                id="vrl-invoice-link"
+                                                                fullWidth
+                                                                size="small"
+                                                                type="url"
+                                                                value={vrlInvoiceLink}
+                                                                onChange={(e) => setVrlInvoiceLink(e.target.value)}
+                                                                placeholder="https://example.com/invoice/123"
+                                                                variant="outlined"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="pt-4">
                                                     <label htmlFor="status-select" className="block text-sm font-medium text-gray-700 mb-2">
                                                         Update Status To
                                                     </label>

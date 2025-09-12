@@ -419,3 +419,47 @@ exports.deleteOrder = asyncErrorHandler(async (req, res, next) => {
         success: true,
     });
 });
+
+// Update VRL Invoice Link and Consignment Number
+exports.updateShippingDetails = asyncErrorHandler(async (req, res, next) => {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+        return next(new ErrorHandler("Order not found with this Id", 404));
+    }
+
+    const { vrlInvoiceLink, consignmentNumber } = req.body;
+
+    if (vrlInvoiceLink) {
+        order.vrlInvoiceLink = vrlInvoiceLink;
+    }
+
+    if (consignmentNumber) {
+        order.consignmentNumber = consignmentNumber;
+    }
+
+    await order.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+        success: true,
+        order,
+    });
+});
+
+// Get Order Shipping Details
+exports.getOrderShippingDetails = asyncErrorHandler(async (req, res, next) => {
+    const order = await Order.findById(req.params.id, 'vrlInvoiceLink consignmentNumber shippingInfo');
+
+    if (!order) {
+        return next(new ErrorHandler("Order not found with this Id", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        shippingDetails: {
+            vrlInvoiceLink: order.vrlInvoiceLink,
+            consignmentNumber: order.consignmentNumber,
+            shippingAddress: order.shippingInfo
+        }
+    });
+});

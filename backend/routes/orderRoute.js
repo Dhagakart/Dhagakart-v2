@@ -1,5 +1,20 @@
 const express = require('express');
-const { newOrder, getSingleOrderDetails, myOrders, getAllOrders, updateOrder, deleteOrder, searchOrders, getAllOrdersWithoutPagination, newSampleOrder, mySampleOrders, createRazorpaySampleOrder, sendRazorpayApiKey } = require('../controllers/orderController');
+const { 
+    newOrder, 
+    getSingleOrderDetails, 
+    myOrders, 
+    getAllOrders, 
+    updateOrder, 
+    deleteOrder, 
+    searchOrders, 
+    getAllOrdersWithoutPagination, 
+    newSampleOrder, 
+    mySampleOrders, 
+    createRazorpaySampleOrder, 
+    sendRazorpayApiKey,
+    updateShippingDetails,
+    getOrderShippingDetails
+} = require('../controllers/orderController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -177,6 +192,88 @@ router.route('/order/new').post(isAuthenticatedUser, newOrder);
  *         description: Order not found
  */
 router.route('/order/:id').get(isAuthenticatedUser, getSingleOrderDetails);
+
+/**
+ * @swagger
+ * /api/v1/order/{id}/shipping:
+ *   get:
+ *     summary: Get order shipping details including VRL information
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Order shipping details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 shippingDetails:
+ *                   type: object
+ *                   properties:
+ *                     vrlInvoiceLink:
+ *                       type: string
+ *                       description: Link to the VRL invoice
+ *                     consignmentNumber:
+ *                       type: string
+ *                       description: VRL consignment number
+ *                     shippingAddress:
+ *                       $ref: '#/components/schemas/ShippingInfo'
+ *       404:
+ *         description: Order not found
+ *   put:
+ *     summary: Update order shipping details (VRL invoice link and consignment number)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               vrlInvoiceLink:
+ *                 type: string
+ *                 description: Link to the VRL invoice
+ *               consignmentNumber:
+ *                 type: string
+ *                 description: VRL consignment number
+ *     responses:
+ *       200:
+ *         description: Shipping details updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 order:
+ *                   $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Order not found
+ */
+router.route('/order/:id/shipping')
+    .put(isAuthenticatedUser, authorizeRoles('admin'), updateShippingDetails)
+    .get(isAuthenticatedUser, getOrderShippingDetails);
 
 /**
  * @swagger
@@ -503,5 +600,10 @@ router.route('/admin/orders/search')
 router.route('/admin/order/:id')
     .put(isAuthenticatedUser, authorizeRoles("admin"), updateOrder)
     .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteOrder);
+
+// Update shipping details (VRL invoice link and consignment number)
+router.route('/order/:id/shipping')
+    .put(isAuthenticatedUser, authorizeRoles('admin'), updateShippingDetails)
+    .get(isAuthenticatedUser, getOrderShippingDetails);
 
 module.exports = router;

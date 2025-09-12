@@ -43,11 +43,12 @@ import ReqCredits from './components/ReqCredits/ReqCredits';
 import BulkOrder from './components/BulkOrder/BulkOrder';
 import QuoteSuccess from './components/BulkOrder/QuoteSuccess';
 import LoginDG from './components/User/LoginDG';
-import OtpDG from './components/User/OtpDG.jsx';
+// import OtpDG from './components/User/OtpDG.jsx';
 import LoginDG2 from './components/User/LoginDG2';
 import HeaderDG from './components/Layouts/Header/HeaderDG';
 import RegisterSuccess from './components/User/RegisterSuccess';
 import ForgotPasswordDG from './components/User/ForgotPasswordDG';
+import TrackOrder from './components/User/TrackOrder';
 import FooterDG from './components/Layouts/Footer/FooterDG';
 import ProductDetailsDG from './components/ProductDetails/ProductDetailsDG';
 import Sitemap from './components/Sitemap/Sitemap';
@@ -95,7 +96,7 @@ function App() {
                     <Route path="/register/success" element={<RegisterSuccess />} />
                     <Route path="/oauth-complete-registration" element={<Register />} />
                     <Route path="/loginDG" element={<LoginDG />} />
-                    <Route path="/otpDG" element={<OtpDG />} />
+                    {/* <Route path="/otpDG" element={<OtpDG />} /> */}
                     <Route path="/loginDG2" element={<LoginDG2 />} />
                     <Route path="/password/forgot" element={<ForgotPasswordDG />} />
                     <Route path="/product/:id" element={<ProductDetailsDG />} />
@@ -114,11 +115,11 @@ function App() {
                     <Route path="/order/:id" element={<ProtectedRoute><OrderStatus /></ProtectedRoute>} />
                     <Route path="/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
                     <Route path="/order_details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+                    <Route path="/track-order" element={<TrackOrder />} />
                     <Route path="/account" element={<ProtectedRoute><AccountDG /></ProtectedRoute>}>
                         <Route index element={<AccountDG defaultTab="profile" />} />
                         <Route path="profile" element={<AccountDG defaultTab="profile" />} />
                         <Route path="orders" element={<AccountDG defaultTab="orders" />} />
-                        <Route path="track-order" element={<AccountDG defaultTab="track-order" />} />
                         <Route path="rfqs" element={<AccountDG defaultTab="rfqs" />} />
                     </Route>
                     <Route path="/account/update" element={<ProtectedRoute><UpdateProfile /></ProtectedRoute>} />
