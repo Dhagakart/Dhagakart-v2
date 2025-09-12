@@ -178,7 +178,7 @@ const getVrlTracking = async (req, res) => {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
                 'Referer': 'https://www.vrlgroup.in/track_consignment.aspx'
             },
-            timeout: 15000
+            timeout: 60000
         });
 
         // Parse the response data
