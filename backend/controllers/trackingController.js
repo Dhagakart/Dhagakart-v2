@@ -104,4 +104,3 @@ const getVrlTracking = async (req, res) => {
 module.exports = {
     getVrlTracking
 };
-
