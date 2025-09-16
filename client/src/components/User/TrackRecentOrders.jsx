@@ -1,0 +1,220 @@
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
+import { useDispatch, useSelector } from 'react-redux';
+import { getRecentOrders, clearErrors } from '../../actions/orderActions';
+import MetaData from '../Layouts/MetaData';
+import { ArrowLeft, Truck, Package, CheckCircle, Clock, Loader, Search } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+
+const TrackRecentOrders = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [trackingId, setTrackingId] = useState('');
+    
+    const { loading, error, orders = [] } = useSelector(state => state.recentOrders);
+    
+    useEffect(() => {
+        // Fetch recent orders when component mounts
+        dispatch(getRecentOrders());
+        
+        // Clear any previous errors
+        return () => {
+            dispatch(clearErrors());
+        };
+    }, [dispatch]);
+    
+    // Handle errors
+    useEffect(() => {
+        if (error) {
+            toast.error(error);
+            dispatch(clearErrors());
+        }
+    }, [error, dispatch]);
+    
+    const handleTrackOrder = (e) => {
+        e.preventDefault();
+        if (trackingId.trim()) {
+            navigate(`/order/tracking/${trackingId}`);
+        } else {
+            toast.error('Please enter a tracking ID');
+        }
+    };
+
+    // Get status icon based on order status
+    const getStatusIcon = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'delivered':
+                return <CheckCircle className="h-5 w-5 text-green-500" />;
+            case 'shipped':
+            case 'in transit':
+                return <Truck className="h-5 w-5 text-blue-500" />;
+            case 'processing':
+                return <Clock className="h-5 w-5 text-yellow-500" />;
+            default:
+                return <Package className="h-5 w-5 text-gray-500" />;
+        }
+    };
+
+    // Get status color class
+    const getStatusColor = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'delivered':
+                return 'bg-green-100 text-green-800';
+            case 'shipped':
+            case 'in transit':
+                return 'bg-blue-100 text-blue-800';
+            case 'processing':
+                return 'bg-yellow-100 text-yellow-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    // Format date to display
+    const formatDate = (dateString) => {
+        try {
+            return format(parseISO(dateString), 'MMM d, yyyy');
+        } catch (error) {
+            return 'N/A';
+        }
+    };
+
+    // Format price to display with currency
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(price || 0);
+    };
+    
+    // Get order items count
+    const getItemsCount = (order) => {
+        if (!order.orderItems) return 0;
+        return order.orderItems.reduce((total, item) => total + (item.quantity || 0), 0);
+    };
+    
+    // Get first product image
+    const getFirstProductImage = (order) => {
+        if (!order.orderItems || order.orderItems.length === 0) return '';
+        return order.orderItems[0]?.image || '';
+    };
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="flex justify-center items-center h-64">
+                    <Loader className="animate-spin h-8 w-8 text-primary-600" />
+                    <span className="ml-2 text-gray-600">Loading your recent orders...</span>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <MetaData title="Track Recent Orders | DhagaKart" />
+            
+            <div className="mb-8">
+                <button 
+                    onClick={() => navigate(-1)}
+                    className="flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-4"
+                >
+                    <ArrowLeft className="w-5 h-5 mr-1" />
+                    Back to Account
+                </button>
+                
+                <h1 className="text-2xl font-bold text-gray-800 mb-6">Track Recent Orders</h1>
+                
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div className="flex-1">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-2">Track an Order</h2>
+                            <p className="text-gray-600 text-sm">Enter your tracking number to check the status of your order</p>
+                        </div>
+                        <form onSubmit={handleTrackOrder} className="flex-1 flex gap-2">
+                            <input
+                                type="text"
+                                value={trackingId}
+                                onChange={(e) => setTrackingId(e.target.value)}
+                                placeholder="Enter tracking ID"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            />
+                            <button
+                                type="submit"
+                                className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors flex items-center gap-2"
+                            >
+                                <Search className="w-4 h-4" />
+                                Track
+                            </button>
+                        </form>
+                    </div>
+
+                    {orders.length === 0 ? (
+                        <div className="text-center py-12">
+                            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-1">No recent orders</h3>
+                            <p className="text-gray-500 mb-6">You haven't placed any orders recently or they're still being processed.</p>
+                            <Link
+                                to="/products"
+                                className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors inline-block"
+                            >
+                                Continue Shopping
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {orders.map((order) => (
+                                <div key={order._id} className="bg-white rounded-lg shadow overflow-hidden">
+                                    <div className="p-4 border-b border-gray-200">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                                                    <img 
+                                                        src={getFirstProductImage(order) || '/images/placeholder-product.png'} 
+                                                        alt="Product" 
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = '/images/placeholder-product.png';
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-medium text-gray-800">
+                                                        {getItemsCount(order)} Item{getItemsCount(order) !== 1 ? 's' : ''}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-500">
+                                                        Total: {formatPrice(order.totalPrice)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+                                                <Link
+                                                    to={`/order/${order._id}`}
+                                                    className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-md hover:bg-primary-50 transition-colors text-center"
+                                                >
+                                                    View Details
+                                                </Link>
+                                                <Link
+                                                    to={`/order/tracking/${order._id}`}
+                                                    className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors text-center"
+                                                >
+                                                    Track Order
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default TrackRecentOrders;
