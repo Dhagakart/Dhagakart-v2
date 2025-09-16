@@ -94,6 +94,18 @@ const orderSchema = new mongoose.Schema({
             }
         },
     ],
+    trackingEvents: [{
+        status: { 
+            type: String, 
+            required: true 
+        },
+        location: String,
+        description: String,
+        timestamp: { 
+            type: Date, 
+            default: Date.now 
+        }
+    }],
     user: {
         type: mongoose.Schema.ObjectId,
         ref: "User",
@@ -163,6 +175,31 @@ const orderSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    trackingEvents: [{
+        status: { 
+            type: String, 
+            required: true,
+            enum: ['Order Placed', 'Processing', 'Shipped', 'In Transit', 'Out for Delivery', 'Delivered', 'Cancelled']
+        },
+        location: String,
+        description: String,
+        timestamp: { 
+            type: Date, 
+            default: Date.now 
+        }
+    }]
+}, { timestamps: true });
+
+// Add default tracking event when order is created
+orderSchema.pre('save', function(next) {
+    if (this.isNew) {
+        this.trackingEvents = [{
+            status: 'Order Placed',
+            description: 'Your order has been placed successfully',
+            timestamp: new Date()
+        }];
+    }
+    next();
 });
 
 module.exports = mongoose.model("Order", orderSchema);

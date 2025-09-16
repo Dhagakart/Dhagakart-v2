@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Truck, AlertCircle, Loader, Search, CheckCircle, Package, Download, XCircle } from 'lucide-react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { ArrowLeft, Truck, AlertCircle, Loader, Search, CheckCircle, Package, Download } from 'lucide-react';
+import { getOrderShippingDetails } from '../../actions/orderAction';
 
 // This component renders the visual tracking timeline
 const TrackingTimeline = ({ trackingHistory }) => {
@@ -12,16 +15,14 @@ const TrackingTimeline = ({ trackingHistory }) => {
     ];
 
     const historyStatuses = trackingHistory.map(h => h.status.toUpperCase());
-    let latestStepIndex = -1; // Start at -1 to handle cases where no steps are completed
+    let latestStepIndex = -1;
 
-    // Find the index of the latest completed step
     steps.forEach((step, index) => {
         if (step.statuses.some(s => historyStatuses.includes(s))) {
             latestStepIndex = index;
         }
     });
     
-    // The first step is always complete if we have any data
     if (trackingHistory.length > 0 && latestStepIndex === -1) {
         latestStepIndex = 0;
     }
@@ -102,10 +103,8 @@ const TrackingResults = ({ data }) => {
 
     return (
         <div className="mt-6 space-y-8 animate-fade-in">
-            {/* Visual Timeline */}
             <TrackingTimeline trackingHistory={trackingHistory} />
 
-            {/* Latest Status */}
             {latestStatus && (
                 <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                     <p className="text-sm font-semibold text-blue-800">Latest Status</p>
@@ -114,7 +113,6 @@ const TrackingResults = ({ data }) => {
                 </div>
             )}
 
-            {/* Consignment Details */}
             <div>
                 <h4 className="text-lg font-semibold text-gray-800 mb-3">Consignment Details</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm border border-gray-200 rounded-lg p-4">
@@ -127,11 +125,9 @@ const TrackingResults = ({ data }) => {
                 </div>
             </div>
 
-            {/* Tracking History */}
             {trackingHistory.length > 0 && (
                 <div>
                     <h4 className="text-lg font-semibold text-gray-800 mb-3">Tracking History</h4>
-                    {/* Table for larger screens */}
                     <div className="hidden sm:block border border-gray-200 rounded-lg overflow-hidden">
                         <table className="w-full table-auto">
                             <thead className="bg-gray-50">
@@ -152,7 +148,6 @@ const TrackingResults = ({ data }) => {
                             </tbody>
                         </table>
                     </div>
-                    {/* Card list for mobile screens */}
                     <div className="sm:hidden space-y-3">
                         {trackingHistory.map((entry, idx) => (
                             <div key={idx} className="p-3 border rounded-lg bg-gray-50 text-sm">
@@ -170,63 +165,81 @@ const TrackingResults = ({ data }) => {
 };
 
 const TrackOrder = () => {
-    // Input is no longer prefilled
+    const dispatch = useDispatch();
+    const [searchParams] = useSearchParams();
+    const orderId = searchParams.get('orderId');
+
     const [trackingIdInput, setTrackingIdInput] = useState('');
     const [trackingData, setTrackingData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleTrackOrder = async (e) => {
-        if (e) e.preventDefault();
-        if (!trackingIdInput.trim()) {
+    const { shippingDetails, loading: detailsLoading } = useSelector((state) => state.orderDetails);
+
+    const handleTrackOrder = async (trackingId) => {
+        if (!trackingId || !trackingId.trim()) {
             setError('Please enter a tracking ID.');
             return;
         }
-
         setIsLoading(true);
         setError(null);
         setTrackingData(null);
-
         try {
-            const response = await fetch(`https://dhagakart.onrender.com/api/v1/tracking/vrl/${trackingIdInput}`);
-            // const response = await fetch(`http://localhost:4000/api/v1/tracking/vrl/${trackingIdInput}`);
+            const response = await fetch(`http://localhost:4000/api/v1/tracking/vrl/${trackingId}`);
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || `Error: ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(data.error || 'Tracking failed');
             setTrackingData(data);
         } catch (err) {
             setError(err.message || 'An unexpected error occurred.');
-            console.error('Tracking error:', err);
         } finally {
             setIsLoading(false);
         }
     };
     
-    // The useEffect for auto-tracking on load has been removed.
+    useEffect(() => {
+        if (orderId) {
+            dispatch(getOrderShippingDetails(orderId));
+        }
+    }, [dispatch, orderId]);
+
+    useEffect(() => {
+        if (shippingDetails && shippingDetails.consignmentNumber) {
+            setTrackingIdInput(shippingDetails.consignmentNumber);
+        }
+    }, [shippingDetails]);
+
+    const onFormSubmit = (e) => {
+        e.preventDefault();
+        handleTrackOrder(trackingIdInput);
+    };
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 space-y-6 max-w-4xl mx-auto my-10">
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-center justify-between border-b pb-4 gap-4 sm:gap-2">
-                <button className="flex items-center text-gray-600 hover:text-gray-800 w-full sm:w-auto justify-center sm:justify-start">
+                <Link to="/account/orders" className="flex items-center text-gray-600 hover:text-gray-800 w-full sm:w-auto justify-center sm:justify-start">
                     <ArrowLeft className="h-5 w-5 mr-2" />
                     Back to Orders
-                </button>
+                </Link>
                 <h2 className="text-xl font-semibold text-gray-800 order-first sm:order-none">Order Details</h2>
-                <button 
-                  onClick={() => alert('Download functionality to be implemented!')}
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-end"
-                >
-                  <Download className="h-4 w-4" />
-                  Download Document
-                </button>
+                
+                {/* --- FIX IS HERE --- */}
+                {/* Conditionally render the link only if shippingDetails and the link itself exist */}
+                {shippingDetails && shippingDetails.vrlInvoiceLink && (
+                    <a 
+                        href={shippingDetails.vrlInvoiceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-end"
+                    >
+                        <Download className="h-4 w-4" />
+                        Download Document
+                    </a>
+                )}
             </div>
 
             {/* Tracking Form */}
-            <form onSubmit={handleTrackOrder} className="flex flex-col sm:flex-row items-center gap-3">
+            <form onSubmit={onFormSubmit} className="flex flex-col sm:flex-row items-center gap-3">
                 <div className="relative w-full">
                     <Truck className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
@@ -239,16 +252,16 @@ const TrackOrder = () => {
                 </div>
                 <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || detailsLoading}
                     className="w-full sm:w-auto flex items-center justify-center px-6 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
                 >
-                    {isLoading ? (
+                    {isLoading || detailsLoading ? (
                         <>
                             <Loader className="h-5 w-5 mr-2 animate-spin" />
-                            Tracking...
+                            <span>{isLoading ? 'Tracking...' : 'Loading...'}</span>
                         </>
                     ) : (
-                         <>
+                        <>
                             <Search className="h-5 w-5 mr-2" />
                             Track
                         </>
@@ -258,7 +271,7 @@ const TrackOrder = () => {
 
             {/* Results, Loading, or Error State */}
             <div className="mt-6">
-                {isLoading && (
+                {(isLoading || detailsLoading) && !trackingData && (
                     <div className="flex justify-center items-center text-gray-500 py-10">
                         <Loader className="h-6 w-6 mr-3 animate-spin" />
                         <span>Fetching latest tracking details...</span>
@@ -277,4 +290,3 @@ const TrackOrder = () => {
 };
 
 export default TrackOrder;
-

@@ -1,0 +1,259 @@
+.trackRecentOrdersPage {
+    padding: 2rem 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.trackRecentOrdersHeading {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.noOrdersFound {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.continueShoppingBtn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.8rem 1.5rem;
+    background-color: #3f51b5;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.continueShoppingBtn:hover {
+    background-color: #303f9f;
+}
+
+.ordersContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.orderCard {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.orderCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    background-color: #fafafa;
+}
+
+.orderId {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.orderDetailsLink {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #3f51b5;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.orderDetailsLink:hover {
+    text-decoration: underline;
+}
+
+.orderStatus {
+    padding: 1rem 1.5rem;
+    background-color: #f5f5f5;
+    border-left: 4px solid #9e9e9e;
+}
+
+.orderItemsPreview {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.orderItemPreview {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed #eee;
+}
+
+.orderItemPreview:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.orderItemImage {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.moreItemsText {
+    margin-top: 0.5rem;
+    color: #666;
+    text-align: center;
+}
+
+.orderTracking {
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+}
+
+.trackingTitle {
+    margin-bottom: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e0e0e0;
+}
+
+.timeline-event {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -1.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #3f51b5;
+    transform: translateX(-50%);
+}
+
+.timeline-content {
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.event-description {
+    margin-top: 0.3rem;
+    color: #666;
+}
+
+.noTrackingText {
+    color: #666;
+    font-style: italic;
+}
+
+.orderFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background-color: #fafafa;
+    border-top: 1px solid #eee;
+}
+
+.orderTotal {
+    font-weight: 600;
+    color: #333;
+}
+
+.orderActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.viewOrderBtn,
+.invoiceBtn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.viewOrderBtn {
+    background-color: #3f51b5;
+    color: white;
+    border: 1px solid #3f51b5;
+}
+
+.viewOrderBtn:hover {
+    background-color: #303f9f;
+    border-color: #303f9f;
+}
+
+.invoiceBtn {
+    background-color: white;
+    color: #3f51b5;
+    border: 1px solid #3f51b5;
+}
+
+.invoiceBtn:hover {
+    background-color: #f5f5f5;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .trackRecentOrdersPage {
+        padding: 1rem;
+    }
+    
+    .orderHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .orderFooter {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .orderActions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .viewOrderBtn,
+    .invoiceBtn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}

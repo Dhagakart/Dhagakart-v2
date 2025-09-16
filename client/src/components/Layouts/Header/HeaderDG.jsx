@@ -62,7 +62,7 @@ const HeaderDG = () => {
     dropdownTimeout.current = setTimeout(() => setActiveDropdown(null), 100);
   };
 
-  const handleCategorySelect =categoryName => {
+  const handleCategorySelect = categoryName => {
     closeDropdown();
     // Navigate to products page with category as URL parameter
     navigate({
@@ -115,21 +115,21 @@ const HeaderDG = () => {
 
     // --- FIX: Immediately cancel any pending suggestion fetches ---
     if (searchTimeout.current) {
-        clearTimeout(searchTimeout.current);
+      clearTimeout(searchTimeout.current);
     }
 
     if (trimmedQuery) {
-        navigate(`/products/${trimmedQuery}`);
-        setShowSuggestions(false); // Hide suggestions immediately
-        setSearchQuery('');      // Clear the search bar
+      navigate(`/products/${trimmedQuery}`);
+      setShowSuggestions(false); // Hide suggestions immediately
+      setSearchQuery('');      // Clear the search bar
     } else {
-        enqueueSnackbar('Please enter a search term', {
-            variant: 'warning',
-            autoHideDuration: 2000,
-            anchorOrigin: { vertical: 'top', horizontal: 'right' },
-        });
+      enqueueSnackbar('Please enter a search term', {
+        variant: 'warning',
+        autoHideDuration: 2000,
+        anchorOrigin: { vertical: 'top', horizontal: 'right' },
+      });
     }
-};
+  };
 
   const fetchUserLocation = useCallback(async () => {
     if (!isAuthenticated) {
@@ -153,7 +153,7 @@ const HeaderDG = () => {
           return;
         }
       }
-      
+
       // If no shipping address, use the user's city from their profile
       if (user?.city) {
         const locationText = user.city;
@@ -173,10 +173,10 @@ const HeaderDG = () => {
             try {
               const { latitude, longitude } = position.coords;
               console.log('Fetching location data for coordinates:', { latitude, longitude });
-              
+
               const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
               console.log('Fetching from URL:', url);
-              
+
               const locationResponse = await fetch(url, {
                 headers: {
                   'User-Agent': 'Dhagakart/1.0 (dsharpaglobal@gmail.com)',
@@ -184,7 +184,7 @@ const HeaderDG = () => {
                   'Referer': window.location.origin
                 }
               });
-              
+
               console.log('Location API response status:', locationResponse.status);
               const locationData = await locationResponse.json();
               console.log('Location API response data:', locationData);
@@ -216,10 +216,10 @@ const HeaderDG = () => {
             setUserPincode('NA');
             setHasFetchedLocation(true);
           },
-          { 
-            enableHighAccuracy: true, 
-            timeout: 10000, 
-            maximumAge: 0 
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
           }
         );
       } else if (!hasFetchedLocation) {
@@ -301,7 +301,7 @@ const HeaderDG = () => {
       >
         <header
           style={{ backgroundColor: '#003366' }}
-          className="top-0 left-0 right-0 w-full px-4 md:px-12"
+          className="top-0 left-0 right-0 w-full px-4 2xl:px-12"
         >
           <div className="w-full mx-auto">
             <div className="h-16 flex items-center justify-between gap-4">
@@ -339,7 +339,7 @@ const HeaderDG = () => {
               </div>
 
               {/* CENTER: Search Bar */}
-              <div className="hidden xl:block w-[470px] shrink-0 relative" ref={searchRef}>
+              <div className="hidden xl:block w-[400px] 2xl:w-[470px] shrink-0 relative" ref={searchRef}>
                 <form
                   onSubmit={handleSearch}
                   className="w-full flex bg-white rounded-md overflow-hidden shadow-md"
@@ -404,7 +404,7 @@ const HeaderDG = () => {
               </div>
 
               {/* RIGHT: Navigation Links + Cart + Profile */}
-              <div className="flex items-center space-x-4 ml-auto ">
+              <div className="flex items-center space-x-4 ml-auto">
                 {/* Desktop Navigation */}
                 <div className="hidden xl:flex items-center space-x-6">
                   {/* Category Dropdown */}
@@ -429,48 +429,48 @@ const HeaderDG = () => {
                       />
                     </button>
                     {isDropdownOpen('category') && (
-                                            <div className="absolute z-50 mt-4 w-96 px-4 -left-40 bg-white rounded-lg shadow-lg overflow-hidden" onMouseEnter={() => handleMouseEnter('category')} onMouseLeave={handleMouseLeave}>
-                                                <div className="grid grid-cols-3 p-3">
-                                                    <div>
-                                                        {/* --- MODIFICATION: Made heading clickable --- */}
-                                                        <div onClick={() => handleCategorySelect('Yarn')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">YARNS</div>
-                                                        <ul className="space-y-1">
-                                                            <li><a href="/products/silk%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
-                                                            <li><a href="/products/cotton%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
-                                                            <li><a href="/products/polyester%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyester Yarn</a></li>
-                                                            <li><a href="/products/viscose%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscose Yarn</a></li>
-                                                        </ul>
-                                                    </div>
-                                                    <div>
-                                                        {/* --- MODIFICATION: Made heading clickable --- */}
-                                                        <div onClick={() => handleCategorySelect('Zari')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">ZARI</div>
-                                                        <ul className="space-y-1">
-                                                            <li><a href="/products/flora%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
-                                                            <li><a href="/products/metallic%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Zari</a></li>
-                                                            <li><a href="/products/zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Zari</a></li>
-                                                            <li><a href="/products/pure%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Zari</a></li>
-                                                        </ul>
-                                                    </div>
-                                                    <div>
-                                                        {/* --- MODIFICATION: Made heading clickable --- */}
-                                                        <div onClick={() => handleCategorySelect('Machinery')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">MACHINERY</div>
-                                                        <ul className="space-y-1">
-                                                            <li><a href="/products/jack" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Sewing Machine</a></li>
-                                                            <li><a href="/products/power%20loom" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Powerloom</a></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <div className="border-t border-gray-100 p-2">
-                                                    <Link 
-                                                        to="/products" 
-                                                        onClick={closeDropdown}
-                                                        className="block w-full text-center px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                    >
-                                                        View All Products
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        )}
+                      <div className="absolute z-50 mt-4 w-96 px-4 -left-40 bg-white rounded-lg shadow-lg overflow-hidden" onMouseEnter={() => handleMouseEnter('category')} onMouseLeave={handleMouseLeave}>
+                        <div className="grid grid-cols-3 p-3">
+                          <div>
+                            {/* --- MODIFICATION: Made heading clickable --- */}
+                            <div onClick={() => handleCategorySelect('Yarn')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">YARNS</div>
+                            <ul className="space-y-1">
+                              <li><a href="/products/silk%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Silk Yarn</a></li>
+                              <li><a href="/products/cotton%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Cotton Yarn</a></li>
+                              <li><a href="/products/polyester%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Polyester Yarn</a></li>
+                              <li><a href="/products/viscose%20yarn" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Viscose Yarn</a></li>
+                            </ul>
+                          </div>
+                          <div>
+                            {/* --- MODIFICATION: Made heading clickable --- */}
+                            <div onClick={() => handleCategorySelect('Zari')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">ZARI</div>
+                            <ul className="space-y-1">
+                              <li><a href="/products/flora%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Flora Zari</a></li>
+                              <li><a href="/products/metallic%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Metallic Zari</a></li>
+                              <li><a href="/products/zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Zari</a></li>
+                              <li><a href="/products/pure%20zari" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Pure Zari</a></li>
+                            </ul>
+                          </div>
+                          <div>
+                            {/* --- MODIFICATION: Made heading clickable --- */}
+                            <div onClick={() => handleCategorySelect('Machinery')} className="text-xs text-gray-400 font-bold mb-2 px-2 py-2 block hover:text-blue-600 cursor-pointer">MACHINERY</div>
+                            <ul className="space-y-1">
+                              <li><a href="/products/jack" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Sewing Machine</a></li>
+                              <li><a href="/products/power%20loom" className="text-sm text-gray-600 hover:text-blue-600 block py-1">Powerloom</a></li>
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="border-t border-gray-100 p-2">
+                          <Link
+                            to="/products"
+                            onClick={closeDropdown}
+                            className="block w-full text-center px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          >
+                            View All Products
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Bulk Order Dropdown */}
@@ -568,6 +568,8 @@ const HeaderDG = () => {
                         style={{ maxWidth: '120px' }}
                       >
                         {user?.name ? `Hey, ${user.name.split(' ')[0]}` : 'Account'}
+                        {/* {'Hiteshwarrrrrrrrrrrrrrrrrrrrrr'} */}
+                        {/* {'Hiteshwar'} */}
                       </span>
                     </button>
                     {isDropdownOpen('profile') && (

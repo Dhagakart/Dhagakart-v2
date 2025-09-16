@@ -48,7 +48,8 @@ import LoginDG2 from './components/User/LoginDG2';
 import HeaderDG from './components/Layouts/Header/HeaderDG';
 import RegisterSuccess from './components/User/RegisterSuccess';
 import ForgotPasswordDG from './components/User/ForgotPasswordDG';
-import TrackOrder from './components/User/TrackOrder';
+// import TrackOrder from './components/User/TrackOrder';
+// import TrackRecentOrders from './components/User/TrackRecentOrders';
 import FooterDG from './components/Layouts/Footer/FooterDG';
 import ProductDetailsDG from './components/ProductDetails/ProductDetailsDG';
 import Sitemap from './components/Sitemap/Sitemap';
@@ -115,7 +116,8 @@ function App() {
                     <Route path="/order/:id" element={<ProtectedRoute><OrderStatus /></ProtectedRoute>} />
                     <Route path="/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
                     <Route path="/order_details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
-                    <Route path="/track-order" element={<TrackOrder />} />
+                    {/*<Route path="/track-order" element={<TrackOrder />} />*/}
+                    {/* <Route path="/account/track-recent-orders" element={<ProtectedRoute><TrackRecentOrders /></ProtectedRoute>} /> */}
                     <Route path="/account" element={<ProtectedRoute><AccountDG /></ProtectedRoute>}>
                         <Route index element={<AccountDG defaultTab="profile" />} />
                         <Route path="profile" element={<AccountDG defaultTab="profile" />} />

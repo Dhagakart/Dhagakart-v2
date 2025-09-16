@@ -6,6 +6,27 @@ const sendEmail = require('../utils/sendEmail');
 const orderConfirmationTemplate = require('../utils/orderConfirmationTemplate');
 const sampleOrderConfirmationTemplate = require('../utils/sampleOrderConfirmationTemplate');
 
+// Helper function to update product stock
+const updateStock = async (items, operation) => {
+    for (const item of items) {
+        const product = await Product.findById(item.product);
+        
+        if (operation === 'add') {
+            // Add stock back when order is cancelled/returned
+            product.stock += item.quantity;
+        } else if (operation === 'remove') {
+            // Remove stock when order is placed
+            product.stock -= item.quantity;
+        }
+        
+        // Ensure stock doesn't go below 0
+        product.stock = Math.max(0, product.stock);
+        
+        // Update product stock
+        await product.save({ validateBeforeSave: false });
+    }
+};
+
 const Razorpay = require('razorpay');
 
 const razorpay = new Razorpay({
@@ -217,7 +238,7 @@ exports.myOrders = asyncErrorHandler(async (req, res, next) => {
         orders,
         currentPage: page,
         totalPages,
-        totalOrders,
+        totalOrders
     });
 });
 
@@ -227,7 +248,7 @@ exports.mySampleOrders = asyncErrorHandler(async (req, res, next) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const query = { user: req.user._id, isSampleOrder: true }; // Filter for sample orders
+    const query = { user: req.user._id, isSampleOrder: true };
 
     const orders = await Order.find(query)
         .sort({ createdAt: -1 })
@@ -242,111 +263,255 @@ exports.mySampleOrders = asyncErrorHandler(async (req, res, next) => {
         orders,
         currentPage: page,
         totalPages,
-        totalOrders,
+        totalOrders
     });
 });
 
-
-// --- Get All Orders (Admin) ---
-exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const skip = (page - 1) * limit;
-    const sortBy = req.query.sortBy || '-createdAt';
-    
+// Get all orders without pagination - Admin
+exports.getAllOrdersWithoutPagination = asyncErrorHandler(async (req, res, next) => {
     const query = {};
-    // MODIFICATION: Add filter for sample/regular orders
-    if (req.query.isSampleOrder === 'true') {
-        query.isSampleOrder = true;
-    } else if (req.query.isSampleOrder === 'false') {
-        query.isSampleOrder = false;
+    
+    if (req.query.status) {
+        query.orderStatus = req.query.status;
+    }
+    
+    if (req.query.paymentStatus) {
+        query.paymentInfo = { status: req.query.paymentStatus };
+    }
+    
+    if (req.query.paymentMethod) {
+        query.paymentInfo = { ...query.paymentInfo, paymentMethod: req.query.paymentMethod };
+    }
+    
+    if (req.query.startDate && req.query.endDate) {
+        query.createdAt = {
+            $gte: new Date(req.query.startDate),
+            $lte: new Date(req.query.endDate)
+        };
     }
 
-    const [orders, totalOrders] = await Promise.all([
-        Order.find(query)
-            .sort(sortBy)
-            .limit(limit)
-            .skip(skip)
-            .populate('user', 'name email'),
-        Order.countDocuments(query)
-    ]);
-
-    const totalPages = Math.ceil(totalOrders / limit);
-    const totalAmount = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+    const orders = await Order.find(query)
+        .populate('user', 'name email')
+        .sort({ createdAt: -1 });
 
     res.status(200).json({
         success: true,
-        orders,
-        totalAmount,
-        pagination: {
-            totalOrders,
-            totalPages,
-            currentPage: page,
-            limit
-        }
+        count: orders.length,
+        data: orders
     });
 });
 
-// --- Update Order Status (Admin - Works for both types) ---
+// Update order status - Admin
 exports.updateOrder = asyncErrorHandler(async (req, res, next) => {
     const order = await Order.findById(req.params.id);
 
     if (!order) {
-        return next(new ErrorHandler("Order Not Found", 404));
-    }
-    if (order.orderStatus === "Delivered") {
-        return next(new ErrorHandler("Already Delivered", 400));
+        return next(new ErrorHandler("Order not found with this Id", 404));
     }
 
-    // Don't update stock for sample orders
-    if (req.body.status === "Shipped" && !order.isSampleOrder) {
-        order.orderItems.forEach(async (i) => {
-            await updateStock(i.product, i.quantity)
-        });
+    const { status, trackingNumber, trackingUrl, consignmentNumber, vrlInvoiceLink } = req.body;
+
+    if (status) {
+        order.orderStatus = status;
+        
+        // If order is being marked as shipped, set shippedAt
+        if (status === 'Shipped') {
+            order.shippedAt = Date.now();
+        }
+        
+        // If order is being marked as delivered, set deliveredAt
+        if (status === 'Delivered') {
+            order.deliveredAt = Date.now();
+        }
+    }
+
+    // Update tracking information if provided
+    if (trackingNumber) {
+        order.trackingNumber = trackingNumber;
     }
     
-    order.shippedAt = req.body.status === "Shipped" ? Date.now() : order.shippedAt;
-    order.orderStatus = req.body.status;
-    order.deliveredAt = req.body.status === "Delivered" ? Date.now() : order.deliveredAt;
+    if (trackingUrl) {
+        order.trackingUrl = trackingUrl;
+    }
+
+    // Update consignment and VRL link if provided
+    if (consignmentNumber) {
+        order.consignmentNumber = consignmentNumber;
+    }
+
+    if (vrlInvoiceLink) {
+        order.vrlInvoiceLink = vrlInvoiceLink;
+    }
 
     await order.save({ validateBeforeSave: false });
-    res.status(200).json({
-        success: true
-    });
-});
 
-async function updateStock(id, quantity) {
-    const product = await Product.findById(id);
-    if(product) {
-        product.stock -= quantity;
-        await product.save({ validateBeforeSave: false });
+    // If order is delivered, update product stock
+    if (status === 'Delivered') {
+        await updateStock(order.orderItems, 'add');
     }
-}
-
-// --- Get All Orders Without Pagination (Admin) ---
-exports.getAllOrdersWithoutPagination = asyncErrorHandler(async (req, res, next) => {
-    const query = {};
-    // MODIFICATION: Add filter for sample/regular orders
-    if (req.query.isSampleOrder === 'true') {
-        query.isSampleOrder = true;
-    } else if (req.query.isSampleOrder === 'false') {
-        query.isSampleOrder = false;
-    }
-
-    const orders = await Order.find(query)
-        .sort('-createdAt')
-        .populate('user', 'name email')
-        .lean();
-
-    const totalAmount = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-    const totalOrders = orders.length;
 
     res.status(200).json({
         success: true,
-        orders: orders,
-        totalOrders: totalOrders,
-        totalAmount: totalAmount,
-        count: totalOrders
+        order
+    });
+});
+
+// Delete order - Admin
+exports.deleteOrder = asyncErrorHandler(async (req, res, next) => {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+        return next(new ErrorHandler("Order not found with this Id", 404));
+    }
+
+    // If order is not delivered, restore product stock
+    if (order.orderStatus !== 'Delivered') {
+        await updateStock(order.orderItems, 'add');
+    }
+
+    // Remove the order
+    await order.remove();
+
+    res.status(200).json({
+        success: true,
+        message: 'Order deleted successfully'
+    });
+});
+
+// Get all orders with pagination - Admin
+exports.getAllOrders = asyncErrorHandler(async (req, res, next) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    
+    if (req.query.status) {
+        query.orderStatus = req.query.status;
+    }
+    
+    if (req.query.paymentStatus) {
+        query.paymentInfo = { status: req.query.paymentStatus };
+    }
+    
+    if (req.query.paymentMethod) {
+        query.paymentInfo = { ...query.paymentInfo, paymentMethod: req.query.paymentMethod };
+    }
+    
+    if (req.query.startDate && req.query.endDate) {
+        query.createdAt = {
+            $gte: new Date(req.query.startDate),
+            $lte: new Date(req.query.endDate)
+        };
+    }
+
+    const orders = await Order.find(query)
+        .populate('user', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const totalOrders = await Order.countDocuments(query);
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    res.status(200).json({
+        success: true,
+        orders,
+        currentPage: page,
+        totalPages,
+        totalOrders
+    });
+});
+
+// Get user's recent orders with tracking information
+exports.getRecentOrders = asyncErrorHandler(async (req, res, next) => {
+    const limit = parseInt(req.query.limit, 10) || 5;
+    const days = parseInt(req.query.days, 10) || 30;
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const orders = await Order.find({
+        user: req.user._id,
+        createdAt: { $gte: startDate },
+        orderStatus: { $ne: 'Cancelled' }
+    })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .select('_id orderStatus totalPrice createdAt trackingEvents orderItems.name orderItems.image consignmentNumber');
+    
+    res.status(200).json({
+        success: true,
+        orders
+    });
+});
+
+// Add tracking event to an order
+exports.addTrackingEvent = asyncErrorHandler(async (req, res, next) => {
+    const { status, location, description } = req.body;
+    
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+        return next(new ErrorHandler('Order not found', 404));
+    }
+    
+    // Validate status
+    const validStatuses = ['Order Placed', 'Processing', 'Shipped', 'In Transit', 'Out for Delivery', 'Delivered', 'Cancelled'];
+    if (!validStatuses.includes(status)) {
+        return next(new ErrorHandler('Invalid status', 400));
+    }
+    
+    const trackingEvent = {
+        status,
+        location: location || '',
+        description: description || `${status} - ${new Date().toLocaleString()}`,
+        timestamp: new Date()
+    };
+    
+    // Update order status if this is a status change
+    if (status !== 'Order Placed') {
+        order.orderStatus = status;
+    }
+    
+    // Add to tracking events
+    order.trackingEvents.push(trackingEvent);
+    await order.save();
+    
+    // Emit socket event for real-time updates
+    const io = req.app.get('socketio');
+    if (io) {
+        io.to(`order_${order._id}`).emit('tracking_updated', {
+            orderId: order._id,
+            event: trackingEvent
+        });
+    }
+    
+    res.status(200).json({
+        success: true,
+        trackingEvent
+    });
+});
+
+// Get user's recent orders with tracking info
+exports.getUserRecentOrders = asyncErrorHandler(async (req, res, next) => {
+    const limit = parseInt(req.query.limit, 10) || 5; // Default to 5 most recent orders
+    const days = parseInt(req.query.days, 10) || 30; // Default to last 30 days
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const orders = await Order.find({
+        user: req.user._id,
+        createdAt: { $gte: startDate },
+        orderStatus: { $ne: 'Cancelled' }
+    })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .select('_id orderStatus totalPrice createdAt trackingEvents orderItems.name orderItems.image consignmentNumber');
+    
+    res.status(200).json({
+        success: true,
+        orders
     });
 });
 
@@ -406,11 +571,6 @@ exports.searchOrders = asyncErrorHandler(async (req, res, next) => {
         totalPages: Math.ceil(totalOrders / Number(limit)),
         totalOrders
     });
-});
-
-// --- Delete Order (Admin - Works for both types) ---
-exports.deleteOrder = asyncErrorHandler(async (req, res, next) => {
-    const order = await Order.findById(req.params.id);
     if (!order) {
         return next(new ErrorHandler("Order Not Found", 404));
     }

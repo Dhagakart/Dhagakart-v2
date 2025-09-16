@@ -10,8 +10,8 @@ const OAuthSuccess = () => {
         const checkLogin = async () => {
             try {
                 // This triggers backend middleware to validate cookie
-                // await axios.get('https://dhagakart.onrender.com/api/v1/me', {
-                await axios.get('http://localhost:4000/api/v1/me', {
+                await axios.get('https://dhagakart.onrender.com/api/v1/me', {
+                // await axios.get('http://localhost:4000/api/v1/me', {
                     withCredentials: true
                 });
 

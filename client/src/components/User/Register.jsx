@@ -549,8 +549,8 @@ const Register = () => {
   useEffect(() => {
     const handler = e => {
       if (
-        cityInputRef.current &&
-        !cityInputRef.current.contains(e.target) &&
+        cityInput.current &&
+        !cityInput.current.contains(e.target) &&
         suggestionListRef.current &&
         !suggestionListRef.current.contains(e.target)
       ) {

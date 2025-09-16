@@ -373,80 +373,71 @@ exports.deleteUser = asyncErrorHandler(async (req, res, next) => {
     });
 });
 
-// Add Shipping Address
-exports.addShippingAddress = asyncErrorHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
-    if (!user) return next(new ErrorHandler("User not found", 404));
-    
-    user.shippingAddresses.push(req.body);
-    await user.save();
-    
-    res.status(200).json({ success: true, user });
-});
+/**
+ * @description Generic function to manage (add, update, delete) addresses.
+ * This function is not exported; it's a helper for the exported controllers.
+ */
+const manageAddress = async (req, res, next, action) => {
+    // This 'addressTypeKey' will be 'billingAddresses' or 'shippingAddresses'
+    // It's set by a middleware in the routes file.
+    const { addressTypeKey } = req;
+    if (!addressTypeKey) {
+        return next(new ErrorHandler("Address type is not specified.", 500));
+    }
 
-// Update Shipping Address
-exports.updateShippingAddress = asyncErrorHandler(async (req, res, next) => {
     const user = await User.findById(req.user.id);
-    if (!user) return next(new ErrorHandler("User not found", 404));
-    
-    const address = user.shippingAddresses.id(req.params.id);
-    if (!address) return next(new ErrorHandler("Shipping address not found", 404));
-    
-    address.set(req.body);
-    await user.save();
-    
-    res.status(200).json({ success: true, user });
-});
+    if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+    }
 
-// Delete Shipping Address
-exports.deleteShippingAddress = asyncErrorHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
-    if (!user) return next(new ErrorHandler("User not found", 404));
-    
-    const address = user.shippingAddresses.id(req.params.id);
-    if (!address) return next(new ErrorHandler("Shipping address not found", 404));
-    
-    address.remove();
-    await user.save();
-    
-    res.status(200).json({ success: true, user });
-});
+    const addressArray = user[addressTypeKey];
 
-// Add Billing Address
-exports.addBillingAddress = asyncErrorHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
-    if (!user) return next(new ErrorHandler("User not found", 404));
+    // --- Logic to handle setting a new default address ---
+    const handleDefaultAddress = (newAddress) => {
+        if (newAddress.isDefault) {
+            // Find any currently default address and unset it.
+            const currentDefault = addressArray.find(addr => addr.isDefault === true);
+            if (currentDefault && currentDefault._id.toString() !== newAddress._id?.toString()) {
+                currentDefault.isDefault = false;
+            }
+        }
+    };
     
-    user.billingAddresses.push(req.body);
-    await user.save();
-    
-    res.status(200).json({ success: true, user });
-});
+    if (action === 'add') {
+        const newAddress = req.body;
+        handleDefaultAddress(newAddress);
+        addressArray.push(newAddress);
+    } else {
+        const addressId = req.params.id;
+        const address = addressArray.id(addressId);
 
-// Update Billing Address
-exports.updateBillingAddress = asyncErrorHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
-    if (!user) return next(new ErrorHandler("User not found", 404));
-    
-    const address = user.billingAddresses.id(req.params.id);
-    if (!address) return next(new ErrorHandler("Billing address not found", 404));
-    
-    address.set(req.body);
-    await user.save();
-    
-    res.status(200).json({ success: true, user });
-});
+        if (!address) {
+            return next(new ErrorHandler("Address not found", 404));
+        }
 
-// Delete Billing Address
-exports.deleteBillingAddress = asyncErrorHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
-    if (!user) return next(new ErrorHandler("User not found", 404));
-    
-    const address = user.billingAddresses.id(req.params.id);
-    if (!address) return next(new ErrorHandler("Billing address not found", 404));
-    
-    address.remove();
-    await user.save();
-    
-    res.status(200).json({ success: true, user });
-});
+        if (action === 'update') {
+            const updatedAddress = req.body;
+            handleDefaultAddress(updatedAddress);
+            address.set(updatedAddress);
+        } else if (action === 'delete') {
+            address.remove();
+        }
+    }
+
+    await user.save({ validateBeforeSave: true });
+
+    res.status(200).json({
+        success: true,
+        user, // Return the updated user object
+    });
+};
+
+// --- Exported Controller Functions for BILLING ---
+exports.addBillingAddress = asyncErrorHandler((req, res, next) => manageAddress(req, res, next, 'add'));
+exports.updateBillingAddress = asyncErrorHandler((req, res, next) => manageAddress(req, res, next, 'update'));
+exports.deleteBillingAddress = asyncErrorHandler((req, res, next) => manageAddress(req, res, next, 'delete'));
+
+// --- Exported Controller Functions for SHIPPING ---
+exports.addShippingAddress = asyncErrorHandler((req, res, next) => manageAddress(req, res, next, 'add'));
+exports.updateShippingAddress = asyncErrorHandler((req, res, next) => manageAddress(req, res, next, 'update'));
+exports.deleteShippingAddress = asyncErrorHandler((req, res, next) => manageAddress(req, res, next, 'delete'));

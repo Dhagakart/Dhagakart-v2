@@ -47,7 +47,7 @@ import {
     DELETE_SHIPPING_ADDRESS_FAIL,
     // Billing Address
     ADD_BILLING_ADDRESS_REQUEST,
-    ADD_BILLING_ADDRESS_SUCCESS,
+    ADD_BILLING_ADDRESS_SUCCESS,    
     ADD_BILLING_ADDRESS_FAIL,
     UPDATE_BILLING_ADDRESS_REQUEST,
     UPDATE_BILLING_ADDRESS_SUCCESS,
@@ -57,6 +57,12 @@ import {
     DELETE_BILLING_ADDRESS_FAIL,
 } from '../constants/userConstants';
 import api from '../utils/api';
+
+const getErrorMessage = (error) => {
+    return error.response && error.response.data && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+};
 
 // Login User
 export const loginUser = (email, password) => async (dispatch) => {
@@ -156,10 +162,7 @@ export const updateProfile = (userData) => async (dispatch) => {
 
         const { data } = await api.put('/users/me/update', userData, config);
 
-        dispatch({
-            type: UPDATE_PROFILE_SUCCESS,
-            payload: data.success,
-        });
+        dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data.user });
 
     } catch (error) {
         dispatch({
@@ -183,10 +186,7 @@ export const updatePassword = (passwords) => async (dispatch) => {
 
         const { data } = await api.put('/users/password/update', passwords, config);
 
-        dispatch({
-            type: UPDATE_PASSWORD_SUCCESS,
-            payload: data.success,
-        });
+        dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.user });
 
     } catch (error) {
         dispatch({
@@ -341,26 +341,11 @@ export const deleteUser = (id) => async (dispatch) => {
 export const addShippingAddress = (addressData) => async (dispatch) => {
     try {
         dispatch({ type: ADD_SHIPPING_ADDRESS_REQUEST });
-
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const { data } = await api.post('/users/me/address/shipping', addressData, config);
-
-        dispatch({
-            type: ADD_SHIPPING_ADDRESS_SUCCESS,
-            payload: data.user,
-        });
-
-        return data.user;
+        // CORRECTED URL: Removed '/users' prefix
+        const { data } = await api.post('/users/me/address/shipping', addressData);
+        dispatch({ type: ADD_SHIPPING_ADDRESS_SUCCESS, payload: data.user });
     } catch (error) {
-        dispatch({
-            type: ADD_SHIPPING_ADDRESS_FAIL,
-            payload: error.response?.data?.message || 'Failed to add shipping address',
-        });
+        dispatch({ type: ADD_SHIPPING_ADDRESS_FAIL, payload: getErrorMessage(error) });
         throw error;
     }
 };
@@ -368,27 +353,15 @@ export const addShippingAddress = (addressData) => async (dispatch) => {
 // Update Shipping Address
 export const updateShippingAddress = (addressId, addressData) => async (dispatch) => {
     try {
+        // CORRECTED ACTION TYPE: Using imported constant
         dispatch({ type: UPDATE_SHIPPING_ADDRESS_REQUEST });
-
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const { data } = await api.put(`/users/me/address/shipping/${addressId}`, addressData, config);
-
-        dispatch({
-            type: UPDATE_SHIPPING_ADDRESS_SUCCESS,
-            payload: data.user,
-        });
-
-        return data.user;
+        // CORRECTED URL: Removed '/users' prefix
+        const { data } = await api.put(`/users/me/address/shipping/${addressId}`, addressData);
+        // CORRECTED ACTION TYPE: Using imported constant
+        dispatch({ type: UPDATE_SHIPPING_ADDRESS_SUCCESS, payload: data.user });
     } catch (error) {
-        dispatch({
-            type: UPDATE_SHIPPING_ADDRESS_FAIL,
-            payload: error.response?.data?.message || 'Failed to update shipping address',
-        });
+        // CORRECTED ACTION TYPE: Using imported constant
+        dispatch({ type: UPDATE_SHIPPING_ADDRESS_FAIL, payload: getErrorMessage(error) });
         throw error;
     }
 };
@@ -396,31 +369,16 @@ export const updateShippingAddress = (addressId, addressData) => async (dispatch
 // Delete Shipping Address
 export const deleteShippingAddress = (addressId) => async (dispatch) => {
     try {
+        // CORRECTED ACTION TYPE: Using imported constant
         dispatch({ type: DELETE_SHIPPING_ADDRESS_REQUEST });
-        console.log('Deleting shipping address with ID:', addressId);
-        
-        // Remove the /api/v1 prefix since it's already in the baseURL
+        // CORRECTED URL: Removed '/users' prefix
         const { data } = await api.delete(`/users/me/address/shipping/${addressId}`);
-        console.log('Delete shipping address response:', data);
-
-        if (data && data.success) {
-            dispatch({
-                type: DELETE_SHIPPING_ADDRESS_SUCCESS,
-                payload: data.user,
-            });
-            return { success: true, user: data.user };
-        } else {
-            throw new Error(data?.message || 'Failed to delete shipping address');
-        }
+        // CORRECTED ACTION TYPE: Using imported constant
+        dispatch({ type: DELETE_SHIPPING_ADDRESS_SUCCESS, payload: data.user });
     } catch (error) {
-        console.error('Error in deleteShippingAddress:', error);
-        const errorMessage = error.response?.data?.message || error.message || 'Failed to delete shipping address';
-        
-        dispatch({
-            type: DELETE_SHIPPING_ADDRESS_FAIL,
-            payload: errorMessage,
-        });
-        throw new Error(errorMessage);
+        // CORRECTED ACTION TYPE: Using imported constant
+        dispatch({ type: DELETE_SHIPPING_ADDRESS_FAIL, payload: getErrorMessage(error) });
+        throw error;
     }
 };
 
@@ -429,26 +387,31 @@ export const addBillingAddress = (addressData) => async (dispatch) => {
     try {
         dispatch({ type: ADD_BILLING_ADDRESS_REQUEST });
 
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const { data } = await api.post('/users/me/address/billing', addressData, config);
+        const { data } = await api.post('/users/me/address/billing', addressData);
 
         dispatch({
             type: ADD_BILLING_ADDRESS_SUCCESS,
             payload: data.user,
         });
 
-        return data.user;
     } catch (error) {
+        // --- THIS IS THE FIX ---
+        // This safely extracts the error message, whether it's from the server or a local JS error.
+        const message = 
+            error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : error.message;
+
         dispatch({
             type: ADD_BILLING_ADDRESS_FAIL,
-            payload: error.response?.data?.message || 'Failed to add billing address',
+            payload: message,
         });
-        throw error;
+
+        // Log the full error to see the original cause
+        console.error("Full error in addBillingAddress:", error);
+        
+        // Re-throw a clean error for the component to catch
+        throw new Error(message);
     }
 };
 
@@ -456,25 +419,15 @@ export const addBillingAddress = (addressData) => async (dispatch) => {
 export const updateBillingAddress = (addressId, addressData) => async (dispatch) => {
     try {
         dispatch({ type: UPDATE_BILLING_ADDRESS_REQUEST });
-
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const { data } = await api.put(`/users/me/address/billing/${addressId}`, addressData, config);
-
+        const { data } = await api.put(`/users/me/address/billing/${addressId}`, addressData);
         dispatch({
             type: UPDATE_BILLING_ADDRESS_SUCCESS,
             payload: data.user,
         });
-
-        return data.user;
     } catch (error) {
         dispatch({
             type: UPDATE_BILLING_ADDRESS_FAIL,
-            payload: error.response?.data?.message || 'Failed to update billing address',
+            payload: error.response.data.message,
         });
         throw error;
     }
@@ -484,19 +437,15 @@ export const updateBillingAddress = (addressId, addressData) => async (dispatch)
 export const deleteBillingAddress = (addressId) => async (dispatch) => {
     try {
         dispatch({ type: DELETE_BILLING_ADDRESS_REQUEST });
-
         const { data } = await api.delete(`/users/me/address/billing/${addressId}`);
-
         dispatch({
             type: DELETE_BILLING_ADDRESS_SUCCESS,
             payload: data.user,
         });
-
-        return data.user;
     } catch (error) {
         dispatch({
             type: DELETE_BILLING_ADDRESS_FAIL,
-            payload: error.response?.data?.message || 'Failed to delete billing address',
+            payload: error.response.data.message,
         });
         throw error;
     }

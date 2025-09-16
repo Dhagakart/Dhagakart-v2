@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { 
-    Box, 
+import {
+    Box,
     IconButton,
     Typography,
     Divider,
@@ -18,30 +18,31 @@ import {
     FormControlLabel,
     Checkbox
 } from '@mui/material';
-import { 
-    User, 
-    ShoppingBag, 
-    Truck, 
-    FileText, 
-    LogOut, 
-    FileSearch, 
-    MapPin, 
-    CreditCard, 
-    Edit, 
-    Trash2, 
-    Plus 
+import {
+    User,
+    ShoppingBag,
+    Truck,
+    FileText,
+    LogOut,
+    FileSearch,
+    MapPin,
+    CreditCard,
+    Edit,
+    Trash2,
+    Plus
 } from 'lucide-react';
 
 // Redux Actions
-import { 
-    logoutUser as logoutAction, 
+import {
+    logoutUser as logoutAction,
     updateProfile,
-    addShippingAddress, 
-    updateShippingAddress, 
+    addShippingAddress,
+    updateShippingAddress,
     deleteShippingAddress,
     addBillingAddress,
     updateBillingAddress,
-    deleteBillingAddress
+    deleteBillingAddress,
+    loadUser
 } from '../../actions/userAction';
 
 // Components
@@ -49,7 +50,7 @@ import MetaData from '../Layouts/MetaData';
 import Loader from '../Layouts/Loader';
 import OrderHistory from './OrderHistory';
 import RFQsAndQuotes from './RFQsAndQuotes';
-import TrackOrder from './TrackOrder';
+// import TrackOrder from './TrackOrder';
 import LogoutConfirmationModal from './LogoutConfirmationModal';
 import ShippingModal from './modals/ShippingModal';
 import BillingModal from './modals/BillingModal';
@@ -61,11 +62,12 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     // Redux state
-    const { user, loading, isAuthenticated } = useSelector(state => state.user);
+    const { user, isAuthenticated } = useSelector(state => state.user);
     const { error, isUpdated } = useSelector(state => state.profile);
-    
+    const [loading, setLoading] = useState(false);
+
     // Local state
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -75,7 +77,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     const [showBillingModal, setShowBillingModal] = useState(false);
     const [addressType, setAddressType] = useState(null);
     const [editingAddress, setEditingAddress] = useState(null);
-    
+
     // Form states
     const [profileFormData, setProfileFormData] = useState({
         name: '',
@@ -85,7 +87,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
         businessName: '',
         businessType: ''
     });
-    
+
     const [addressFormData, setAddressFormData] = useState({
         fullName: '',
         primaryAddress: '',
@@ -103,17 +105,17 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
     // Get addresses from user data
     const shippingAddresses = user?.shippingAddresses || [];
     const billingAddresses = user?.billingAddresses || [];
-    
+
     // Update active tab based on URL
     useEffect(() => {
         const path = location.pathname.split('/').pop();
-        switch(path) {
+        switch (path) {
             case 'orders':
                 setActiveTab('orders');
                 break;
-            case 'track-order':
-                setActiveTab('track-order');
-                break;
+            // case 'track-order':
+            //     setActiveTab('track-order');
+            //     break;
             case 'rfqs':
                 setActiveTab('rfqs');
                 break;
@@ -230,56 +232,72 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
         }
     };
 
-    const handleAddressSubmit = async (formData) => {
+    const handleAddressSubmit = async (formData, addressType, addressId = null) => {
         try {
-            const addressType = showShippingModal ? 'shipping' : 'billing';
-            const addressId = editingAddress?._id;
-    
+            setLoading(true);
+
             if (addressId) {
-                // Update existing address
+                // --- FIX IS HERE ---
+                // Pass addressId and formData as two separate arguments, not one object.
                 if (addressType === 'shipping') {
-                    await dispatch(updateShippingAddress({ id: addressId, addressData: formData }));
+                    await dispatch(updateShippingAddress(addressId, formData));
                 } else {
-                    await dispatch(updateBillingAddress({ id: addressId, addressData: formData }));
+                    await dispatch(updateBillingAddress(addressId, formData));
                 }
             } else {
-                // Add new address
+                // Add new address (this part is likely working correctly)
                 if (addressType === 'shipping') {
                     await dispatch(addShippingAddress(formData));
                 } else {
                     await dispatch(addBillingAddress(formData));
                 }
             }
-    
+
+            // This re-fetch is inefficient but preserved from your original code
+            await dispatch(loadUser());
+
             toast.success(
                 `${addressType.charAt(0).toUpperCase() + addressType.slice(1)} address ${addressId ? 'updated' : 'added'} successfully`
             );
-            
-            // Close modals and reset state
+
+        } catch (err) {
+            console.error('Error saving address:', err);
+            toast.error(err.message || 'Failed to save address. Please try again.');
+        } finally {
+            setLoading(false);
             setShowShippingModal(false);
             setShowBillingModal(false);
             setEditingAddress(null);
-            
-        } catch (error) {
-            console.error('Error saving address:', error);
-            toast.error(error.message || 'Failed to save address. Please try again.');
         }
     };
 
-    const handleDeleteAddress = async (addressId, type) => {
+    const handleDeleteAddress = async (e, addressId, type) => {
+        e?.preventDefault?.();
+
+        // The addressId received here should now be a clean string.
+        if (!addressId) {
+            toast.error('Invalid address ID');
+            return;
+        }
+
         if (window.confirm('Are you sure you want to delete this address?')) {
             try {
-                const action = type === 'shipping' 
-                    ? deleteShippingAddress(addressId)
-                    : deleteBillingAddress(addressId);
-                
-                await dispatch(action);
-    
+                setLoading(true);
+
+                if (type === 'shipping') {
+                    await dispatch(deleteShippingAddress(addressId));
+                } else if (type === 'billing') {
+                    await dispatch(deleteBillingAddress(addressId));
+                }
+
+                await dispatch(loadUser());
                 toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} address deleted successfully`);
-    
+
             } catch (error) {
                 console.error('Error deleting address:', error);
-                toast.error(error.message || `Failed to delete ${type} address`);
+                toast.error(error.response?.data?.message || `Failed to delete ${type} address`);
+            } finally {
+                setLoading(false);
             }
         }
     };
@@ -310,13 +328,13 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                         <ShoppingBag className="h-5 w-5" />
                                         <span>Order History</span>
                                     </button>
-                                    <button
-                                        onClick={() => navigate('/account/track-order')}
-                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'track-order' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} cursor-pointer`}
+                                    {/* <button
+                                        onClick={() => navigate('/account/track-recent-orders')}
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'track-recent-orders' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} cursor-pointer`}
                                     >
                                         <Truck className="h-5 w-5" />
-                                        <span>Track Order</span>
-                                    </button>
+                                        <span>Track Recent Orders</span>
+                                    </button> */}
                                     <button
                                         onClick={() => navigate('/account/rfqs')}
                                         className={`flex items-center gap-2 px-4 py-3 rounded-lg ${activeTab === 'rfqs' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'} cursor-pointer`}
@@ -358,7 +376,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                     <div className="flex justify-between items-center pb-4">
                                         <h2 className="text-lg font-semibold text-gray-800">General Information</h2>
                                         {!isEditing ? (
-                                            <button 
+                                            <button
                                                 onClick={() => setIsEditing(true)}
                                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer"
                                             >
@@ -366,7 +384,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                             </button>
                                         ) : (
                                             <div className="flex gap-2">
-                                                <button 
+                                                <button
                                                     type="button"
                                                     onClick={() => {
                                                         setIsEditing(false);
@@ -385,7 +403,7 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                 >
                                                     Cancel
                                                 </button>
-                                                <button 
+                                                <button
                                                     type="submit"
                                                     form="profile-form"
                                                     disabled={isSubmitting}
@@ -493,9 +511,9 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                 <MapPin className="h-5 w-5 mr-2 text-blue-600" />
                                                 Shipping Addresses
                                             </h2>
-                                            <button 
+                                            <button
                                                 onClick={handleAddShippingAddress}
-                                                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium hover:cursor-pointer"
                                             >
                                                 <Plus className="h-4 w-4 mr-1" /> Add New
                                             </button>
@@ -518,13 +536,13 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                             {address.email && <div>Email: {address.email}</div>}
                                                         </div>
                                                         <div className="mt-3 flex space-x-2">
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleEditAddress(address, 'shipping')}
                                                                 className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
                                                             >
                                                                 <Edit className="h-3.5 w-3.5 mr-1" /> Edit
                                                             </button>
-                                                            <button 
+                                                            <button
                                                                 onClick={(e) => handleDeleteAddress(e, address._id, 'shipping')}
                                                                 className="text-red-600 hover:text-red-800 text-sm flex items-center"
                                                             >
@@ -546,9 +564,9 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                 <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
                                                 Billing Addresses
                                             </h2>
-                                            <button 
+                                            <button
                                                 onClick={handleAddBillingAddress}
-                                                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium hover:cursor-pointer"
                                             >
                                                 <Plus className="h-4 w-4 mr-1" /> Add New
                                             </button>
@@ -571,13 +589,14 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                                             {address.email && <div>Email: {address.email}</div>}
                                                         </div>
                                                         <div className="mt-3 flex space-x-2">
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleEditAddress(address, 'billing')}
                                                                 className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
                                                             >
                                                                 <Edit className="h-3.5 w-3.5 mr-1" /> Edit
                                                             </button>
-                                                            <button 
+                                                            <button
+                                                                // Ensure you are passing address._id, which is the string
                                                                 onClick={(e) => handleDeleteAddress(e, address._id, 'billing')}
                                                                 className="text-red-600 hover:text-red-800 text-sm flex items-center"
                                                             >
@@ -594,40 +613,44 @@ const AccountDG = ({ defaultTab = 'profile' }) => {
                                 </div>
                             </>
                         )}
-                        
+
                         {activeTab === 'orders' && <OrderHistory />}
                         {activeTab === 'rfqs' && <RFQsAndQuotes />}
-                        {activeTab === 'track-order' && <TrackOrder />}
+                        {/* {activeTab === 'track-order' && <TrackOrder />} */}
                     </main>
                 </div>
             </div>
-            
+
             {/* Logout Confirmation Modal */}
             <LogoutConfirmationModal
                 isOpen={showLogoutConfirm}
                 onClose={() => setShowLogoutConfirm(false)}
                 onConfirm={handleLogout}
             />
-            
-            {/* Shipping Address Modal */}
+
             <ShippingModal
                 open={showShippingModal}
                 onClose={() => setShowShippingModal(false)}
-                onSubmit={handleAddressSubmit}
+                // --- THIS IS THE FIX ---
+                // This creates a new function that correctly receives the form data from the modal
+                // and passes it to your handler with the 'shipping' type.
+                onSubmit={(e, formData) => {
+                    const addressId = editingAddress?._id || null;
+                    handleAddressSubmit(formData, 'shipping', addressId);
+                }}
                 shippingDetails={editingAddress || {}}
-                setShippingDetails={(data) => setAddressFormData(prev => ({
-                    ...prev,
-                    ...data
-                }))}
                 user={user}
                 shippingAddresses={user?.shippingAddresses || []}
             />
-            
+
             {/* Billing Address Modal */}
             <BillingModal
                 open={showBillingModal}
                 onClose={() => setShowBillingModal(false)}
-                onSubmit={handleAddressSubmit}
+                onSubmit={(formData) => {
+                    const addressId = editingAddress?._id || null;
+                    handleAddressSubmit(formData, 'billing', addressId);
+                }}
                 billingDetails={editingAddress || {}}
                 setBillingDetails={(data) => setAddressFormData(prev => ({
                     ...prev,

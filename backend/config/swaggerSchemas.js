@@ -2,6 +2,36 @@
  * @swagger
  * components:
  *   schemas:
+ *     TrackingEvent:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           description: Status of the order (e.g., 'Order Placed', 'Shipped', 'Delivered')
+ *           example: 'Shipped'
+ *         description:
+ *           type: string
+ *           description: Description of the tracking event
+ *           example: 'Your order has been shipped'
+ *         location:
+ *           type: string
+ *           description: Location where the event occurred
+ *           example: 'Mumbai Warehouse'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *           description: When the event occurred
+ *
+ *     OrderWithTracking:
+ *       allOf:
+ *         - $ref: '#/components/schemas/Order'
+ *         - type: object
+ *           properties:
+ *             trackingEvents:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TrackingEvent'
+ *
  *     Product:
  *       type: object
  *       properties:

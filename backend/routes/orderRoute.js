@@ -13,7 +13,10 @@ const {
     createRazorpaySampleOrder, 
     sendRazorpayApiKey,
     updateShippingDetails,
-    getOrderShippingDetails
+    getOrderShippingDetails,
+    getRecentOrders,
+    addTrackingEvent,
+    getUserRecentOrders
 } = require('../controllers/orderController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
@@ -294,6 +297,112 @@ router.route('/order/:id/shipping')
  *                 $ref: '#/components/schemas/Order'
  */
 router.route('/orders/me').get(isAuthenticatedUser, myOrders);
+
+/**
+ * @swagger
+ * /api/v1/orders/recent:
+ *   get:
+ *     summary: Get user's recent orders with tracking information
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Maximum number of orders to return
+ *       - in: query
+ *         name: days
+ *         schema:
+ *           type: integer
+ *           default: 30
+ *         description: Number of days to look back for orders
+ *     responses:
+ *       200:
+ *         description: List of recent orders with tracking information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 orders:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/OrderWithTracking'
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       500:
+ *         description: Internal server error
+ */
+router.route('/orders/recent').get(isAuthenticatedUser, getUserRecentOrders);
+
+/**
+ * @swagger
+ * /api/v1/order/{id}/tracking:
+ *   post:
+ *     summary: Add a tracking event to an order (Admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 description: New status of the order
+ *                 example: 'Shipped'
+ *               description:
+ *                 type: string
+ *                 description: Description of the tracking event
+ *                 example: 'Your order has been shipped'
+ *               location:
+ *                 type: string
+ *                 description: Location where the event occurred
+ *                 example: 'Mumbai Warehouse'
+ *     responses:
+ *       200:
+ *         description: Tracking event added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 trackingEvent:
+ *                   $ref: '#/components/schemas/TrackingEvent'
+ *       400:
+ *         description: Bad request - Missing required fields
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       403:
+ *         description: Forbidden - User not authorized
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Internal server error
+ */
+router.route('/order/:id/tracking')
+    .post(isAuthenticatedUser, authorizeRoles('admin'), addTrackingEvent);
 
 /**
  * @swagger
@@ -587,10 +696,10 @@ router.route('/sample-order/new').post(isAuthenticatedUser, newSampleOrder);
  */
 router.route('/sample-orders/me').get(isAuthenticatedUser, mySampleOrders);
 
-// Admin routes
-router.route('/admin/orders')
-    .get(isAuthenticatedUser, authorizeRoles("admin"), getAllOrders);
+// Get user's recent orders
+router.route('/orders/recent').get(isAuthenticatedUser, getUserRecentOrders);
 
+// Admin routes
 router.route('/admin/orders/all')
     .get(isAuthenticatedUser, authorizeRoles('admin'), getAllOrdersWithoutPagination);
 

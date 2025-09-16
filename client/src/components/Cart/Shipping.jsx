@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -6,19 +7,29 @@ import {
     addShippingAddress, 
     updateShippingAddress, 
     deleteShippingAddress,
-    clearErrors 
+    clearErrors,
+    loadUser 
 } from '../../actions/userAction';
 import { useNavigate } from 'react-router-dom';
 import MetaData from '../Layouts/MetaData';
 import { formatPrice } from '../../utils/formatPrice';
+import { 
+    UPDATE_SHIPPING_ADDRESS_RESET,
+    DELETE_SHIPPING_ADDRESS_RESET 
+} from '../../constants/userConstants';
+
 
 const Shipping = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
 
+    // Get user data from user slice
+    const { user } = useSelector((state) => state.user);
+    // Get profile related state from profile slice
+    const { loading, error, isUpdated, isDeleted } = useSelector((state) => state.profile);
+    // Get cart data
     const { cartItems, shippingInfo } = useSelector((state) => state.cart);
-    const { user, loading, error, isUpdated, isDeleted } = useSelector((state) => state.user);
     
     const [addresses, setAddresses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -41,51 +52,129 @@ const Shipping = () => {
         isDefault: false
     });
 
-    // Load user addresses
+    // Load user addresses when user data or Redux state changes
     useEffect(() => {
-        console.log('useEffect - user changed:', { user });
         if (user) {
-            console.log('Setting addresses from user:', user.shippingAddresses);
-            setAddresses(user.shippingAddresses || []);
+            // Update local addresses state when user data changes
+            const updatedAddresses = user.shippingAddresses || [];
+            setAddresses(updatedAddresses);
             
-            if (user.shippingAddresses?.length > 0) {
-                const defaultAddress = user.shippingAddresses.find(addr => addr.isDefault) || user.shippingAddresses[0];
-                console.log('Setting default address:', defaultAddress);
-                setSelectedAddress(defaultAddress._id);
-                handleAddressSelect(defaultAddress);
+            if (updatedAddresses.length > 0) {
+                // Find default address or fallback to first address
+                const defaultAddress = updatedAddresses.find(addr => addr.isDefault) || updatedAddresses[0];
+                
+                // Only update selected address if it's not set or if the current selection no longer exists
+                if (!selectedAddress || !updatedAddresses.some(addr => addr._id === selectedAddress)) {
+                    setSelectedAddress(defaultAddress._id);
+                    handleAddressSelect(defaultAddress);
+                }
             } else {
-                console.log('No shipping addresses found');
+                setSelectedAddress(null);
             }
+            
             setIsLoading(false);
         }
-    }, [user]);
+    }, [user, isUpdated, isDeleted]); // Add isUpdated and isDeleted to dependencies
 
     // Handle success/error messages and state updates
+    const toastId = React.useRef(null);
+    
     useEffect(() => {
-        console.log('useEffect - state changes:', { error, isDeleted, isUpdated });
         if (error) {
-            console.error('Error in Shipping component:', error);
-            toast.error(error);
+            toast.error(error, { id: 'error-toast' });
             dispatch(clearErrors());
+            return;
         }
         
+        const refreshUserData = async () => {
+            try {
+                // Refresh user data to get the latest addresses
+                await dispatch(loadUser());
+                return true;
+            } catch (error) {
+                console.error('Error refreshing user data:', error);
+                return false;
+            }
+        };
+        
         if (isDeleted) {
-            console.log('Address deleted successfully');
-            toast.success('Address deleted successfully');
-            dispatch({ type: 'DELETE_SHIPPING_ADDRESS_RESET' });
+            if (!toastId.current) {
+                toastId.current = 'delete-address';
+                toast.promise(
+                    refreshUserData(),
+                    {
+                        loading: 'Updating addresses...',
+                        success: () => {
+                            // Reset form and UI state
+                            setIsEditing(false);
+                            setIsNewAddress(false);
+                            setFormData({
+                                fullName: '',
+                                primaryAddress: '',
+                                city: '',
+                                state: '',
+                                country: 'India',
+                                zipCode: '',
+                                phoneNumber: '',
+                                email: '',
+                                additionalInfo: '',
+                                isDefault: false
+                            });
+                            dispatch({ type: DELETE_SHIPPING_ADDRESS_RESET });
+                            toastId.current = null;
+                            return 'Address deleted successfully';
+                        },
+                        error: () => {
+                            toastId.current = null;
+                            return 'Failed to update addresses';
+                        }
+                    },
+                    {
+                        id: 'delete-address'
+                    }
+                );
+            }
+            return;
         }
         
         if (isUpdated) {
-            console.log('Address update detected in useEffect');
-            console.log('Current isEditing:', isEditing);
-            console.log('Current isNewAddress:', isNewAddress);
-            toast.success('Address updated successfully');
-            dispatch({ type: 'UPDATE_SHIPPING_ADDRESS_RESET' });
-            
-            // Force close the form
-            console.log('Forcing form to close');
-            setIsEditing(false);
-            setIsNewAddress(false);
+            if (!toastId.current) {
+                toastId.current = 'update-address';
+                const isAdding = !isEditing && isNewAddress;
+                toast.promise(
+                    refreshUserData(),
+                    {
+                        loading: isAdding ? 'Adding address...' : 'Updating address...',
+                        success: () => {
+                            // Reset form and UI state
+                            setIsEditing(false);
+                            setIsNewAddress(false);
+                            setFormData({
+                                fullName: '',
+                                primaryAddress: '',
+                                city: '',
+                                state: '',
+                                country: 'India',
+                                zipCode: '',
+                                phoneNumber: '',
+                                email: '',
+                                additionalInfo: '',
+                                isDefault: false
+                            });
+                            dispatch({ type: UPDATE_SHIPPING_ADDRESS_RESET });
+                            toastId.current = null;
+                            return ''; // Empty string to prevent toast from showing
+                        },
+                        error: () => {
+                            toastId.current = null;
+                            return 'Failed to update address';
+                        }
+                    },
+                    {
+                        id: 'update-address'
+                    }
+                );
+            }
         }
     }, [dispatch, error, isDeleted, isUpdated]);
 
@@ -100,6 +189,8 @@ const Shipping = () => {
 
     // Handle address selection
     const handleAddressSelect = (address) => {
+        if (!address) return;
+        
         setSelectedAddress(address._id);
         dispatch(saveShippingInfo({
             address: address.primaryAddress,
@@ -115,56 +206,63 @@ const Shipping = () => {
     // Add new shipping address
     const handleAddAddress = async (e) => {
         e.preventDefault();
+        
+        // Basic validation
+        if (!formData.fullName || !formData.primaryAddress || !formData.city || !formData.state || !formData.zipCode || !formData.phoneNumber) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+        
+        // Phone number validation
+        const phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(formData.phoneNumber)) {
+            toast.error('Please enter a valid 10-digit phone number');
+            return;
+        }
+        
+        // Zip code validation
+        const zipRegex = /^[1-9][0-9]{5}$/;
+        if (!zipRegex.test(formData.zipCode)) {
+            toast.error('Please enter a valid 6-digit zip code');
+            return;
+        }
+        
+        // Email validation if provided
+        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
+        
         setIsSubmitting(true);
         
-        const addressData = {
-            fullName: formData.fullName,
-            primaryAddress: formData.primaryAddress,
-            city: formData.city,
-            state: formData.state,
-            country: formData.country,
-            zipCode: formData.zipCode,
-            phoneNumber: formData.phoneNumber,
-            email: formData.email,
-            additionalInfo: formData.additionalInfo,
-            isDefault: formData.isDefault || addresses.length === 0
-        };
-        
         try {
-            const updatedUser = await dispatch(addShippingAddress(addressData));
+            // Only show loading toast, success/error will be handled by the useEffect
+            const loadingToast = toast.loading('Adding address...');
             
-            if (updatedUser) {
-                toast.success('Address added successfully');
-                
-                // Update addresses list from user state
-                const updatedAddresses = updatedUser.shippingAddresses || [];
-                setAddresses(updatedAddresses);
-                
-                // Select the new address if it's set as default or no address was selected
-                if (formData.isDefault || !selectedAddress) {
-                    const newAddress = updatedAddresses[updatedAddresses.length - 1];
-                    if (newAddress) {
-                        setSelectedAddress(newAddress._id);
-                        handleAddressSelect(newAddress);
-                    }
-                }
-                
-                // Close form and reset state
-                setIsNewAddress(false);
-                setIsEditing(false);
-                setFormData({
-                    fullName: '',
-                    primaryAddress: '',
-                    city: '',
-                    state: '',
-                    country: 'India',
-                    zipCode: '',
-                    phoneNumber: '',
-                    email: '',
-                    additionalInfo: '',
-                    isDefault: false
-                });
-            }
+            await dispatch(addShippingAddress(formData));
+            
+            // Reset form and close it
+            setFormData({
+                fullName: '',
+                primaryAddress: '',
+                city: '',
+                state: '',
+                country: 'India',
+                zipCode: '',
+                phoneNumber: '',
+                email: '',
+                additionalInfo: '',
+                isDefault: false
+            });
+            
+            setIsNewAddress(false);
+            
+            // Dismiss the loading toast - the success toast will be shown by the useEffect
+            toast.dismiss(loadingToast);
+            
+            // Refresh user data to get the latest addresses
+            await dispatch(loadUser());
+            
         } catch (error) {
             console.error('Error adding address:', error);
             toast.error(error.response?.data?.message || 'Failed to add address');
@@ -173,11 +271,8 @@ const Shipping = () => {
         }
     };
 
-    // Update shipping address
-    const handleUpdateAddress = async (e) => {
+    const handleUpdateAddress = (e) => {
         e.preventDefault();
-        console.log('handleUpdateAddress called with:', formData);
-        setIsSubmitting(true);
         
         const addressData = {
             fullName: formData.fullName,
@@ -192,27 +287,9 @@ const Shipping = () => {
             isDefault: formData.isDefault
         };
         
-        try {
-            console.log('Dispatching updateShippingAddress with:', { selectedAddress, addressData });
-            const updatedUser = await dispatch(updateShippingAddress(selectedAddress, addressData));
-            console.log('updateShippingAddress result:', updatedUser);
-            
-            if (updatedUser) {
-                console.log('Update successful, updating local state');
-                // Update addresses list from user state
-                setAddresses(updatedUser.shippingAddresses || []);
-                
-                // Update selected address if it was the one edited
-                if (selectedAddress) {
-                    const updatedAddress = updatedUser.shippingAddresses.find(addr => addr._id === selectedAddress);
-                    if (updatedAddress) {
-                        console.log('Updated address found, selecting it');
-                        handleAddressSelect(updatedAddress);
-                    }
-                }
-                
-                // Close form and reset state
-                console.log('Closing form and resetting state');
+        dispatch(updateShippingAddress(selectedAddress, addressData))
+            .then(() => {
+                // Reset form and UI state
                 setIsEditing(false);
                 setIsNewAddress(false);
                 setFormData({
@@ -230,18 +307,14 @@ const Shipping = () => {
                 
                 // Show success message
                 toast.success('Address updated successfully');
-                
-                console.log('Form should be closed now');
-            } else {
-                console.warn('Update was not successful');
-                toast.error('Failed to update address');
-            }
-        } catch (error) {
-            console.error('Error updating address:', error);
-            toast.error(error.response?.data?.message || 'Failed to update address');
-        } finally {
-            setIsSubmitting(false);
-        }
+            })
+            .catch((error) => {
+                console.error('Error updating address:', error);
+                toast.error(error.response?.data?.message || 'Failed to update address');
+            })
+            .finally(() => {
+                setIsSubmitting(false);
+            });
     };
 
     // State for delete confirmation modal
@@ -250,7 +323,7 @@ const Shipping = () => {
 
     // Open delete confirmation modal
     const confirmDeleteAddress = (id, e) => {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
         setAddressToDelete(id);
         setShowDeleteModal(true);
     };
@@ -262,52 +335,15 @@ const Shipping = () => {
     };
 
     // Delete shipping address
-    const handleDeleteAddress = async () => {
+    const handleDeleteAddress = () => {
         if (!addressToDelete) return;
         
-        try {
-            console.log('Attempting to delete address:', addressToDelete);
-            const result = await dispatch(deleteShippingAddress(addressToDelete));
-            console.log('Delete result:', result);
-            
-            if (result && result.success) {
-                // Update addresses list from the updated user data
-                const updatedUser = result.user || user; // Fallback to current user data if not in result
-                const updatedAddresses = updatedUser.shippingAddresses || [];
-                
-                setAddresses(updatedAddresses);
-                
-                // Update selected address if the deleted one was selected
-                if (selectedAddress === addressToDelete) {
-                    setSelectedAddress(null);
-                    dispatch(saveShippingInfo({}));
-                    
-                    // Select the first available address if any
-                    if (updatedAddresses.length > 0) {
-                        const firstAddress = updatedAddresses[0];
-                        setSelectedAddress(firstAddress._id);
-                        handleAddressSelect(firstAddress);
-                    }
-                }
-                
-                // Show success message
-                toast.success('Address deleted successfully');
-                
-                // Close the modal
-                closeDeleteModal();
-                
-                // Reset form if in edit mode
-                setIsEditing(false);
-                setIsNewAddress(false);
-            } else {
-                console.error('Delete operation did not return success');
-                toast.error('Failed to delete address');
-            }
-        } catch (error) {
-            console.error('Error in handleDeleteAddress:', error);
-            toast.error(error.message || 'Failed to delete address');
-            closeDeleteModal(); // Ensure modal is closed even on error
-        }
+        // Dispatch the delete action with the stored address ID
+        dispatch(deleteShippingAddress(addressToDelete));
+        
+        // Close the modal
+        setShowDeleteModal(false);
+        setAddressToDelete(null);
     };
 
     // Proceed to payment
@@ -783,8 +819,9 @@ const Shipping = () => {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleDeleteAddress}
+                                    onClick={() => handleDeleteAddress()}
                                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                    disabled={!addressToDelete}
                                 >
                                     Delete
                                 </button>
@@ -798,3 +835,4 @@ const Shipping = () => {
 };
 
 export default Shipping;
+

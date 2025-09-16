@@ -4,6 +4,50 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
+const addressSchema = new mongoose.Schema({
+    fullName: {
+        type: String,
+        required: [true, "Please enter a full name"],
+    },
+    primaryAddress: {
+        type: String,
+        required: [true, "Please enter the primary address"],
+    },
+    city: {
+        type: String,
+        required: [true, "Please enter a city"],
+    },
+    state: {
+        type: String,
+        required: [true, "Please enter a state"],
+    },
+    zipCode: {
+        type: String,
+        required: [true, "Please enter a zip code"],
+    },
+    country: {
+        type: String,
+        required: [true, "Please enter a country"],
+        default: 'India',
+    },
+    phoneNumber: {
+        type: String,
+        required: [true, "Please enter a phone number"],
+    },
+    email: {
+        type: String,
+        required: [true, "Please enter an email"],
+        validate: [validator.isEmail, "Please enter a valid email"],
+    },
+    additionalInfo: {
+        type: String,
+    },
+    isDefault: {
+        type: Boolean,
+        default: false,
+    },
+});
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -83,49 +127,8 @@ const userSchema = new mongoose.Schema({
             default: false,
         }
     }],
-    billingAddresses: [{
-        fullName: {
-            type: String,
-            required: [true, "Please enter full name"],
-        },
-        primaryAddress: {
-            type: String,
-            required: [true, "Please enter primary address"],
-        },
-        country: {
-            type: String,
-            required: [true, "Please enter country"],
-        },
-        state: {
-            type: String,
-            required: [true, "Please enter state"],
-        },
-        city: {
-            type: String,
-            required: [true, "Please enter city"],
-        },
-        zipCode: {
-            type: String,
-            required: [true, "Please enter zip code"],
-        },
-        phoneNumber: {
-            type: String,
-            required: [true, "Please enter phone number"],
-        },
-        email: {
-            type: String,
-            required: [true, "Please enter email"],
-            validate: [validator.isEmail, "Please enter a valid email"],
-        },
-        additionalInfo: {
-            type: String,
-            required: false,
-        },
-        isDefault: {
-            type: Boolean,
-            default: false,
-        }
-    }],
+    billingAddresses: [addressSchema],
+    shippingAddresses: [addressSchema],
     createdAt: {
         type: Date,
         default: Date.now,

@@ -32,6 +32,9 @@ import {
     MY_SAMPLE_ORDERS_REQUEST,
     MY_SAMPLE_ORDERS_SUCCESS,
     MY_SAMPLE_ORDERS_FAIL,
+    ORDER_SHIPPING_DETAILS_REQUEST,
+    ORDER_SHIPPING_DETAILS_SUCCESS,
+    ORDER_SHIPPING_DETAILS_FAIL,
 } from "../constants/orderConstants";
 import api from "../utils/api";
 // --- MODIFICATION: Import emptySampleCart action ---
@@ -122,6 +125,26 @@ export const myOrders = (page = 1) => async (dispatch) => {
     }
 };
 
+
+export const getOrderShippingDetails = (orderId) => async (dispatch) => {
+    try {
+        dispatch({ type: ORDER_SHIPPING_DETAILS_REQUEST });
+
+        // This calls the new backend route we created
+        const { data } = await api.get(`/order/${orderId}/shipping`);
+
+        dispatch({
+            type: ORDER_SHIPPING_DETAILS_SUCCESS,
+            payload: data.shippingDetails,
+        });
+
+    } catch (error) {
+        dispatch({
+            type: ORDER_SHIPPING_DETAILS_FAIL,
+            payload: error.response?.data?.message || 'Failed to fetch shipping details',
+        });
+    }
+};
 
 // --- MODIFICATION: Added Sample Order Actions ---
 
@@ -316,21 +339,23 @@ export const getAllOrders = ({ page = 1, limit = 10, sortBy = '-createdAt' } = {
 };
 
 // Update Order ---ADMIN
-export const updateOrder = (id, order) => async (dispatch) => {
+export const updateOrder = (id, orderData) => async (dispatch) => {
     try {
-        dispatch({ type: UPDATE_ORDER_REQUEST });
+        dispatch({ type: 'UPDATE_ORDER_REQUEST' });
 
         const config = { headers: { "Content-Type": "application/json" } };
-        const { data } = await api.put(`/admin/order/${id}`, order, config);
+
+        // The orderData object will contain { status, vrlInvoiceLink, consignmentNumber }
+        const { data } = await api.put(`/admin/order/${id}`, orderData, config);
 
         dispatch({
-            type: UPDATE_ORDER_SUCCESS,
+            type: 'UPDATE_ORDER_SUCCESS',
             payload: data.success,
         });
 
     } catch (error) {
         dispatch({
-            type: UPDATE_ORDER_FAIL,
+            type: 'UPDATE_ORDER_FAIL',
             payload: error.response.data.message,
         });
     }
