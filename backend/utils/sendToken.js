@@ -32,7 +32,7 @@ const sendToken = (user, statusCode, res, redirectUrl = null) => {
       Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'None',
     secure: process.env.NODE_ENV === 'production',
   };
 
