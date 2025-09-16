@@ -1,7 +1,7 @@
-# Flipkart - MERN
-Full-Stack Flipkart with Admin Dashboard & Paytm Payment Gateway.
+# DhagaKart - MERN
+Full-Stack dhagakart with Admin Dashboard & Paytm Payment Gateway.
 
-[Visit Now](https://flipkartweb-mern.vercel.app) 🚀
+[Visit Now](https://www.dhagakart.com) 🚀
 
 ## 🖥️ Tech Stack
 **Frontend:**
