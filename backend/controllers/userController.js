@@ -60,11 +60,27 @@ exports.loginUser = asyncErrorHandler(async (req, res, next) => {
 });
 
 // Logout User
+// exports.logoutUser = asyncErrorHandler(async (req, res, next) => {
+//     const options = {
+//         expires: new Date(Date.now()),
+//         httpOnly: true,
+//         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+//         secure: process.env.NODE_ENV === 'production'
+//     };
+
+//     res.cookie("token", null, options);
+
+//     res.status(200).json({
+//         success: true,
+//         message: "Logged Out",
+//     });
+// });
+
 exports.logoutUser = asyncErrorHandler(async (req, res, next) => {
     const options = {
         expires: new Date(Date.now()),
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: 'lax', // Updated for same-site requests
         secure: process.env.NODE_ENV === 'production'
     };
 

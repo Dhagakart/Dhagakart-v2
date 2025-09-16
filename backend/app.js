@@ -22,7 +22,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use(express.static(path.join(__dirname, '..', 'client'))); 
 
-const allowedOrigins = ['http://localhost:5173', 'https://dhagakart-jfaj.vercel.app', 'https://dhagakart.com', 'https://www.dhagakart.com'];
+const allowedOrigins = ['http://localhost:5173', 'https://dhagakart-jfaj.vercel.app', 'https://dhagakart.com', 'https://www.dhagakart.com', 'http://localhost:4000'];
 const corsOptions = {
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {

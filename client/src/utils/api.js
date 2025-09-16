@@ -43,3 +43,16 @@ export const getAuthHeaders = () => {
 };
 
 export default api;
+
+// import axios from 'axios';
+
+// // Create an axios instance with the new relative baseURL
+// const api = axios.create({
+//   baseURL: '/api/v1', // This now points to the Vercel proxy
+//   withCredentials: true,
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+// });
+
+// export default api;
