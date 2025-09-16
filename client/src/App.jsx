@@ -118,7 +118,7 @@ function App() {
                         <Route index element={<AccountDG defaultTab="profile" />} />
                         <Route path="profile" element={<AccountDG defaultTab="profile" />} />
                         <Route path="orders" element={<AccountDG defaultTab="orders" />} />
-                        <Route path="track-order" element={<AccountDG defaultTab="track-order" />} />
+                        {/* <Route path="track-order" element={<AccountDG defaultTab="track-order" />} /> */}
                         <Route path="rfqs" element={<AccountDG defaultTab="rfqs" />} />
                     </Route>
                     <Route path="/account/update" element={<ProtectedRoute><UpdateProfile /></ProtectedRoute>} />
