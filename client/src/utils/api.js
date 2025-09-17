@@ -12,8 +12,9 @@ const api = axios.create({
 
 // Request interceptor to attach Authorization header
 api.interceptors.request.use((config) => {
+  console.log("Axios request interceptor. Cookies stored: ", document.cookie)
   config.withCredentials = true;
-  const token = localStorage.getItem('token');
+  const token = getCookie('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -40,6 +41,14 @@ api.interceptors.request.use((config) => {
 export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+// Fix: Read token from the cookie instead of Localstorage
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
 };
 
 export default api;
